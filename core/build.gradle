@@ -1,0 +1,32 @@
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+eclipse.project.name = appName + '-core'
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ['src/main']
+    }
+  }
+}
+
+dependencies {
+  api "com.badlogicgames.gdx:gdx:$gdxVersion"
+
+  if(enableGraalNative == 'true') {
+    implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
+  }
+
+  implementation group: 'org.json', name: 'json', version: '20220320' // x i JSON, stabile e leggera ma con vulnerabilità
+  implementation "com.badlogicgames.gdx:gdx:$gdxVersion" // per i pacchetti di libGDX (esiste una versione + recente)
+
+  implementation 'org.mindrot:jbcrypt:0.4'
+
+  // Google Auth Library
+  implementation 'com.google.auth:google-auth-library-oauth2-http:1.19.0'
+
+  // OkHttp (per richieste HTTP)
+  implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+
+  // Gson (per il parsing JSON)
+  implementation 'com.google.code.gson:gson:2.10.1'
+}
