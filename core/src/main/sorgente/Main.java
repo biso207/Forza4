@@ -8,11 +8,27 @@ Developed by Drop Logic©. All rights reserved.
 package sorgente;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends Game {
+    public SpriteBatch screen;
+
     @Override
     public void create() {
-        setScreen(new FirstScreen());
+        screen = new SpriteBatch();
+
+        // chiamata alla schermata di caricamento
+        this.setScreen(new LoadingScreen(this, true));
+
+        // limite a 60 fps
+        Gdx.graphics.setForegroundFPS(60);
+    }
+
+    @Override
+    public void dispose() {
+        SessionLockManager.shutdownAll(); // rilascia il lock
+        screen.dispose(); // rimozione risorse
     }
 }
+
