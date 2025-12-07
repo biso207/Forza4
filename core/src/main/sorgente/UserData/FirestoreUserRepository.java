@@ -1,18 +1,15 @@
 /*
-Forza4 • class DBManager •
+Forza4 • class FirestoreUserRepository •
 Gestisce la lettura/scrittura dei dati utente sul Firestore Database
-Developed by Drop logic©. All rights reserved.
+Developed by Drop Logic©. All rights reserved.
 */
 
-// package di appartenenza
-package sorgente.dbManagement;
+package sorgente.UserData;
 
-// import librerie e codici
 import com.badlogic.gdx.Gdx;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.gson.Gson;
 import okhttp3.*;
-//import sorgente.Authentication.LoadingData.LoadCallback; todo: togliere poi il commento, serve per il caricamento dei dati
 import org.mindrot.jbcrypt.BCrypt;
 import sorgente.dbManagement.LoadingData.LoadCallback;
 
@@ -21,20 +18,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DBManager {
+public class FirestoreUserRepository
+{
     // mappa per i punti degli utenti
     public static Map<String, Integer> userPointsMap = new HashMap<>();
 
     // dati del database per la connessione
-    private static final String PROJECT_ID = "droplogic"; // nome database
+    private static final String PROJECT_ID = "astroinvasioncloud"; // nome database
     private static final String DATABASE_URL = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/";
 
     // costruttore
-    public DBManager() {}
+    public FirestoreUserRepository() {}
 
     // metodo per recuperare il token che permette la comunicazione client-server
     protected static String getAccessToken() throws IOException {
-        GoogleCredentials credentials = GoogleCredentials.fromStream(Gdx.files.internal("private_key_db.json").read())
+        GoogleCredentials credentials = GoogleCredentials.fromStream(Gdx.files.internal("service-account.json").read())
             .createScoped("https://www.googleapis.com/auth/cloud-platform");
         credentials.refreshIfExpired();
         return credentials.getAccessToken().getTokenValue();
@@ -42,7 +40,7 @@ public class DBManager {
 
     // metodo per controllare dell'esistenza del nickname sul server
     public static boolean checkUsernameExists(String username) throws IOException {
-        String url = DATABASE_URL + "users/" + username;
+        String url = DATABASE_URL + "astroData/" + username;
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -61,7 +59,7 @@ public class DBManager {
     // PUNTI UTENTE //
     // metodo per salvare i punti utente
     public static void setUserPoints(String username, int points) throws IOException {
-        String url = DATABASE_URL + "users/" + username + "?updateMask.fieldPaths=points";
+        String url = DATABASE_URL + "astroData/" + username + "?updateMask.fieldPaths=points";
 
         Map<String, Object> pointsField = new HashMap<>();
         pointsField.put("integerValue", Integer.toString(points));
@@ -138,7 +136,7 @@ public class DBManager {
     // PASSWORD //
     // metodo per recuperare la password utente
     public static String getPassword(String username) throws IOException {
-        String url = DATABASE_URL + "users/" + username;
+        String url = DATABASE_URL + "astroData/" + username;
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -161,7 +159,7 @@ public class DBManager {
     // metodo per salvare la password utente in cloud
     public static void setPassword(String username, String password) throws IOException {
         // URL con updateMask per aggiornare solo il campo "psw"
-        String url = DATABASE_URL + "users/" + username + "?updateMask.fieldPaths=psw";
+        String url = DATABASE_URL + "astroData/" + username + "?updateMask.fieldPaths=psw";
 
         // hash della password
         password = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -197,7 +195,7 @@ public class DBManager {
                 if (callback != null) callback.onProgress(10);
 
                 // URL con updateMask per aggiornare solo il campo "dat"
-                String url = DATABASE_URL + "users/" + username + "?updateMask.fieldPaths=dat";
+                String url = DATABASE_URL + "astroData/" + username + "?updateMask.fieldPaths=dat";
 
                 Map<String, Object> fields = new HashMap<>();
                 Map<String, Object> dataField = new HashMap<>();
@@ -240,7 +238,7 @@ public class DBManager {
             try {
                 callback.onProgress(10);
 
-                String url = DATABASE_URL + "users/" + username;
+                String url = DATABASE_URL + "astroData/" + username;
 
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
@@ -275,7 +273,7 @@ public class DBManager {
     // ELIMINAZIONE PROFILO //
     // metodo per eliminare definitivamente un profilo utente
     public static void deleteUserProfile(String username) throws IOException {
-        String url = DATABASE_URL + "users/" + username;
+        String url = DATABASE_URL + "astroData/" + username;
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -288,3 +286,4 @@ public class DBManager {
         response.close();
     }
 }
+
