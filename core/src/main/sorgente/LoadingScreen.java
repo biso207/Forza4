@@ -1,5 +1,4 @@
 package sorgente;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
@@ -8,14 +7,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import sorgente.dbManagement.LoadingData.ProgressListener;
-//import sorgente.Lobby.LobbyManager;
-//import sorgente.LogInSignUp.*;
-//import sorgente.LogInSignUp.LoadingData.GlobalProgressManager;
+import sorgente.LogInSignUp.LoadingData.ProgressListener;
+import sorgente.LogInSignUp.LogInSignupManager;
 
 import java.util.Random;
 
-public class LoadingScreen implements Screen, ProgressListener {
+public class LoadingScreen implements Screen, ProgressListener
+{
     private final SpriteBatch screen;
     private float loadingProgress = 0;
     private int targetProgress=0, finalProgress=0;
@@ -30,26 +28,41 @@ public class LoadingScreen implements Screen, ProgressListener {
     private Music openSound;
     private final boolean playMusic;
 
-    public LoadingScreen(Main game, boolean playMusic) {
+    public LoadingScreen(Main game, boolean playMusic)
+    {
         this.game = game;
         this.screen = game.screen;
         this.shapeRenderer = new ShapeRenderer();
         this.playMusic = playMusic;
         selectScreen();
 
-        if (playMusic) {
+        if (playMusic)
+        {
             // musica di apertura
             openSound = Gdx.audio.newMusic(Gdx.files.internal("sounds/soundtrack home 2023.mp3"));
             openSound.setLooping(false);
             openSound.play();
 
             targetProgress=finalProgress=200;
-        } else {
+        }
+        else
+        {
             // caricamento pagina dei dati utente
             finalProgress=100; // tempo caricamento
-            new Thread(() -> {
-                for (int i = 0; i <= 100; i++) {
-                    try { Thread.sleep(40); } catch (InterruptedException ignored) {}
+
+            new Thread(() ->
+            {
+                for (int i = 0; i <= 100; i++)
+                {
+                    try
+                    {
+                        Thread.sleep(40);
+                    }
+                    catch (InterruptedException ignored)
+                    {
+
+                    }
+
                     final int progress = i;
                     Gdx.app.postRunnable(() -> setProgress(progress));
                 }
@@ -57,7 +70,8 @@ public class LoadingScreen implements Screen, ProgressListener {
         }
     }
 
-    public void setProgress(int progress) {
+    public void setProgress(int progress)
+    {
         targetProgress = progress;
     }
 
@@ -65,10 +79,12 @@ public class LoadingScreen implements Screen, ProgressListener {
     public void show() {}
 
     @Override
-    public void render(float delta) {
+    public void render(float delta)
+    {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if (loadingProgress < targetProgress) {
+        if (loadingProgress < targetProgress)
+        {
             loadingProgress += delta * 50;
             if (loadingProgress > targetProgress)
                 loadingProgress = targetProgress;
@@ -85,24 +101,19 @@ public class LoadingScreen implements Screen, ProgressListener {
         drawRoundedRectangle(shapeRenderer, barWidth);
         shapeRenderer.end();
 
-        if (loadingProgress >= finalProgress && !loadingFinished) {
+
+        if (loadingProgress >= finalProgress && !loadingFinished)
+        {
             loadingFinished = true;
 
-            // accesso alla schermata successiva
-            if (playMusic) {
-                game.setScreen(new LoginSignupManager(game)); // schermata di autenticazione
-                this.dispose(); // rilascio risorse
-            }
-            else {
-                GlobalProgressManager.isInitialLoading = false; // stato di caricamento iniziale dei dati
-
-                // apertura lobby
-                game.setScreen(new LobbyManager(game));
-            }
+            game.setScreen(new LogInSignupManager(game)); // schermata di autenticazione
+            this.dispose(); // rilascio risorse
         }
     }
 
-    private void drawRoundedRectangle(ShapeRenderer shapeRenderer, float width) {
+
+    private void drawRoundedRectangle(ShapeRenderer shapeRenderer, float width)
+    {
         float x = 305;
         float y = 48;
         float height = 20;
@@ -115,7 +126,8 @@ public class LoadingScreen implements Screen, ProgressListener {
         shapeRenderer.arc(x + radius, y + height - radius, radius, 90, 90);
     }
 
-    public void selectScreen() {
+    public void selectScreen()
+    {
         Random r = new Random();
         if (playMusic) bg = r.nextInt(5);
         else bg = 5;
@@ -128,6 +140,7 @@ public class LoadingScreen implements Screen, ProgressListener {
             "loading_screens/loading_screen_4.png",
             "loading_screens/loading_screen_5.png"
         };
+
         background = new Texture(bgPaths[bg]);
     }
 
@@ -144,16 +157,20 @@ public class LoadingScreen implements Screen, ProgressListener {
     public void hide() {}
 
     @Override
-    public void dispose() {
+    public void dispose()
+    {
         if (!playMusic) background.dispose();
-        if (openSound != null) {
+        if (openSound != null)
+        {
             openSound.dispose();
         }
     }
 
     // metodo che "ascolta" il progresso di caricamento durante upload/download dati
     @Override
-    public void onProgress(int progress) {
+    public void onProgress(int progress)
+    {
         setProgress(progress);
     }
 }
+
