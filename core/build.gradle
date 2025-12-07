@@ -29,4 +29,7 @@ dependencies {
 
   // Gson (per il parsing JSON)
   implementation 'com.google.code.gson:gson:2.10.1'
+
+  implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
 }

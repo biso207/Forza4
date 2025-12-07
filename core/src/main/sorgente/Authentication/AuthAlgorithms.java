@@ -16,8 +16,7 @@ import java.net.InetAddress;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class AuthAlgorithms implements InputProcessor
-{
+public class AuthAlgorithms implements InputProcessor {
     // variabili di controllo digitazione
     protected boolean enteringNickname, enteringPassword;
     // variabili per recuperare nick e psw utente
@@ -56,7 +55,7 @@ public class AuthAlgorithms implements InputProcessor
         nicknameInput = new StringBuilder();
         passwordInput = new StringBuilder();
 
-        mouse = new Pixmap(Gdx.files.internal("images/cursor.png"));
+        mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
 
         cursor = Gdx.graphics.newCursor(mouse, 0, 0);
 
@@ -71,6 +70,65 @@ public class AuthAlgorithms implements InputProcessor
     public void dispose() {
         mouse.dispose();
     }
+
+    // *********************** //
+    // METODI DI SUPPORTO UI  //
+    // *********************** //
+
+    /**
+     * Imposta le credenziali inserite dall'utente a partire dalle stringhe
+     * provenienti dalla nuova UI (AuthUI). In questo modo possiamo riusare
+     * tutta la logica esistente basata su nicknameInput e passwordInput
+     * anche senza più l'InputProcessor personalizzato.
+     */
+    public void setCredentials(String nicknameText, String passwordText) {
+        nicknameInput.setLength(0);
+        passwordInput.setLength(0);
+
+        if (nicknameText != null) {
+            nicknameInput.append(nicknameText);
+        }
+        if (passwordText != null) {
+            passwordInput.append(passwordText);
+        }
+    }
+
+    /**
+     * Imposta la modalità corrente su LogIn.
+     *  state = 0 => login
+     */
+    public void setLoginMode() {
+        this.state = 0;
+    }
+
+    /**
+     * Imposta la modalità corrente su SignUp.
+     *  state = 1 => registrazione
+     */
+    public void setSignUpMode() {
+        this.state = 1;
+    }
+
+    /**
+     * Restituisce lo stato corrente dell'algoritmo (0=login, 1=signup, 2=lobby).
+     */
+    public int getState() {
+        return state;
+    }
+
+    /**
+     * Ritorna true se è presente qualunque errore di autenticazione.
+     */
+    public boolean hasAnyError() {
+        return error || error1 || error2 || error3 || error4;
+    }
+
+    public boolean isPasswordOrNicknameConflictError() { return error; }
+    public boolean isNicknameNotFoundError()          { return error1; }
+    public boolean isNoConnectionError()              { return error2; }
+    public boolean isSessionAlreadyOpenError()        { return error3; }
+    public boolean isInvalidNicknameError()           { return error4; }
+
 
     // ************************** //
     // PROCESSI DI AUTENTICAZIONE //
@@ -317,6 +375,8 @@ public class AuthAlgorithms implements InputProcessor
 
     // metodo per controllare i click del mouse
     @Override public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        System.out.println(screenX + " " + screenX);
+
         // cambio pagina - accesso => registrazione
         if ((screenX >= 425 && screenX <= 559) && (screenY >= 553 && screenY <= 595)) {
             resetTexts(); // reset campi editabili
