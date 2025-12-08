@@ -32,7 +32,7 @@ public class FirestoreUserRepository
 
     // metodo per recuperare il token che permette la comunicazione client-server
     protected static String getAccessToken() throws IOException {
-        GoogleCredentials credentials = GoogleCredentials.fromStream(Gdx.files.internal("service-account.json").read())
+        GoogleCredentials credentials = GoogleCredentials.fromStream(Gdx.files.internal("private_key_db.json").read())
             .createScoped("https://www.googleapis.com/auth/cloud-platform");
         credentials.refreshIfExpired();
         return credentials.getAccessToken().getTokenValue();

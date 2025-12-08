@@ -218,7 +218,7 @@ public class AuthAlgorithms implements InputProcessor {
 
                 SessionLockService.startHeartbeat(nickname); // inizio del refresh del timestamp
                 UserProgressService.loadProgresses(); // caricamento progressi utente
-                state = 2; // passaggio alla lobby
+                state = 3; // passaggio alla lobby
             }
             else if (!nickname.isEmpty() && !passwordInput.isEmpty()) {
                 error = true;
@@ -265,7 +265,7 @@ public class AuthAlgorithms implements InputProcessor {
 
             SessionLockService.startHeartbeat(nickname); // inizio del refresh del timestamp
             UserProgressService.loadProgresses(); // caricamento progressi utente
-            state = 2; // passaggio alla lobby
+            state = 3; // passaggio alla lobby
         } catch(Exception e){
             System.err.println(e.getMessage());
         }
@@ -375,7 +375,7 @@ public class AuthAlgorithms implements InputProcessor {
 
     // metodo per controllare i click del mouse
     @Override public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        System.out.println(screenX + " " + screenX);
+        System.out.println(screenX + " " + screenY);
 
         // cambio pagina - accesso => registrazione
         if ((screenX >= 425 && screenX <= 559) && (screenY >= 553 && screenY <= 595)) {
@@ -389,7 +389,7 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // click per avviare il gioco
-        if (isValidInput() && (screenX >= 415 && screenX <= 565) && (screenY >= 462 && screenY <= 512)) {
+        if (isValidInput() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
             SoundManager.playClickButton(50); // suono del click
 
             // controllo internet e passaggio algoritmi di autenticazione
@@ -398,22 +398,23 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // click per nascondere/mostrare la password
-        if ((screenX >= 682 && screenX <= 712) && (screenY >= 384 && screenY <= 404)) {
+        if ((screenX >= 689 && screenX <= 716) && (screenY >= 352 && screenY <= 372)) {
             SoundManager.playClickButton(50); // suono del click
             showPS = !showPS;
         }
 
-        // click per attivare la digitazione della password
-        if (!enteringNickname && ((screenX>=249 && screenX<=730) && (screenY>=277 && screenY<=319))) {
+        // click per attivare la digitazione del nickname
+        if (!enteringNickname && ((screenX>=251 && screenX<=732) && (screenY>=243 && screenY<=283))) {
             SoundManager.playClickButton(50); // suono del click
             enteringNickname=true;
             enteringPassword=false;
         }
-        // click per attivare la digitazione del nickname
-        if (!enteringPassword && ((screenX>=249 && screenX<=730) && (screenY>=375 && screenY<=417))) {
+
+        // click per attivare la digitazione della password
+        if (!enteringPassword && ((screenX>=251 && screenX<=732) && (screenY>=340 && screenY<=380))) {
             SoundManager.playClickButton(50); // suono del click
-            enteringPassword=true;
             enteringNickname=false;
+            enteringPassword=true;
         }
         return true;
     }
@@ -428,7 +429,7 @@ public class AuthAlgorithms implements InputProcessor {
             Gdx.graphics.setCursor(cursor);
         }
         // pulsante accesso gioco
-        if (isValidInput() && (screenX >= 415 && screenX <= 565) && (screenY >= 462 && screenY <= 512)) {
+        if (isValidInput() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
             isHover1=true;
         }
         // pulsante cambio pagina

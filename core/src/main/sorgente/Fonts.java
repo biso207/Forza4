@@ -13,12 +13,14 @@ public class Fonts {
         FreeTypeFontGenerator.DEFAULT_CHARS +
             "àèéìòùÀÈÉÌÒÙ" +
             "áéíóúüñ¿¡" +
-            "çâêîôûäëïöüÿÇÄÖÜßœŒ";
+            "çâêîôûäëïöüÿÇÄÖÜßœŒ" +
+            "•●◦·";
 
     // ---- Charset cirillico ----
     public static final String CHARSET_CYRILLIC =
         "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ" +
-            "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+            "абвгдеёжзийклмнопрстуфхцчшщъыьэюя" +
+            "•●◦·";
 
     // ---- FONT LATINI ----
     public static BitmapFont light20;
