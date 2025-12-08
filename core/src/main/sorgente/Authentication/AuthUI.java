@@ -117,6 +117,11 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
                 if (alg.error4) Fonts.draw(screen, "Nickname not valid",388,72, Fonts.medium20);
                 break;
             case 2:
+                screen.draw(img3, 0, 0);
+                if (alg.error) Fonts.draw(screen, "xxxx",388,72, Fonts.medium20);
+                if (alg.error4) Fonts.draw(screen, "xxx",388,72, Fonts.medium20);
+                break;
+            case 3:
                 // salvataggio password in remoto
                 try {
                     FirestoreUserRepository.setPassword(AuthAlgorithms.nickname, AuthAlgorithms.password);
@@ -144,25 +149,28 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         }
 
         // icona mostra/nascondi password
-        if (alg.showPS) screen.draw(showPS, 690,288);
-        else screen.draw(coverPS, 690,288);
+        if (alg.showPS) screen.draw(showPS, 695,323);
+        else screen.draw(coverPS, 695,323);
 
         // pulsante PLAY e cambio pagina
-        if (alg.isHover1) screen.draw(redBtnHover, 422, 185);
+        if (alg.isHover1) screen.draw(redBtnHover, 424, 210);
         if (alg.isHover2) {
             if (alg.state==1) screen.draw(btnResetPSW, 428, 99);
             else screen.draw(btnResetPSW, 428, 99);
         }
 
+        if (alg.state == 0 || alg.state == 1) Fonts.draw(screen, "PLAY",450,251, Fonts.bold40);
+        else Fonts.draw(screen, "SAVE",440,251, Fonts.bold40);
+
         // nickname
-        Fonts.draw(screen, String.valueOf(alg.nicknameInput), 272, 412, Fonts.bold25);
+        Fonts.draw(screen, String.valueOf(alg.nicknameInput), 272, 445, Fonts.bold25);
         // password che può essere visibile o meno, l'utente deve solo cliccare l'icona a dx
-        if (!alg.showPS) Fonts.draw(screen, "•".repeat(alg.passwordInput.length()), 272, 310, Fonts.bold25);
-        else Fonts.draw(screen, String.valueOf(alg.passwordInput), 272, 316, Fonts.bold25);
+        if (!alg.showPS) Fonts.draw(screen, "•".repeat(alg.passwordInput.length()), 272, 345, Fonts.bold25);
+        else Fonts.draw(screen, String.valueOf(alg.passwordInput), 272, 347, Fonts.bold25);
 
         // crediti
-        Fonts.draw(screen, "BIGA Games", 53, 45, Fonts.medium20); // firma al gioco
-        Fonts.draw(screen, "October 2025", 838, 45, Fonts.medium20); // versione di gioco
+        Fonts.draw(screen, "Drop Logic", 53, 45, Fonts.medium20); // firma al gioco
+        Fonts.draw(screen, "Beta", 838, 45, Fonts.medium20); // versione di gioco
 
         screen.end();
     }
@@ -176,12 +184,21 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
     @Override public void dispose() {
         img1.dispose();
         img2.dispose();
+        img3.dispose();
         showPS.dispose();
         coverPS.dispose();
         redBtnClicked.dispose();
         redBtn.dispose();
         redBtnHover.dispose();
         noInternet.dispose();
+        btnBack.dispose();
+        btnBackClicked.dispose();
+        btnLogin.dispose();
+        btnLoginClicked.dispose();
+        btnSignup.dispose();
+        btnSignupClicked.dispose();
+        btnResetPSW.dispose();
+        btnResetPSWClicked.dispose();
 
         alg.dispose();
     }
