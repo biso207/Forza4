@@ -391,7 +391,7 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // pulsante back => da psw reset a login
-
+        if (state==2 && (screenX >= 38 && screenX <= 88) && (screenY >= 48 && screenY <= 98)) state=0;
 
         // reset psw
         if (state==0 && !nicknameInput.isEmpty() && (screenX >= 378 && screenX <= 604) && (screenY >= 541 && screenY <= 583)) {
@@ -410,6 +410,7 @@ public class AuthAlgorithms implements InputProcessor {
 
             // controllo internet e passaggio algoritmi di autenticazione
             if (!checkInternetConnection()) { resetErrors(); error2=true; }
+            // todo: aggiungere l'opzione di aggiornamento password
             else { processLoginOrSignup(); }
         }
 
@@ -446,7 +447,7 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // pulsante avanti rosso
-        if (isValidInput() && checkInternetConnection() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
+        if (isValidInput() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
             btnRedHover=true;
         }
 
@@ -457,6 +458,7 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // pulsante in alto a sx
+        if (state==2 && (screenX >= 38 && screenX <= 88) && (screenY >= 48 && screenY <= 98)) gobackHover=true;
 
         // pulsante reset psw
         if (state==0 && !nicknameInput.isEmpty() && (screenX >= 378 && screenX <= 604) && (screenY >= 541 && screenY <= 583)) {
