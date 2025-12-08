@@ -2,6 +2,7 @@ package sorgente.Authentication;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Pixmap;
 import org.mindrot.jbcrypt.BCrypt;
@@ -25,9 +26,13 @@ public class AuthAlgorithms implements InputProcessor {
     // variabili per comporre le stringhe digitate di nick e psw
     protected final StringBuilder nicknameInput, passwordInput;
 
+    // selezione testi (per Ctrl+A, evidenzia tutto)
+    protected boolean nicknameSelected = false;
+    protected boolean passwordSelected = false;
+
     // variabile per nascondere/mostrare la password e cambiare stile pulsanti
     protected boolean showPS=false, btnRedHover=false, btnResetPSWHover=false,
-    gotoSignupHover=false, gotoLoginHover=false, gobackHover=false;
+        gotoSignupHover=false, gotoLoginHover=false, gobackHover=false;
 
     // variabili per gli errori durante le autenticazioni
     protected boolean error = false; // "Password wrong"/"Nickname already in use"
@@ -93,6 +98,10 @@ public class AuthAlgorithms implements InputProcessor {
         if (passwordText != null) {
             passwordInput.append(passwordText);
         }
+
+        // quando impostiamo le credenziali dall'esterno, nessun testo deve risultare selezionato
+        nicknameSelected = false;
+        passwordSelected = false;
     }
 
     /**
@@ -157,8 +166,20 @@ public class AuthAlgorithms implements InputProcessor {
         }
     }
 
+    public boolean isNicknameSelected() {
+        return nicknameSelected;
+    }
+
+    public boolean isPasswordSelected() {
+        return passwordSelected;
+    }
+
     // metodo per resettare i testi dei campi digitati
     public void resetTexts() {
+        // reset selezioni (Ctrl+A)
+        nicknameSelected = false;
+        passwordSelected = false;
+
         // reset lunghezza
         if (state==0) { // caso login
             if (error) { // error solo password errata
@@ -348,8 +369,34 @@ public class AuthAlgorithms implements InputProcessor {
 
         // scelta del campo da modificare
         StringBuilder currentInput = enteringNickname ? nicknameInput : passwordInput;
+        boolean isNicknameField = enteringNickname;
+        boolean currentSelected = isNicknameField ? nicknameSelected : passwordSelected;
 
-        // ENTER terminare la digitazione
+        // se il testo è selezionato (Ctrl+A), gestiamo prima la cancellazione/sostituzione
+        if (currentSelected) {
+            // BACKSPACE: cancella tutto il testo selezionato
+            if (character == '\b') {
+                currentInput.setLength(0);
+                if (isNicknameField) nicknameSelected = false; else passwordSelected = false;
+                return true;
+            }
+
+            // carattere stampabile: sostituisce completamente il testo selezionato
+            if (character >= 32 && character < 127) {
+                currentInput.setLength(0);
+                currentInput.append(character);
+                if (isNicknameField) nicknameSelected = false; else passwordSelected = false;
+                return true;
+            }
+
+            // ENTER: rimuove solo lo stato di selezione e prosegue con la logica esistente
+            if (character == '\n' || character == '\r') {
+                if (isNicknameField) nicknameSelected = false; else passwordSelected = false;
+                // non facciamo return qui: lasciamo che venga gestito sotto
+            }
+        }
+
+        // ENTER termina la digitazione o avvia il processo di autenticazione
         if ((character == '\n' || character == '\r')) {
             // passaggio alla digitazione della password
             if (enteringNickname) {
@@ -362,17 +409,22 @@ public class AuthAlgorithms implements InputProcessor {
                 if (!checkInternetConnection()) {
                     resetErrors(); // reset di qualunque errore
                     resetTexts(); // reset lunghezza campi digitati
-                    error2=true; // stampa errore
+                    error2 = true; // stampa errore
                 }
                 // processi di autenticazione
                 else processLoginOrSignup();
             }
         }
-        // BACKSPACE per cancellare un carattere
-        else if (character == '\b' && !currentInput.isEmpty()) currentInput.deleteCharAt(currentInput.length() - 1);
-            // controllo digitazione caratteri validi
-        else if (character >= 32 && character < 127 && currentInput.length() <= 10) currentInput.append(character);
+        // BACKSPACE per cancellare un carattere singolo
+        else if (character == '\b' && !currentInput.isEmpty()) {
+            currentInput.deleteCharAt(currentInput.length() - 1);
+        }
+        // controllo digitazione caratteri validi
+        else if (character >= 32 && character < 127 && currentInput.length() <= 10) {
+            currentInput.append(character);
+        }
         return true;
+
     }
 
     // metodo per controllare i click del mouse
@@ -425,6 +477,9 @@ public class AuthAlgorithms implements InputProcessor {
             SoundManager.playClickButton(50); // suono del click
             enteringNickname=true;
             enteringPassword=false;
+            // quando cambiamo campo di input, nessun testo deve restare selezionato
+            nicknameSelected = false;
+            passwordSelected = false;
         }
 
         // click per attivare la digitazione della password
@@ -432,6 +487,9 @@ public class AuthAlgorithms implements InputProcessor {
             SoundManager.playClickButton(50); // suono del click
             enteringNickname=false;
             enteringPassword=true;
+            // cambio campo: azzeriamo eventuali selezioni attive
+            nicknameSelected = false;
+            passwordSelected = false;
         }
         return true;
     }
@@ -469,7 +527,24 @@ public class AuthAlgorithms implements InputProcessor {
     }
 
     // altri metodi
-    @Override public boolean keyDown(int keycode) { return false; }
+    @Override public boolean keyDown(int keycode) {
+        // Ctrl + A per selezionare tutto il testo del campo attivo
+        if (keycode == com.badlogic.gdx.Input.Keys.A &&
+            (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.CONTROL_LEFT) ||
+                Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.CONTROL_RIGHT))) {
+
+            if (enteringNickname && nicknameInput.length() > 0) {
+                nicknameSelected = true;
+                passwordSelected = false;
+            } else if (enteringPassword && passwordInput.length() > 0) {
+                passwordSelected = true;
+                nicknameSelected = false;
+            }
+            return true;
+        }
+
+        return false;
+    }
     @Override public boolean keyUp(int keycode) { return false; }
     @Override public boolean scrolled(float amountX, float amountY) { return false; }
     @Override public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
