@@ -12,6 +12,7 @@ import sorgente.UserData.UserProgressService;
 import sorgente.UserData.LocalLockStore;
 import sorgente.UserData.SessionLockService;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -25,7 +26,8 @@ public class AuthAlgorithms implements InputProcessor {
     protected final StringBuilder nicknameInput, passwordInput;
 
     // variabile per nascondere/mostrare la password e cambiare stile pulsanti
-    protected boolean showPS=false, isHover1=false, isHover2=false;
+    protected boolean showPS=false, btnRedHover=false, btnResetPSWHover=false,
+    gotoSignupHover=false, gotoLoginHover=false, gobackHover=false;
 
     // variabili per gli errori durante le autenticazioni
     protected boolean error = false; // "Password wrong"/"Nickname already in use"
@@ -378,17 +380,31 @@ public class AuthAlgorithms implements InputProcessor {
         System.out.println(screenX + " " + screenY);
 
         // cambio pagina - accesso => registrazione
-        if ((screenX >= 425 && screenX <= 559) && (screenY >= 553 && screenY <= 595)) {
+        if ((screenX >= 894 && screenX <= 944) && (screenY >= 48 && screenY <= 98)) {
             resetTexts(); // reset campi editabili
             resetErrors(); // reset di qualunque errore
             SoundManager.playClickButton(50); // suono del click
 
             // cambio pagina
-            if (state==0) state = 1;
-            else state=0;
+            if (state==0) state = 1; // da login a signup
+            else state=0; // da signup a login
         }
 
-        // click per avviare il gioco
+        // pulsante back => da psw reset a login
+
+
+        // reset psw
+        if (state==0 && !nicknameInput.isEmpty() && (screenX >= 378 && screenX <= 604) && (screenY >= 541 && screenY <= 583)) {
+            // check esistenza utente
+            try {
+                if (!FirestoreUserRepository.checkUsernameExists(nickname)) { resetErrors(); error1 = true;} // nickname not found
+                else state=2; // passaggio al reset password
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // click per procedere avanti
         if (isValidInput() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
             SoundManager.playClickButton(50); // suono del click
 
@@ -422,19 +438,29 @@ public class AuthAlgorithms implements InputProcessor {
     // cambio icona mouse al passaggio sugli elementi
     @Override public boolean mouseMoved(int screenX, int screenY) {
         // finché si muove fuori dai pulsanti rimangono spenti, con le grafiche di base
-        isHover1=isHover2=false;
+        btnRedHover=btnResetPSWHover=gotoLoginHover=gotoSignupHover=gobackHover=false;
 
-        // schermo intero per icona mouse
+        // icona mouse
         if ((screenX >= 0 && screenX <= 1000) && (screenY >= 0 && screenY <= 700)) {
             Gdx.graphics.setCursor(cursor);
         }
-        // pulsante accesso gioco
-        if (isValidInput() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
-            isHover1=true;
+
+        // pulsante avanti rosso
+        if (isValidInput() && checkInternetConnection() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
+            btnRedHover=true;
         }
-        // pulsante cambio pagina
-        if (checkInternetConnection() && (screenX >= 425 && screenX <= 559) && (screenY >= 553 && screenY <= 595)) {
-            isHover2=true;
+
+        // pulsante in alto a dx
+        if ((screenX >= 894 && screenX <= 944) && (screenY >= 48 && screenY <= 98)) {
+            if (state==0) gotoSignupHover=true;
+            else gotoLoginHover=false;
+        }
+
+        // pulsante in alto a sx
+
+        // pulsante reset psw
+        if (state==0 && !nicknameInput.isEmpty() && (screenX >= 378 && screenX <= 604) && (screenY >= 541 && screenY <= 583)) {
+            btnResetPSWHover=true;
         }
 
         return true;

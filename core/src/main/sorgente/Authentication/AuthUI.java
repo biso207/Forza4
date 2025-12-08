@@ -153,8 +153,8 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         else screen.draw(coverPS, 695,323);
 
         // pulsante PLAY e cambio pagina
-        if (alg.isHover1) screen.draw(redBtnHover, 424, 210);
-        if (alg.isHover2) {
+        if (alg.btnRedHover) screen.draw(redBtnHover, 424, 210);
+        if (alg.btnResetPSWHover) {
             if (alg.state==1) screen.draw(btnResetPSW, 428, 99);
             else screen.draw(btnResetPSW, 428, 99);
         }
