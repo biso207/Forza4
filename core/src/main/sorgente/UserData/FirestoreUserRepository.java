@@ -24,7 +24,7 @@ public class FirestoreUserRepository
     public static Map<String, Integer> userPointsMap = new HashMap<>();
 
     // dati del database per la connessione
-    private static final String PROJECT_ID = "forza4"; // nome database
+    private static final String PROJECT_ID = "forza4-adf22"; // nome database
     private static final String DATABASE_URL = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/";
 
     // costruttore
@@ -137,6 +137,8 @@ public class FirestoreUserRepository
     // metodo per recuperare la password utente
     public static String getPassword(String username) throws IOException {
         String url = DATABASE_URL + "users/" + username;
+
+        System.out.println(url);
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()

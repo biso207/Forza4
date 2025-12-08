@@ -34,6 +34,21 @@ public class AuthAlgorithms implements InputProcessor {
     protected boolean showPS=false, btnRedHover=false, btnResetPSWHover=false,
         gotoSignupHover=false, gotoLoginHover=false, gobackHover=false;
 
+    // variabili click pulsanti
+    protected boolean btnRedClicked=false, btnResetPSWClicked=false,
+        gotoSignupClicked=false, gotoLoginClicked=false, gobackClicked=false;
+
+    // variabili per i delay tra le schermate
+    protected float clickedTimer = 0f;
+    protected float screenChangeDelay = 0f;
+    protected boolean pendingScreenChange = false;
+    protected int pendingNextState = -1;
+
+    // delay per l'esecuzione dei processi di autenticazione (login/signup)
+    protected boolean pendingAuthProcess = false;
+    protected float authDelay = 0f;
+
+
     // variabili per gli errori durante le autenticazioni
     protected boolean error = false; // "Password wrong"/"Nickname already in use"
     protected boolean error1 = false; // "Nickname not found"
@@ -42,10 +57,11 @@ public class AuthAlgorithms implements InputProcessor {
     protected boolean error4 = false; // "Nickname not valid"
 
 
+
     /* pagina di riferimento
-        0 = LogIn
-        1 = SignUp
-    */
+            0 = LogIn
+            1 = SignUp
+        */
     protected int state;
 
     // mouse
@@ -98,10 +114,6 @@ public class AuthAlgorithms implements InputProcessor {
         if (passwordText != null) {
             passwordInput.append(passwordText);
         }
-
-        // quando impostiamo le credenziali dall'esterno, nessun testo deve risultare selezionato
-        nicknameSelected = false;
-        passwordSelected = false;
     }
 
     /**
@@ -125,6 +137,50 @@ public class AuthAlgorithms implements InputProcessor {
      */
     public int getState() {
         return state;
+    }
+
+    /**
+     * Ritorna true se il nickname è attualmente selezionato (Ctrl+A).
+     */
+    public boolean isNicknameSelected() {
+        return nicknameSelected;
+    }
+
+    /**
+     * Ritorna true se la password è attualmente selezionata (Ctrl+A).
+     */
+    public boolean isPasswordSelected() {
+        return passwordSelected;
+    }
+
+    /**
+     * Pianifica un cambio di schermata con un leggero ritardo, per mostrare l'animazione di click.
+     */
+    public void scheduleScreenChange(int nextState, float delaySeconds) {
+        pendingScreenChange = true;
+        pendingNextState = nextState;
+        screenChangeDelay = delaySeconds;
+    }
+
+
+    /**
+     * Pianifica l'esecuzione ritardata del processo di autenticazione (login/signup),
+     * usato per mostrare l'animazione di click del pulsante PLAY prima di cambiare schermata.
+     */
+    public void scheduleAuthProcess(float delaySeconds) {
+        pendingAuthProcess = true;
+        authDelay = delaySeconds;
+    }
+
+    /**
+     * Resetta tutti i flag di click dei pulsanti.
+     */
+    public void resetClickFlags() {
+        btnRedClicked = false;
+        btnResetPSWClicked = false;
+        gotoSignupClicked = false;
+        gotoLoginClicked = false;
+        gobackClicked = false;
     }
 
     /**
@@ -164,14 +220,6 @@ public class AuthAlgorithms implements InputProcessor {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    public boolean isNicknameSelected() {
-        return nicknameSelected;
-    }
-
-    public boolean isPasswordSelected() {
-        return passwordSelected;
     }
 
     // metodo per resettare i testi dei campi digitati
@@ -220,28 +268,25 @@ public class AuthAlgorithms implements InputProcessor {
 
     // algoritmo di registrazione
     public void SignUpAlg() {
-        // recupero nickname digitato con pulizia da caratteri non adatti
         nickname = sanitizeNickname(nicknameInput.toString());
 
         try {
-            // nickname invalido, contiene parole invalide
-            //if (!ProfanityFilter.isValidNickname(nickname)) { error4=true; return; } // todo: migliorarlo perché non funziona
-
-            // controllo presenza utente
             if (!FirestoreUserRepository.checkUsernameExists(nickname)) {
 
-                // assegnazione della psw digitata
+                // 1) password in chiaro
                 password = passwordInput.toString();
 
-                // creazione file utente
+                // 2) salva password su Firestore (qui viene hashata per il DB)
+                FirestoreUserRepository.setPassword(nickname, password);
+
+                // 3) crea i file locali (qui viene hashata di nuovo, ma SOLO per il file locale)
                 createFiles();
 
-                // blocco del lock
+                // 4) lock, heartbeat, ecc.
                 LocalLockStore.setLockStatus(nickname, true);
-
-                SessionLockService.startHeartbeat(nickname); // inizio del refresh del timestamp
-                UserProgressService.loadProgresses(); // caricamento progressi utente
-                state = 3; // passaggio alla lobby
+                SessionLockService.startHeartbeat(nickname);
+                UserProgressService.loadProgresses();
+                state = 3;
             }
             else if (!nickname.isEmpty() && !passwordInput.isEmpty()) {
                 error = true;
@@ -251,6 +296,7 @@ public class AuthAlgorithms implements InputProcessor {
             System.err.println(e.getMessage());
         }
     }
+
 
     // algoritmo di accesso
     public void LogInAlg() {
@@ -272,12 +318,8 @@ public class AuthAlgorithms implements InputProcessor {
             // recupero password utente dal server
             String hashedPsw = FirestoreUserRepository.getPassword(nickname);
 
-            /// once all the users will have the password hashed, we can leave only the hash control in the
-            /// password-check behind. now we use an "&&" statement to permit access for both types of passwords,
-            ///  hashed or not. the previous version of the game was using a non-hash method to save the passwords.
-
             // password errata => libera subito il lock
-            if (!hashedPsw.contentEquals(passwordInput) && !BCrypt.checkpw(String.valueOf(passwordInput), hashedPsw)) {
+            if (!BCrypt.checkpw(String.valueOf(passwordInput), hashedPsw)) {
                 resetErrors(); error = true;
                 LocalLockStore.setLockStatus(nickname, false);
                 return;
@@ -424,69 +466,103 @@ public class AuthAlgorithms implements InputProcessor {
             currentInput.append(character);
         }
         return true;
-
     }
 
     // metodo per controllare i click del mouse
     @Override public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         System.out.println(screenX + " " + screenY);
+        // reset degli hover per mostrare bene il resto
+        btnRedHover = btnResetPSWHover = gotoLoginHover = gotoSignupHover = gobackHover = false;
 
-        // cambio pagina - accesso => registrazione
+        // cambio pagina - accesso <-> registrazione (pulsante in alto a destra)
         if ((screenX >= 894 && screenX <= 944) && (screenY >= 48 && screenY <= 98)) {
+            SoundManager.playClickButton(50); // suono del click
             resetTexts(); // reset campi editabili
             resetErrors(); // reset di qualunque errore
-            SoundManager.playClickButton(50); // suono del click
 
-            // cambio pagina
-            if (state==0) state = 1; // da login a signup
-            else state=0; // da signup a login
+            // determinazione della pagina di destinazione
+            int targetState = (state == 0) ? 1 : 0;
+            if (targetState == 1) gotoSignupClicked = true; // da login a signup
+            else gotoLoginClicked = true;  // da signup a login
+
+            clickedTimer = 0.15f;
+            scheduleScreenChange(targetState, 0.20f);
         }
 
-        // pulsante back => da psw reset a login
-        if (state==2 && (screenX >= 38 && screenX <= 88) && (screenY >= 48 && screenY <= 98)) state=0;
+        // pulsante back => da psw reset a login (in alto a sinistra)
+        if (state == 2 && (screenX >= 38 && screenX <= 88) && (screenY >= 48 && screenY <= 98)) {
+            SoundManager.playClickButton(50); // suono del click
+            gobackClicked = true;
+            clickedTimer = 0.15f;
+            scheduleScreenChange(0, 0.20f);
+        }
 
-        // reset psw
-        if (state==0 && !nicknameInput.isEmpty() && (screenX >= 378 && screenX <= 604) && (screenY >= 541 && screenY <= 583)) {
+        // reset psw (da login a schermata reset)
+        if (state == 0 && !nicknameInput.isEmpty() &&
+            (screenX >= 378 && screenX <= 604) && (screenY >= 541 && screenY <= 583)) {
+            SoundManager.playClickButton(50); // suono del click
+            btnResetPSWClicked = true;
+            clickedTimer = 0.15f;
+
             // check esistenza utente
             try {
-                if (!FirestoreUserRepository.checkUsernameExists(nickname)) { resetErrors(); error1 = true;} // nickname not found
-                else state=2; // passaggio al reset password
+                if (!FirestoreUserRepository.checkUsernameExists(sanitizeNickname(nicknameInput.toString()))) {
+                    // nickname not found
+                    resetErrors();
+                    error1 = true;
+                } else {
+                    // passaggio alla schermata di reset password
+                    scheduleScreenChange(2, 0.20f);
+                }
+                nicknameInput.setLength(0);
+                passwordInput.setLength(0);
+                enteringNickname = true;
+                enteringPassword = false;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        // click per procedere avanti
+        // click per procedere avanti (pulsante rosso)
         if (isValidInput() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
             SoundManager.playClickButton(50); // suono del click
+            btnRedClicked = true;
+            clickedTimer = 0.15f;
 
             // controllo internet e passaggio algoritmi di autenticazione
-            if (!checkInternetConnection()) { resetErrors(); error2=true; }
-            // todo: aggiungere l'opzione di aggiornamento password
-            else { processLoginOrSignup(); }
+            if (!checkInternetConnection()) {
+                resetErrors();
+                error2 = true;
+            } else {
+                // esegue il processo di autenticazione (login/signup) con un leggero ritardo,
+                // in modo da mostrare bene il click del pulsante PLAY prima del cambio schermata.
+                scheduleAuthProcess(0.20f);
+            }
         }
 
-        // click per nascondere/mostrare la password
+        // click per nascondere/mostrare la password (icona occhio)
         if ((screenX >= 689 && screenX <= 716) && (screenY >= 352 && screenY <= 372)) {
             SoundManager.playClickButton(50); // suono del click
             showPS = !showPS;
         }
 
         // click per attivare la digitazione del nickname
-        if (!enteringNickname && ((screenX>=251 && screenX<=732) && (screenY>=243 && screenY<=283))) {
+        if (!enteringNickname &&
+            (screenX >= 251 && screenX <= 732) && (screenY >= 243 && screenY <= 283)) {
             SoundManager.playClickButton(50); // suono del click
-            enteringNickname=true;
-            enteringPassword=false;
+            enteringNickname = true;
+            enteringPassword = false;
             // quando cambiamo campo di input, nessun testo deve restare selezionato
             nicknameSelected = false;
             passwordSelected = false;
         }
 
         // click per attivare la digitazione della password
-        if (!enteringPassword && ((screenX>=251 && screenX<=732) && (screenY>=340 && screenY<=380))) {
+        if (!enteringPassword &&
+            (screenX >= 251 && screenX <= 732) && (screenY >= 340 && screenY <= 380)) {
             SoundManager.playClickButton(50); // suono del click
-            enteringNickname=false;
-            enteringPassword=true;
+            enteringNickname = false;
+            enteringPassword = true;
             // cambio campo: azzeriamo eventuali selezioni attive
             nicknameSelected = false;
             passwordSelected = false;
@@ -494,10 +570,9 @@ public class AuthAlgorithms implements InputProcessor {
         return true;
     }
 
-    // cambio icona mouse al passaggio sugli elementi
     @Override public boolean mouseMoved(int screenX, int screenY) {
         // finché si muove fuori dai pulsanti rimangono spenti, con le grafiche di base
-        btnRedHover=btnResetPSWHover=gotoLoginHover=gotoSignupHover=gobackHover=false;
+        btnRedHover = btnResetPSWHover = gotoLoginHover = gotoSignupHover = gobackHover = false;
 
         // icona mouse
         if ((screenX >= 0 && screenX <= 1000) && (screenY >= 0 && screenY <= 700)) {
@@ -505,22 +580,27 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // pulsante avanti rosso
-        if (isValidInput() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
-            btnRedHover=true;
+        if (isValidInput() &&
+            (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
+            btnRedHover = true;
         }
 
         // pulsante in alto a dx
         if ((screenX >= 894 && screenX <= 944) && (screenY >= 48 && screenY <= 98)) {
-            if (state==0) gotoSignupHover=true;
-            else gotoLoginHover=false;
+            if (state == 0) gotoSignupHover = true;
+            else gotoLoginHover = true;
         }
 
         // pulsante in alto a sx
-        if (state==2 && (screenX >= 38 && screenX <= 88) && (screenY >= 48 && screenY <= 98)) gobackHover=true;
+        if (state == 2 &&
+            (screenX >= 38 && screenX <= 88) && (screenY >= 48 && screenY <= 98)) {
+            gobackHover = true;
+        }
 
         // pulsante reset psw
-        if (state==0 && !nicknameInput.isEmpty() && (screenX >= 378 && screenX <= 604) && (screenY >= 541 && screenY <= 583)) {
-            btnResetPSWHover=true;
+        if (state == 0 && !nicknameInput.isEmpty() &&
+            (screenX >= 378 && screenX <= 604) && (screenY >= 541 && screenY <= 583)) {
+            btnResetPSWHover = true;
         }
 
         return true;
@@ -529,9 +609,9 @@ public class AuthAlgorithms implements InputProcessor {
     // altri metodi
     @Override public boolean keyDown(int keycode) {
         // Ctrl + A per selezionare tutto il testo del campo attivo
-        if (keycode == com.badlogic.gdx.Input.Keys.A &&
-            (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.CONTROL_LEFT) ||
-                Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.CONTROL_RIGHT))) {
+        if (keycode == Input.Keys.A &&
+            (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) ||
+                Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT))) {
 
             if (enteringNickname && nicknameInput.length() > 0) {
                 nicknameSelected = true;

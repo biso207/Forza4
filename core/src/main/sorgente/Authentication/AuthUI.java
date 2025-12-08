@@ -46,8 +46,8 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
     private boolean cursorVisible = true;
 
     // immagini
-    private Texture img1, img2, img3, showPS, coverPS, redBtn,
-        redBtnHover, redBtnClicked, noInternet, btnBack, btnBackClicked, btnLogin, btnLoginClicked,
+    private Texture img1, img2, img3, showPS, coverPS, btnRed,
+        btnRedHover, btnRedClicked, noInternet, btnBack, btnBackClicked, btnLogin, btnLoginClicked,
         btnSignup, btnSignupClicked, btnResetPSW, btnResetPSWClicked;
 
     // costruttore
@@ -92,9 +92,9 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         btnLoginClicked    = new Texture("ui/buttons/btn_login_clicked.png");
         btnSignup          = new Texture("ui/buttons/btn_signup.png");
         btnSignupClicked   = new Texture("ui/buttons/btn_signup_clicked.png");
-        redBtn             = new Texture("ui/buttons/red_btn.png");
-        redBtnHover        = new Texture("ui/buttons/red_btn_hover.png");
-        redBtnClicked      = new Texture("ui/buttons/red_btn_clicked.png");
+        btnRed             = new Texture("ui/buttons/red_btn.png");
+        btnRedHover        = new Texture("ui/buttons/red_btn_hover.png");
+        btnRedClicked      = new Texture("ui/buttons/red_btn_clicked.png");
         btnResetPSW        = new Texture("ui/buttons/btn_reset_password.png");
         btnResetPSWClicked = new Texture("ui/buttons/btn_reset_password_clicked.png");
 
@@ -116,33 +116,52 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
             cursorTimer = 0f;
         }
 
+        // TIMER PER ANIMAZIONE CLICK
+        if (alg.clickedTimer > 0) {
+            alg.clickedTimer -= delta;
+            if (alg.clickedTimer <= 0) {
+                alg.resetClickFlags(); // spegne tutti i pulsanti "clicked"
+            }
+        }
+
+        // esecuzione ritardata del processo di autenticazione (login/signup)
+        if (alg.pendingAuthProcess) {
+            alg.authDelay -= delta;
+            if (alg.authDelay <= 0f) {
+                alg.pendingAuthProcess = false;
+                // qui eseguiamo l'algoritmo di login/signup vero e proprio.
+                alg.processLoginOrSignup();
+            }
+        }
+
+        // ritardo del cambio schermata (per transizioni login/signup/reset)
+        if (alg.pendingScreenChange) {
+            alg.screenChangeDelay -= delta;
+            if (alg.screenChangeDelay <= 0) {
+                alg.state = alg.pendingNextState;
+                alg.pendingScreenChange = false;
+            }
+        }
+
         screen.begin();
 
         switch (alg.state) {
             case 0:
                 screen.draw(img1, 0, 0);
-                if (alg.error) Fonts.draw(screen, "Password wrong",420,72, Fonts.medium20);
-                if (alg.error1) Fonts.draw(screen, "Nickname not found",402,72, Fonts.medium20);
-                if (alg.error3) Fonts.draw(screen, "Your session is already open",361,72, Fonts.medium20);
+                if (alg.error) Fonts.draw(screen, "Incorrect Password",415,63, Fonts.bold20);
+                if (alg.error1) Fonts.draw(screen, "Nickname not found",412,63, Fonts.bold20);
+                if (alg.error3) Fonts.draw(screen, "Your session is already open",368,63, Fonts.bold20);
                 break;
             case 1:
                 screen.draw(img2, 0, 0);
-                if (alg.error) Fonts.draw(screen, "Nickname already in use",388,72, Fonts.medium20);
-                if (alg.error4) Fonts.draw(screen, "Nickname not valid",388,72, Fonts.medium20);
+                if (alg.error) Fonts.draw(screen, "Nickname already in use",393,63, Fonts.bold20);
+                if (alg.error4) Fonts.draw(screen, "Nickname not valid",415,63, Fonts.bold20);
                 break;
             case 2:
                 screen.draw(img3, 0, 0);
-                if (alg.error) Fonts.draw(screen, "xxxx",388,72, Fonts.medium20);
-                if (alg.error4) Fonts.draw(screen, "xxx",388,72, Fonts.medium20);
+                if (alg.error) Fonts.draw(screen, "Incorrect ID Creation Date",388,72, Fonts.bold20);
                 break;
             case 3:
-                // salvataggio password in remoto
-                try {
-                    FirestoreUserRepository.setPassword(AuthAlgorithms.nickname, AuthAlgorithms.password);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
                 // schermata di caricamento per upload/download dati
                 LoadingScreen loadingScreen = new LoadingScreen(game, false);
                 game.setScreen(loadingScreen); // creazione di un nuovo screen
@@ -158,32 +177,38 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
 
         // messaggio "internet assente"
         if (alg.error2) {
-            screen.draw(noInternet, 364, 50);
-            Fonts.draw(screen, "No Internet Connection",406,72, Fonts.medium20);
+            screen.draw(noInternet, 374, 40);
+            Fonts.draw(screen, "No Internet Connection",416,63, Fonts.bold20);
         }
 
         // icona mostra/nascondi password
         if (alg.showPS) screen.draw(showPS, 695,323);
         else screen.draw(coverPS, 695,323);
 
-        // pulsante PLAY e cambio pagina
-        if (alg.btnRedHover) screen.draw(redBtnHover, 424, 210);
+        // -- HOVER -- //
+        if (alg.btnRedHover) screen.draw(btnRedHover, 424, 209); // pulsante rosso avanti
+        if (alg.btnResetPSWHover) screen.draw(btnResetPSW, 386, 113); // pulsante passaggio a psw reset
+        if (alg.gotoLoginHover) screen.draw(btnLogin, 902, 598); // pulsante go-to-login
+        if (alg.gotoSignupHover) screen.draw(btnSignup, 902, 598); // pulsante go-to-signup
+        if (alg.gobackHover) screen.draw(btnBack, 46, 598); // pulsante go-back
 
-        // pulsante passaggio a psw reset
-        if (alg.btnResetPSWHover) screen.draw(btnResetPSW, 386, 113);
+        // -- CLICKED -- //
+        if (alg.btnRedClicked) screen.draw(btnRedClicked, 424, 209); // pulsante rosso avanti
+        if (alg.btnResetPSWClicked) screen.draw(btnResetPSWClicked, 386, 113);  // pulsante passaggio a psw reset
+        if (alg.gotoLoginClicked) screen.draw(btnLoginClicked, 902, 598); // pulsante go-to-login
+        if (alg.gotoSignupClicked) screen.draw(btnSignupClicked, 902, 598); // pulsante go-to-signup
+        if (alg.gobackClicked) screen.draw(btnBackClicked, 46, 598); // pulsante go-back
 
+        // -- TESTI -- //
         if (alg.state == 0 || alg.state == 1) Fonts.draw(screen, "PLAY",450,251, Fonts.bold40);
-        else Fonts.draw(screen, "SAVE",440,251, Fonts.bold40);
+        else Fonts.draw(screen, "SAVE",445,251, Fonts.bold40);
 
         // nickname (con supporto selezione + cursore lampeggiante)
         String nicknameText = String.valueOf(alg.nicknameInput);
 
         // se il testo del nickname è selezionato (Ctrl+A), cambiamo colore per evidenziare
-        if (alg.isNicknameSelected()) {
-            Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
-        } else {
-            Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
-        }
+        if (alg.isNicknameSelected()) Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
+        else Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
         Fonts.bold25.draw(screen, nicknameText, 272, 445);
 
         // cursore del nickname alla fine del testo
@@ -198,18 +223,13 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
 
         // password (mostrata o coperta con pallini) + selezione e cursore
         String passwordText;
-        if (!alg.showPS) {
-            passwordText = alg.passwordInput.length() > 0 ? "•".repeat(alg.passwordInput.length()) : "";
-        } else {
-            passwordText = String.valueOf(alg.passwordInput);
-        }
+        if (!alg.showPS) passwordText = alg.passwordInput.length() > 0 ? "•".repeat(alg.passwordInput.length()) : "";
+        else passwordText = String.valueOf(alg.passwordInput);
+
         float passwordY = 345f;
 
-        if (alg.isPasswordSelected()) {
-            Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
-        } else {
-            Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
-        }
+        if (alg.isPasswordSelected()) Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
+        else Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
         Fonts.bold25.draw(screen, passwordText, 272, passwordY);
 
         if (alg.enteringPassword && !alg.isPasswordSelected() && cursorVisible) {
@@ -221,9 +241,9 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         // reset colore dopo il rendering della password
         Fonts.bold25.setColor(Color.WHITE);
 
-        // crediti
-        Fonts.draw(screen, "Drop Logic", 53, 45, Fonts.medium20); // firma al gioco
-        Fonts.draw(screen, "Beta", 838, 45, Fonts.medium20); // versione di gioco
+        // -- CREDITI GIOCO -- //
+        Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
+        Fonts.draw(screen, "Beta", 912, 63, Fonts.medium20); // versione di gioco
 
         screen.end();
     }
@@ -240,9 +260,9 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         img3.dispose();
         showPS.dispose();
         coverPS.dispose();
-        redBtnClicked.dispose();
-        redBtn.dispose();
-        redBtnHover.dispose();
+        btnRedClicked.dispose();
+        btnRed.dispose();
+        btnRedHover.dispose();
         noInternet.dispose();
         btnBack.dispose();
         btnBackClicked.dispose();
