@@ -82,13 +82,4 @@ public class AuthManager extends ScreenAdapter {
         authAlgorithms.dispose();
         batch.dispose();
     }
-
-    // Getter opzionale se vuoi accedere ad AuthUI da fuori.
-    public AuthUI getAuthUI() {
-        return authUI;
-    }
-
-    public Main getGame() {
-        return game;
-    }
 }

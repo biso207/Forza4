@@ -6,6 +6,8 @@ Developed by Drop Logic©. All rights reserved.
 
 package sorgente.Authentication;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -37,6 +39,11 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
 
     // istanza classe algoritmi
     private final AuthAlgorithms alg;
+
+    // supporto per il calcolo della larghezza del testo e cursore lampeggiante
+    private final GlyphLayout layout = new GlyphLayout();
+    private float cursorTimer = 0f;
+    private boolean cursorVisible = true;
 
     // immagini
     private Texture img1, img2, img3, showPS, coverPS, redBtn,
@@ -102,6 +109,13 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         // attivazione controllo input
         Gdx.input.setInputProcessor(alg);
 
+        // aggiornamento lampeggio cursore (circa due volte al secondo)
+        cursorTimer += delta;
+        if (cursorTimer >= 0.5f) {
+            cursorVisible = !cursorVisible;
+            cursorTimer = 0f;
+        }
+
         screen.begin();
 
         switch (alg.state) {
@@ -161,11 +175,51 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         if (alg.state == 0 || alg.state == 1) Fonts.draw(screen, "PLAY",450,251, Fonts.bold40);
         else Fonts.draw(screen, "SAVE",440,251, Fonts.bold40);
 
-        // nickname
-        Fonts.draw(screen, String.valueOf(alg.nicknameInput), 272, 445, Fonts.bold25);
-        // password che può essere visibile o meno, l'utente deve solo cliccare l'icona a dx
-        if (!alg.showPS) Fonts.draw(screen, "•".repeat(alg.passwordInput.length()), 272, 345, Fonts.bold25);
-        else Fonts.draw(screen, String.valueOf(alg.passwordInput), 272, 347, Fonts.bold25);
+        // nickname (con supporto selezione + cursore lampeggiante)
+        String nicknameText = String.valueOf(alg.nicknameInput);
+
+        // se il testo del nickname è selezionato (Ctrl+A), cambiamo colore per evidenziare
+        if (alg.isNicknameSelected()) {
+            Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
+        } else {
+            Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+        }
+        Fonts.bold25.draw(screen, nicknameText, 272, 445);
+
+        // cursore del nickname alla fine del testo
+        if (alg.enteringNickname && !alg.isNicknameSelected() && cursorVisible) {
+            layout.setText(Fonts.bold25, nicknameText);
+            float cursorX = 272 + layout.width + 2f;
+            Fonts.bold25.draw(screen, "|", cursorX, 445);
+        }
+
+        // reset colore per non influenzare altri testi
+        Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+
+        // password (mostrata o coperta con pallini) + selezione e cursore
+        String passwordText;
+        if (!alg.showPS) {
+            passwordText = alg.passwordInput.length() > 0 ? "•".repeat(alg.passwordInput.length()) : "";
+        } else {
+            passwordText = String.valueOf(alg.passwordInput);
+        }
+        float passwordY = 345f;
+
+        if (alg.isPasswordSelected()) {
+            Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
+        } else {
+            Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+        }
+        Fonts.bold25.draw(screen, passwordText, 272, passwordY);
+
+        if (alg.enteringPassword && !alg.isPasswordSelected() && cursorVisible) {
+            layout.setText(Fonts.bold25, passwordText);
+            float cursorX = 272 + layout.width + 2f;
+            Fonts.bold25.draw(screen, "|", cursorX, passwordY);
+        }
+
+        // reset colore dopo il rendering della password
+        Fonts.bold25.setColor(Color.WHITE);
 
         // crediti
         Fonts.draw(screen, "Drop Logic", 53, 45, Fonts.medium20); // firma al gioco
