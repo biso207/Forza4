@@ -20,11 +20,17 @@ import java.time.format.DateTimeFormatter;
 
 public class AuthAlgorithms implements InputProcessor {
     // variabili di controllo digitazione
-    protected boolean enteringNickname, enteringPassword;
+    protected boolean enteringNickname, enteringPassword, enteringDay, enteringMonth, enteringYear;
+
     // variabili per recuperare nick e psw utente
     public static String nickname, password;
+
     // variabili per comporre le stringhe digitate di nick e psw
-    protected final StringBuilder nicknameInput, passwordInput;
+    protected final StringBuilder nicknameInput, passwordInput, dayInput, monthInput, yearInput, resetDayInput,
+        resetMonthInput, resetYearInput, resetPasswordInput;
+
+    // 0 = month, 1 = day, 2 = year, 3 = new password
+    protected int resetFieldIndex = 0;
 
     // selezione testi (per Ctrl+A, evidenzia tutto)
     protected boolean nicknameSelected = false;
@@ -73,10 +79,20 @@ public class AuthAlgorithms implements InputProcessor {
         // attivazione area di digitazione
         this.enteringNickname = true;
         this.enteringPassword = false;
+        this.enteringDay = false;
+        this.enteringMonth = false;
+        this.enteringYear = false;
 
         // dichiarazione dei stringBuilder
         nicknameInput = new StringBuilder();
         passwordInput = new StringBuilder();
+        dayInput = new StringBuilder();
+        monthInput = new StringBuilder();
+        yearInput = new StringBuilder();
+        resetDayInput  = new StringBuilder();
+        resetMonthInput  = new StringBuilder();
+        resetYearInput  = new StringBuilder();
+        resetPasswordInput = new StringBuilder();
 
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
 
@@ -196,6 +212,22 @@ public class AuthAlgorithms implements InputProcessor {
     public boolean isSessionAlreadyOpenError()        { return error3; }
     public boolean isInvalidNicknameError()           { return error4; }
 
+    public String getResetMonth()   { return resetMonthInput.toString(); }
+    public String getResetDay()     { return resetDayInput.toString(); }
+    public String getResetYear()    { return resetYearInput.toString(); }
+    public String getResetNewPassword() { return resetPasswordInput.toString(); }
+
+    // 0 = month, 1 = day, 2 = year, 3 = password
+    public int getResetActiveField() { return resetFieldIndex; }
+
+    public void resetFieldsNewPSW() {
+        resetMonthInput.setLength(0);
+        resetDayInput.setLength(0);
+        resetYearInput.setLength(0);
+        resetPasswordInput.setLength(0);
+        resetFieldIndex = 0;
+    }
+
 
     // ************************** //
     // PROCESSI DI AUTENTICAZIONE //
@@ -276,13 +308,20 @@ public class AuthAlgorithms implements InputProcessor {
                 // 1) password in chiaro
                 password = passwordInput.toString();
 
-                // 2) salva password su Firestore (qui viene hashata per il DB)
+                // 2) salva password su Firestore (hashata)
                 FirestoreUserRepository.setPassword(nickname, password);
 
-                // 3) crea i file locali (qui viene hashata di nuovo, ma SOLO per il file locale)
-                createFiles();
+                // 4) data di registrazione
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String date = LocalDate.now().format(formatter);
 
-                // 4) lock, heartbeat, ecc.
+                // 5) salva la data su Firestore
+                FirestoreUserRepository.setSignupDate(nickname, date);
+
+                // 6) crea i progressi utente
+                createUserProgresses();
+
+                // 7) set lock, start heartbeat, ecc.
                 LocalLockStore.setLockStatus(nickname, true);
                 SessionLockService.startHeartbeat(nickname);
                 UserProgressService.loadProgresses();
@@ -337,7 +376,7 @@ public class AuthAlgorithms implements InputProcessor {
     }
 
     // metodo per creare i file per i progressi utente
-    public void createFiles() {
+    public void createUserProgresses() {
         // data di registrazione utente
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy"); // formato
         String date = LocalDate.now().format(formatter); // recupero giorno creazione profilo
@@ -399,9 +438,159 @@ public class AuthAlgorithms implements InputProcessor {
     // METODI DELL'INTERFACCIA InputProcessor //
     // ************************************** //
 
-    // metodo per validare gli input
+    // metodo per validare l'input di nickname e password
     private boolean isValidInput() {
         return !nicknameInput.isEmpty() && !passwordInput.isEmpty();
+    }
+
+    // metodo per valida l'input del reset password
+    private boolean isValidResetInput() {
+        return resetMonthInput.length()  == 2 &&
+            resetDayInput.length()    == 2 &&
+            resetYearInput.length()   == 4 &&
+            !resetPasswordInput.isEmpty();
+    }
+
+    // metodo per i controlli durante la digitazione del reset password
+    private boolean handleResetKeyTyped(char character) {
+        // suono digitazione
+        SoundManager.playDigitSound(50);
+
+        // ENTER -> se non siamo ancora sul campo password, avanza di campo
+        if (character == '\n' || character == '\r') {
+            if (resetFieldIndex < 3) {
+                resetFieldIndex++;
+            } else {
+                // siamo nel campo password -> tenta reset
+                if (isValidResetInput()) {
+                    scheduleAuthProcess(0.20f); // stesso delay del click
+                }
+            }
+            return true;
+        }
+
+        // BACKSPACE: cancella solo nel campo corrente (senza cambiare campo)
+        if (character == '\b') {
+            switch (resetFieldIndex) {
+                case 0:
+                    if (!resetMonthInput.isEmpty())
+                        resetMonthInput.deleteCharAt(resetMonthInput.length() - 1);
+                    break;
+                case 1:
+                    if (!resetDayInput.isEmpty())
+                        resetDayInput.deleteCharAt(resetDayInput.length() - 1);
+                    break;
+                case 2:
+                    if (!resetYearInput.isEmpty())
+                        resetYearInput.deleteCharAt(resetYearInput.length() - 1);
+                    break;
+                case 3:
+                    if (!resetPasswordInput.isEmpty())
+                        resetPasswordInput.deleteCharAt(resetPasswordInput.length() - 1);
+                    break;
+            }
+            return true;
+        }
+
+        // cifre numeriche -> per i campi data
+        if (character >= '0' && character <= '9') {
+            switch (resetFieldIndex) {
+                case 0: // day DD
+                    if (resetDayInput.length() < 2) {
+                        resetDayInput.append(character);
+                        if (resetDayInput.length() == 2) resetFieldIndex = 1; // auto-avanza a MONTH
+                    }
+                    break;
+                case 1: // month MM
+                    if (resetMonthInput.length() < 2) {
+                        resetMonthInput.append(character);
+                        if (resetMonthInput.length() == 2) resetFieldIndex = 2; // auto-avanza a YEAR
+                    }
+                    break;
+                case 2: // year YYYY
+                    if (resetYearInput.length() < 4) {
+                        resetYearInput.append(character);
+                        if (resetYearInput.length() == 4) resetFieldIndex = 3; // auto-avanza a PASSWORD
+                    }
+                    break;
+                case 3: // password: numeri ammessi come normali caratteri
+                    if (resetPasswordInput.length() < 32) { // limite a piacere
+                        resetPasswordInput.append(character);
+                    }
+                    break;
+            }
+            return true;
+        }
+
+        // caratteri stampabili per la sola password
+        if (character >= 32 && character < 127) {
+            if (resetFieldIndex == 3 && resetPasswordInput.length() < 32) {
+                resetPasswordInput.append(character);
+            }
+            return true;
+        }
+
+        return true;
+    }
+
+    // metodo per il reset della password
+    private void processPasswordReset() {
+        try {
+            // compone la data in formato dd/MM/yyyy (uguale al DB)
+            String day   = resetDayInput.toString();
+            String month = resetMonthInput.toString();
+            String year  = resetYearInput.toString();
+
+            String dateUser = day + "/" + month + "/" + year;
+
+            // recupera data dal DB
+            String dateDb = FirestoreUserRepository.getSignupDate(nickname);
+
+            if (dateDb == null || !dateDb.equals(dateUser)) {
+                resetErrors(); // reset errori
+                resetFieldsNewPSW(); // pulizia campi
+                error = true; // in AuthUI è scritto come "Incorrect ID Creation Date"
+                return;
+            }
+
+            // aggiornamento password su Firestore
+            String newPasswordPlain = resetPasswordInput.toString();
+            FirestoreUserRepository.setPassword(nickname, newPasswordPlain);
+
+            // PASSWORD OK, DATA OK -> passiamo a LOBBY (state 3)
+            state = 3;
+        } catch (Exception e) {
+            e.printStackTrace();
+            resetErrors();
+        }
+    }
+
+    // chiamato dopo il delay di auth (login/signup/reset)
+    public void executeAuthProcess() {
+        // LOGIN / SIGNUP
+        if (state == 0 || state == 1) {
+            processLoginOrSignup();
+            return;
+        }
+
+        // PASSWORD RESET
+        if (state == 2) {
+            // 1) check internet
+            if (!checkInternetConnection()) {
+                resetErrors();
+                error2 = true;
+                return;
+            }
+
+            // 2) check campi (MM/DD/YYYY + nuova password)
+            if (!isValidResetInput()) {
+                // campi incompleti, non andare avanti
+                return;
+            }
+
+            // 3) check data + reset password + passaggio a lobby
+            processPasswordReset();
+        }
     }
 
     // metodo per rilevare il click da tastiera
@@ -436,6 +625,11 @@ public class AuthAlgorithms implements InputProcessor {
                 if (isNicknameField) nicknameSelected = false; else passwordSelected = false;
                 // non facciamo return qui: lasciamo che venga gestito sotto
             }
+        }
+
+        // digitazione data di registrazione SOLO nella pagina 2
+        if (state==2) {
+            return handleResetKeyTyped(character);
         }
 
         // ENTER termina la digitazione o avvia il processo di autenticazione
@@ -475,7 +669,7 @@ public class AuthAlgorithms implements InputProcessor {
         btnRedHover = btnResetPSWHover = gotoLoginHover = gotoSignupHover = gobackHover = false;
 
         // cambio pagina - accesso <-> registrazione (pulsante in alto a destra)
-        if ((screenX >= 894 && screenX <= 944) && (screenY >= 48 && screenY <= 98)) {
+        if ((state==0||state==1) && (screenX >= 894 && screenX <= 944) && (screenY >= 48 && screenY <= 98)) {
             SoundManager.playClickButton(50); // suono del click
             resetTexts(); // reset campi editabili
             resetErrors(); // reset di qualunque errore
@@ -491,6 +685,7 @@ public class AuthAlgorithms implements InputProcessor {
 
         // pulsante back => da psw reset a login (in alto a sinistra)
         if (state == 2 && (screenX >= 38 && screenX <= 88) && (screenY >= 48 && screenY <= 98)) {
+            resetErrors(); // reset di qualunque errore
             SoundManager.playClickButton(50); // suono del click
             gobackClicked = true;
             clickedTimer = 0.15f;
@@ -507,38 +702,58 @@ public class AuthAlgorithms implements InputProcessor {
             // check esistenza utente
             try {
                 if (!FirestoreUserRepository.checkUsernameExists(sanitizeNickname(nicknameInput.toString()))) {
-                    // nickname not found
-                    resetErrors();
-                    error1 = true;
+                    resetErrors(); // reset di qualunque errore
+                    error1 = true; // in AuthUI è mostrato come "Nickname not found"
                 } else {
+                    // setting del nome utente
+                    nickname = sanitizeNickname(nicknameInput.toString());
                     // passaggio alla schermata di reset password
                     scheduleScreenChange(2, 0.20f);
                 }
-                nicknameInput.setLength(0);
-                passwordInput.setLength(0);
-                enteringNickname = true;
-                enteringPassword = false;
+
+                // pulizia
+                resetTexts(); // reset campi editabili
+                resetFieldsNewPSW(); // campi nella pagina di reset password
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
         // click per procedere avanti (pulsante rosso)
-        if (isValidInput() && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
+        if ((screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
             SoundManager.playClickButton(50); // suono del click
             btnRedClicked = true;
             clickedTimer = 0.15f;
 
-            // controllo internet e passaggio algoritmi di autenticazione
-            if (!checkInternetConnection()) {
-                resetErrors();
-                error2 = true;
-            } else {
-                // esegue il processo di autenticazione (login/signup) con un leggero ritardo,
-                // in modo da mostrare bene il click del pulsante PLAY prima del cambio schermata.
+            // LOGIN / SIGNUP (state 0 o 1)
+            if (state == 0 || state == 1) {
+                if (!isValidInput()) {
+                    return true; // campi vuoti, non facciamo nulla
+                }
+
+                if (!checkInternetConnection()) {
+                    resetErrors();
+                    error2 = true;
+                } else {
+                    // delay prima di eseguire login/signup
+                    scheduleAuthProcess(0.20f);
+                }
+            }
+
+            // PASSWORD RESET (state == 2)
+            else if (state == 2) {
+                if (!isValidResetInput()) {
+                    // dati incompleti, non andare avanti
+                    return true;
+                }
+
+                // delay prima di eseguire il reset
                 scheduleAuthProcess(0.20f);
             }
+
+            return true; // importantissimo: abbiamo gestito il click, non proseguire oltre
         }
+
 
         // click per nascondere/mostrare la password (icona occhio)
         if ((screenX >= 689 && screenX <= 716) && (screenY >= 352 && screenY <= 372)) {
@@ -580,13 +795,13 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // pulsante avanti rosso
-        if (isValidInput() &&
+        if ((isValidInput() || isValidResetInput()) &&
             (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
             btnRedHover = true;
         }
 
         // pulsante in alto a dx
-        if ((screenX >= 894 && screenX <= 944) && (screenY >= 48 && screenY <= 98)) {
+        if ((state==0||state==1) && (screenX >= 894 && screenX <= 944) && (screenY >= 48 && screenY <= 98)) {
             if (state == 0) gotoSignupHover = true;
             else gotoLoginHover = true;
         }
@@ -613,10 +828,10 @@ public class AuthAlgorithms implements InputProcessor {
             (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) ||
                 Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT))) {
 
-            if (enteringNickname && nicknameInput.length() > 0) {
+            if (enteringNickname && !nicknameInput.isEmpty()) {
                 nicknameSelected = true;
                 passwordSelected = false;
-            } else if (enteringPassword && passwordInput.length() > 0) {
+            } else if (enteringPassword && !passwordInput.isEmpty()) {
                 passwordSelected = true;
                 nicknameSelected = false;
             }

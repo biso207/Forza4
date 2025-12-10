@@ -189,6 +189,61 @@ public class FirestoreUserRepository
         response.close();
     }
 
+    // DATA REGISTRAZIONE //
+    // metodo per salvare la data di registrazione utente
+    public static void setSignupDate(String username, String date) throws IOException {
+        // URL con updateMask per aggiornare solo il campo "date"
+        String url = DATABASE_URL + "users/" + username + "?updateMask.fieldPaths=date";
+
+        // campo "date" come stringValue
+        Map<String, Object> dateField = new HashMap<>();
+        dateField.put("stringValue", date);
+
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("date", dateField);
+
+        Map<String, Object> document = new HashMap<>();
+        document.put("fields", fields);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(document);
+
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+        Request request = new Request.Builder()
+            .url(url)
+            .header("Authorization", "Bearer " + getAccessToken())
+            .patch(body)
+            .build();
+
+        Response response = client.newCall(request).execute();
+        response.close();
+    }
+
+    // metodo per recuperare la data di registrazione utente
+    public static String getSignupDate(String username) throws IOException {
+        String url = DATABASE_URL + "users/" + username;
+
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+            .url(url)
+            .header("Authorization", "Bearer " + getAccessToken())
+            .get()
+            .build();
+
+        Response response = client.newCall(request).execute();
+
+        assert response.body() != null;
+        String body = response.body().string();
+        response.close();
+
+        Map responseMap = new Gson().fromJson(body, Map.class);
+        Map fields = (Map) responseMap.get("fields");
+
+        Map dateField = (Map) fields.get("date");
+        return (String) dateField.get("stringValue");
+    }
+
     // DATI //
     // salva il file .dat => esegue tutto con un thread separato dal thread main di gioco
     public static void uploadDatAsync(String username, String datBase64, LoadCallback callback) {

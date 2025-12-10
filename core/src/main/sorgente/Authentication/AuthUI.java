@@ -101,6 +101,139 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         alg.enteringNickname = true; // digitazione nickname attivata
     }
 
+    // METODI PER RENDERIZZARE I TESTI DI LOGIN/SIGNUP/RESET-PSW
+    // Disegno campi per LOGIN / SIGNUP (nickname + password)
+    private void drawLoginSignupFields() {
+        // nickname (con supporto selezione + cursore lampeggiante)
+        String nicknameText = String.valueOf(alg.nicknameInput);
+
+        // se il testo del nickname è selezionato (Ctrl+A), cambiamo colore per evidenziare
+        if (alg.isNicknameSelected()) Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
+        else Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+        Fonts.bold25.draw(screen, nicknameText, 272, 445);
+
+        // cursore del nickname alla fine del testo
+        if (alg.enteringNickname && !alg.isNicknameSelected() && cursorVisible) {
+            layout.setText(Fonts.bold25, nicknameText);
+            float cursorX = 272 + layout.width + 2f;
+            Fonts.bold25.draw(screen, "|", cursorX, 445);
+        }
+
+        // reset colore per non influenzare altri testi
+        Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+
+        // password (mostrata o coperta con pallini) + selezione e cursore
+        String passwordText;
+        if (!alg.showPS)
+            passwordText = alg.passwordInput.length() > 0 ? "•".repeat(alg.passwordInput.length()) : "";
+        else
+            passwordText = String.valueOf(alg.passwordInput);
+
+        float passwordY = 345f;
+
+        if (alg.isPasswordSelected()) Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
+        else Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+        Fonts.bold25.draw(screen, passwordText, 272, passwordY);
+
+        if (alg.enteringPassword && !alg.isPasswordSelected() && cursorVisible) {
+            layout.setText(Fonts.bold25, passwordText);
+            float cursorX = 272 + layout.width + 2f;
+            Fonts.bold25.draw(screen, "|", cursorX, passwordY);
+        }
+
+        // reset colore dopo il rendering della password
+        Fonts.bold25.setColor(Color.WHITE);
+    }
+
+    // Disegno campi per PASSWORD RESET (state = 2):
+    // ID Creation Date -> DD / MM / YYYY
+    // New Password
+    private void drawPasswordResetFields() {
+        // --- ID CREATION DATE: DD / MM / YYYY ---
+        float baseX = 272f;
+        float dateY = 445f;
+
+        String monthRaw = alg.getResetMonth();
+        String dayRaw   = alg.getResetDay();
+        String yearRaw  = alg.getResetYear();
+
+        // placeholder se vuoti
+        String dayText   = dayRaw.isEmpty()   ? "day"   : dayRaw;
+        String monthText = monthRaw.isEmpty() ? "month"   : monthRaw;
+        String yearText  = yearRaw.isEmpty()  ? "year" : yearRaw;
+
+        // disegno segmenti data
+        float x = baseX;
+
+        // day
+        Fonts.bold25.draw(screen, dayText, x, dateY);
+        layout.setText(Fonts.bold25, dayText);
+        float dayEndX = x + layout.width;
+        x = dayEndX + 4f;
+
+        // "/"
+        Fonts.bold25.draw(screen, "/", x, dateY);
+        layout.setText(Fonts.bold25, "/");
+        x += layout.width + 4f;
+
+        // month
+        Fonts.bold25.setColor(Color.WHITE);
+        Fonts.bold25.draw(screen, monthText, x, dateY);
+        layout.setText(Fonts.bold25, monthText);
+        float monthEndX = x + layout.width;
+        x = monthEndX + 4f;
+
+        // "/"
+        Fonts.bold25.draw(screen, "/", x, dateY);
+        layout.setText(Fonts.bold25, "/");
+        x += layout.width + 4f;
+
+        // year
+        Fonts.bold25.draw(screen, yearText, x, dateY);
+        layout.setText(Fonts.bold25, yearText);
+        float yearEndX = x + layout.width;
+
+        // cursore lampeggiante nel campo corretto (month/day/year)
+        if (cursorVisible) {
+            int active = alg.getResetActiveField();
+            float cursorX = -1;
+
+            if (active == 0) cursorX = dayEndX + 2f;
+            else if (active == 1) cursorX =  monthEndX + 2f;
+            else if (active == 2) cursorX = yearEndX + 2f;
+
+            if (cursorX > 0) {
+                Fonts.bold25.draw(screen, "|", cursorX, dateY);
+            }
+        }
+
+        // --- NEW PASSWORD ---
+        float passwordY = 345f;
+
+        String newPwdRaw  = alg.getResetNewPassword();
+        String newPwdText;
+
+        if (newPwdRaw.isEmpty()) {
+            newPwdText = "";
+        } else {
+            if (!alg.showPS) newPwdText = "•".repeat(newPwdRaw.length());
+            else newPwdText = newPwdRaw;
+        }
+
+        Fonts.bold25.setColor(Color.WHITE);
+        Fonts.bold25.draw(screen, newPwdText, 272, passwordY);
+
+        // cursore sul campo new password se activeField == 3
+        if (cursorVisible && alg.getResetActiveField() == 3) {
+            layout.setText(Fonts.bold25, newPwdText);
+            float cursorX = 272 + layout.width + 2f;
+            Fonts.bold25.draw(screen, "|", cursorX, passwordY);
+        }
+
+        // reset colore
+        Fonts.bold25.setColor(Color.WHITE);
+    }
+
     // ********************************* //
     // METODI DELLA CLASSE ScreenAdapter //
     // ********************************* //
@@ -124,13 +257,12 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
             }
         }
 
-        // esecuzione ritardata del processo di autenticazione (login/signup)
+        // esecuzione ritardata del processo di autenticazione (login/signup/reset)
         if (alg.pendingAuthProcess) {
             alg.authDelay -= delta;
             if (alg.authDelay <= 0f) {
                 alg.pendingAuthProcess = false;
-                // qui eseguiamo l'algoritmo di login/signup vero e proprio.
-                alg.processLoginOrSignup();
+                alg.executeAuthProcess();
             }
         }
 
@@ -148,7 +280,7 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         switch (alg.state) {
             case 0:
                 screen.draw(img1, 0, 0);
-                if (alg.error) Fonts.draw(screen, "Incorrect Password",415,63, Fonts.bold20);
+                if (alg.error) Fonts.draw(screen, "Incorrect Password",409,63, Fonts.bold20);
                 if (alg.error1) Fonts.draw(screen, "Nickname not found",412,63, Fonts.bold20);
                 if (alg.error3) Fonts.draw(screen, "Your session is already open",368,63, Fonts.bold20);
                 break;
@@ -159,7 +291,7 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
                 break;
             case 2:
                 screen.draw(img3, 0, 0);
-                if (alg.error) Fonts.draw(screen, "Incorrect ID Creation Date",388,72, Fonts.bold20);
+                if (alg.error) Fonts.draw(screen, "Incorrect ID Creation Date",375,63, Fonts.bold20);
                 break;
             case 3:
                 // schermata di caricamento per upload/download dati
@@ -192,6 +324,7 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         if (alg.gotoSignupHover) screen.draw(btnSignup, 902, 598); // pulsante go-to-signup
         if (alg.gobackHover) screen.draw(btnBack, 46, 598); // pulsante go-back
 
+        // todo: risolvere il problema della grafica del click del pulsante reset psw (non va)
         // -- CLICKED -- //
         if (alg.btnRedClicked) screen.draw(btnRedClicked, 424, 209); // pulsante rosso avanti
         if (alg.btnResetPSWClicked) screen.draw(btnResetPSWClicked, 386, 113);  // pulsante passaggio a psw reset
@@ -203,43 +336,12 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         if (alg.state == 0 || alg.state == 1) Fonts.draw(screen, "PLAY",450,251, Fonts.bold40);
         else Fonts.draw(screen, "SAVE",445,251, Fonts.bold40);
 
-        // nickname (con supporto selezione + cursore lampeggiante)
-        String nicknameText = String.valueOf(alg.nicknameInput);
-
-        // se il testo del nickname è selezionato (Ctrl+A), cambiamo colore per evidenziare
-        if (alg.isNicknameSelected()) Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
-        else Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
-        Fonts.bold25.draw(screen, nicknameText, 272, 445);
-
-        // cursore del nickname alla fine del testo
-        if (alg.enteringNickname && !alg.isNicknameSelected() && cursorVisible) {
-            layout.setText(Fonts.bold25, nicknameText);
-            float cursorX = 272 + layout.width + 2f;
-            Fonts.bold25.draw(screen, "|", cursorX, 445);
+        // campi di input: login/signup o password reset
+        if (alg.state == 2) {
+            drawPasswordResetFields();
+        } else {
+            drawLoginSignupFields();
         }
-
-        // reset colore per non influenzare altri testi
-        Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
-
-        // password (mostrata o coperta con pallini) + selezione e cursore
-        String passwordText;
-        if (!alg.showPS) passwordText = alg.passwordInput.length() > 0 ? "•".repeat(alg.passwordInput.length()) : "";
-        else passwordText = String.valueOf(alg.passwordInput);
-
-        float passwordY = 345f;
-
-        if (alg.isPasswordSelected()) Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.SKY);
-        else Fonts.bold25.setColor(com.badlogic.gdx.graphics.Color.WHITE);
-        Fonts.bold25.draw(screen, passwordText, 272, passwordY);
-
-        if (alg.enteringPassword && !alg.isPasswordSelected() && cursorVisible) {
-            layout.setText(Fonts.bold25, passwordText);
-            float cursorX = 272 + layout.width + 2f;
-            Fonts.bold25.draw(screen, "|", cursorX, passwordY);
-        }
-
-        // reset colore dopo il rendering della password
-        Fonts.bold25.setColor(Color.WHITE);
 
         // -- CREDITI GIOCO -- //
         Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
