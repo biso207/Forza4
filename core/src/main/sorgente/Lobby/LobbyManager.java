@@ -3,8 +3,8 @@ package sorgente.Lobby;
 import com.badlogic.gdx.ScreenAdapter;
 
 public class LobbyManager extends ScreenAdapter {
-    private LobbyUI ui;
-    private LobbyInput input;
+    private final LobbyUI ui;
+    private final LobbyInput input;
 
     // costruttore
     LobbyManager() {
