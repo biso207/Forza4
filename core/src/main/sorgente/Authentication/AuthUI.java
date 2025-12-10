@@ -345,7 +345,21 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
 
         // -- CREDITI GIOCO -- //
         Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
-        Fonts.draw(screen, "Beta", 912, 63, Fonts.medium20); // versione di gioco
+
+        // versione di gioco
+        String text = "Beta " + VersionInfo.getVersion();
+
+        float rightX = 940;   // X finale dove deve arrivare il testo
+        float y = 63;
+
+        // Calcolo larghezza del testo
+        GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
+
+        // Allineamento a destra
+        float x = rightX - layout.width;
+
+        // Disegno finale
+        Fonts.medium20.draw(screen, layout, x, y);
 
         screen.end();
     }
