@@ -458,7 +458,7 @@ public class AuthAlgorithms implements InputProcessor {
 
         // ENTER -> se non siamo ancora sul campo password, avanza di campo
         if (character == '\n' || character == '\r') {
-            if (resetFieldIndex < 3) {
+            if (resetFieldIndex < 2) {
                 resetFieldIndex++;
             } else {
                 // siamo nel campo password -> tenta reset
@@ -473,20 +473,19 @@ public class AuthAlgorithms implements InputProcessor {
         if (character == '\b') {
             switch (resetFieldIndex) {
                 case 0:
-                    if (!resetMonthInput.isEmpty())
-                        resetMonthInput.deleteCharAt(resetMonthInput.length() - 1);
+                    if (!resetDayInput.isEmpty()) resetDayInput.deleteCharAt(resetDayInput.length() - 1);
                     break;
                 case 1:
-                    if (!resetDayInput.isEmpty())
-                        resetDayInput.deleteCharAt(resetDayInput.length() - 1);
+                    if (!resetMonthInput.isEmpty()) resetMonthInput.deleteCharAt(resetMonthInput.length() - 1);
+                    else resetFieldIndex--;
                     break;
                 case 2:
-                    if (!resetYearInput.isEmpty())
-                        resetYearInput.deleteCharAt(resetYearInput.length() - 1);
+                    if (!resetYearInput.isEmpty()) resetYearInput.deleteCharAt(resetYearInput.length() - 1);
+                    else resetFieldIndex--;
                     break;
                 case 3:
-                    if (!resetPasswordInput.isEmpty())
-                        resetPasswordInput.deleteCharAt(resetPasswordInput.length() - 1);
+                    if (!resetPasswordInput.isEmpty()) resetPasswordInput.deleteCharAt(resetPasswordInput.length() - 1);
+                    else resetFieldIndex--;
                     break;
             }
             return true;
@@ -633,7 +632,7 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // ENTER termina la digitazione o avvia il processo di autenticazione
-        if ((character == '\n' || character == '\r')) {
+        if (character == '\n' || character == '\r') {
             // passaggio alla digitazione della password
             if (enteringNickname) {
                 enteringPassword = true;
@@ -685,7 +684,6 @@ public class AuthAlgorithms implements InputProcessor {
 
         // pulsante back => da psw reset a login (in alto a sinistra)
         if (state == 2 && (screenX >= 38 && screenX <= 88) && (screenY >= 48 && screenY <= 98)) {
-            resetErrors(); // reset di qualunque errore
             SoundManager.playClickButton(50); // suono del click
             gobackClicked = true;
             clickedTimer = 0.15f;
@@ -702,7 +700,6 @@ public class AuthAlgorithms implements InputProcessor {
             // check esistenza utente
             try {
                 if (!FirestoreUserRepository.checkUsernameExists(sanitizeNickname(nicknameInput.toString()))) {
-                    resetErrors(); // reset di qualunque errore
                     error1 = true; // in AuthUI è mostrato come "Nickname not found"
                 } else {
                     // setting del nome utente
@@ -714,6 +711,7 @@ public class AuthAlgorithms implements InputProcessor {
                 // pulizia
                 resetTexts(); // reset campi editabili
                 resetFieldsNewPSW(); // campi nella pagina di reset password
+                resetErrors(); // reset di qualunque errore
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -775,6 +773,7 @@ public class AuthAlgorithms implements InputProcessor {
         // click per attivare la digitazione della password
         if (!enteringPassword &&
             (screenX >= 251 && screenX <= 732) && (screenY >= 340 && screenY <= 380)) {
+
             SoundManager.playClickButton(50); // suono del click
             enteringNickname = false;
             enteringPassword = true;

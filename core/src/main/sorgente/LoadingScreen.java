@@ -27,7 +27,7 @@ public class LoadingScreen implements Screen, ProgressListener {
 
     private int bg;
     private Texture background;
-    private final String[] colorsLoader = {"#DD0000", "#640414", "#033427", "#0B2353", "#0E2036", "#3A0150"};
+    private final String[] colorsLoader = {"#201F6B", "#640414", "#022159", "#A11608", "#0E2036", "#9D9D9D"};
 
     private Music openSound;
     private final boolean playMusic;

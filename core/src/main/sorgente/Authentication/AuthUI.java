@@ -158,9 +158,9 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         String yearRaw  = alg.getResetYear();
 
         // placeholder se vuoti
-        String dayText   = dayRaw.isEmpty()   ? "day"   : dayRaw;
-        String monthText = monthRaw.isEmpty() ? "month"   : monthRaw;
-        String yearText  = yearRaw.isEmpty()  ? "year" : yearRaw;
+        String dayText   = dayRaw.isEmpty()   ? "dd"   : dayRaw;
+        String monthText = monthRaw.isEmpty() ? "mm"   : monthRaw;
+        String yearText  = yearRaw.isEmpty()  ? "yyyy" : yearRaw;
 
         // disegno segmenti data
         float x = baseX;
