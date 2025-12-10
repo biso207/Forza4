@@ -17,6 +17,8 @@ public class Lwjgl3Launcher {
 
         configuration.setResizable(false);
 
+        configuration.setWindowIcon("forza4_icon.png"); // icona del gioco
+
         new Lwjgl3Application(new Main(), configuration);
     }
 }
