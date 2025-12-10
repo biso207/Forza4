@@ -20,8 +20,8 @@ package sorgente.UserData;
 
 import org.json.JSONObject;
 import sorgente.Authentication.AuthAlgorithms;
-import sorgente.dbManagement.LoadingData.GlobalProgressManager;
-import sorgente.dbManagement.LoadingData.LoadCallback;
+import sorgente.dbManagement.GlobalProgressManager;
+import sorgente.dbManagement.LoadCallback;
 
 import java.io.IOException;
 import java.util.Base64;

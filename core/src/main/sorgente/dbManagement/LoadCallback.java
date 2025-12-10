@@ -1,4 +1,4 @@
-package sorgente.dbManagement.LoadingData;
+package sorgente.dbManagement;
 
 public interface LoadCallback {
     void onProgress(int progress); // esempio: 0-100

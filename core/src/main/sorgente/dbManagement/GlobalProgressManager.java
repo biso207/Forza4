@@ -1,4 +1,4 @@
-package sorgente.dbManagement.LoadingData;
+package sorgente.dbManagement;
 
 public class GlobalProgressManager {
     private static ProgressListener listener;

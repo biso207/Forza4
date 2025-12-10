@@ -22,14 +22,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import sorgente.*;
-import sorgente.UserData.FirestoreUserRepository;
-import sorgente.dbManagement.LoadingData.GlobalProgressManager;
-
-import java.awt.*;
-import java.io.IOException;
+import sorgente.dbManagement.GlobalProgressManager;
 
 public class AuthUI extends ScreenAdapter implements ResourceLoader {
     // variabile di riferimento al gioco

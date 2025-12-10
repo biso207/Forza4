@@ -11,7 +11,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.gson.Gson;
 import okhttp3.*;
 import org.mindrot.jbcrypt.BCrypt;
-import sorgente.dbManagement.LoadingData.LoadCallback;
+import sorgente.dbManagement.LoadCallback;
 
 import java.io.IOException;
 import java.util.HashMap;
