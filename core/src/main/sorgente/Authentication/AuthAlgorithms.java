@@ -6,7 +6,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Pixmap;
 import org.mindrot.jbcrypt.BCrypt;
-import sorgente.ProfanityFilter;
 import sorgente.SoundManager;
 import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.UserProgressService;

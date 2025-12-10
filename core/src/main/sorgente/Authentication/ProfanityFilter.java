@@ -1,4 +1,4 @@
-package sorgente;
+package sorgente.Authentication;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
