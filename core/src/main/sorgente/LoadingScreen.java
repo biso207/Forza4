@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import sorgente.Authentication.AuthManager;
+import sorgente.Lobby.LobbyManager;
 import sorgente.dbManagement.GlobalProgressManager;
 import sorgente.dbManagement.ProgressListener;
 //import sorgente.Lobby.LobbyManager;
@@ -97,9 +98,7 @@ public class LoadingScreen implements Screen, ProgressListener {
             }
             else {
                 GlobalProgressManager.isInitialLoading = false; // stato di caricamento iniziale dei dati
-
-                // apertura lobby
-                //game.setScreen(new LobbyManager(game)); todo: in futuro rimuovere il commento e aprire la lobby
+                game.setScreen(new LobbyManager(game));
             }
         }
     }

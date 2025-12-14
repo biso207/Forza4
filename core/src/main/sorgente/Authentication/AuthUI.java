@@ -80,17 +80,17 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         noInternet = new Texture("ui/icons/no_internet.png");
 
         // -- BUTTONS
-        btnBack            = new Texture("ui/buttons/btn_back.png");
-        btnBackClicked     = new Texture("ui/buttons/btn_back_clicked.png");
-        btnLogin           = new Texture("ui/buttons/btn_login.png");
-        btnLoginClicked    = new Texture("ui/buttons/btn_login_clicked.png");
-        btnSignup          = new Texture("ui/buttons/btn_signup.png");
-        btnSignupClicked   = new Texture("ui/buttons/btn_signup_clicked.png");
-        btnRed             = new Texture("ui/buttons/red_btn.png");
-        btnRedHover        = new Texture("ui/buttons/red_btn_hover.png");
-        btnRedClicked      = new Texture("ui/buttons/red_btn_clicked.png");
-        btnResetPSW        = new Texture("ui/buttons/btn_reset_password.png");
-        btnResetPSWClicked = new Texture("ui/buttons/btn_reset_password_clicked.png");
+        btnBack            = new Texture("ui/buttons/auth/btn_back.png");
+        btnBackClicked     = new Texture("ui/buttons/auth/btn_back_clicked.png");
+        btnLogin           = new Texture("ui/buttons/auth/btn_login.png");
+        btnLoginClicked    = new Texture("ui/buttons/auth/btn_login_clicked.png");
+        btnSignup          = new Texture("ui/buttons/auth/btn_signup.png");
+        btnSignupClicked   = new Texture("ui/buttons/auth/btn_signup_clicked.png");
+        btnRed             = new Texture("ui/buttons/auth/red_btn.png");
+        btnRedHover        = new Texture("ui/buttons/auth/red_btn_hover.png");
+        btnRedClicked      = new Texture("ui/buttons/auth/red_btn_clicked.png");
+        btnResetPSW        = new Texture("ui/buttons/auth/btn_reset_password.png");
+        btnResetPSWClicked = new Texture("ui/buttons/auth/btn_reset_password_clicked.png");
 
         alg.enteringNickname = true; // digitazione nickname attivata
     }
