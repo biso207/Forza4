@@ -24,28 +24,13 @@ import sorgente.Main;
  * - È il punto di collegamento tra input utente, logica e cambio schermata.
  */
 public class AuthManager extends ScreenAdapter {
-
-    private final Main game;
-    private final SpriteBatch batch;
-
     private final AuthUI authUI;
-    private final AuthAlgorithms authAlgorithms;
 
     // pagina corrente gestita a livello di Screen (AuthUI viene tenuta in sync)
     private AuthPage currentPage = AuthPage.LOGIN;
 
     public AuthManager(Main game) {
-        this.game = game;
-
-        // Se in Main hai già uno SpriteBatch condiviso, puoi passarlo qui
-        // e rimuovere il new SpriteBatch():
-        this.batch = new SpriteBatch();
-
-        this.authAlgorithms = new AuthAlgorithms();
         this.authUI = new AuthUI(game);
-
-        // pagina iniziale: Login
-        this.currentPage = AuthPage.LOGIN;
     }
 
     // ====================== //
@@ -73,13 +58,19 @@ public class AuthManager extends ScreenAdapter {
 
     @Override
     public void hide() {
-
+        Gdx.input.setInputProcessor(null);
     }
 
     @Override
     public void dispose() {
         authUI.dispose();
-        authAlgorithms.dispose();
-        batch.dispose();
+    }
+
+    public AuthPage getCurrentPage() {
+        return currentPage;
+    }
+
+    public void setCurrentPage(AuthPage currentPage) {
+        this.currentPage = currentPage;
     }
 }
