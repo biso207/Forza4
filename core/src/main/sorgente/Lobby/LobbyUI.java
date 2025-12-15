@@ -1,9 +1,11 @@
 package sorgente.Lobby;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import sorgente.Authentication.AuthAlgorithms;
 import sorgente.Fonts;
 import sorgente.Main;
 import sorgente.ResourceLoader;
@@ -16,6 +18,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private final GlyphLayout layout = new GlyphLayout();
     private float cursorTimer = 0f;
     private boolean cursorVisible = true;
+    private final LobbyInput lobbyInput;
 
     private Texture lobby,big_clicked,big_hover,center_clicked,center_hover,mode_clicked,mode_hover;
 
@@ -23,6 +26,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         this.game = game;
         this.screen = game.screen;
         Fonts.load();
+        lobbyInput=new LobbyInput();
         this.loadImages();
 
     }
@@ -39,18 +43,49 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
       center_clicked=new Texture("ui/buttons/lobby/bottom_center_clicked.png");
       center_hover=new Texture("ui/buttons/lobby/bottom_center_hover.png");
       mode_clicked=new Texture("ui/buttons/lobby/game_mode_clicked.png");
-      mode_hover= new Texture("ui/buttons/lobby/game_mode_clicked.png");
+      mode_hover= new Texture("ui/buttons/lobby/game_mode_hover.png");
 
 
     }
+
+    private void drawHover(Texture texture, boolean hover, float x, float y, float width, float height)
+    {
+        if (hover)
+        {
+            screen.draw(texture, x, y, width, height);
+        }
+    }
+
 
     @Override
     public void render(float delta)
     {
+        Gdx.input.setInputProcessor(lobbyInput);
+
         screen.begin();
         screen.draw(lobby, 0, 0);
+
+        // --- GAME MODES ---
+        drawHover(mode_hover, lobbyInput.classicHover,     37, 305, 209, 230);
+        drawHover(mode_hover, lobbyInput.gravity4Hover,   275, 305, 209, 230);
+        drawHover(mode_hover, lobbyInput.horizontalHover, 512, 305, 211, 230);
+        drawHover(mode_hover, lobbyInput.speedyHover,     752, 305, 211, 230);
+
+        // --- SECONDARY BUTTONS ---
+        drawHover(big_hover,    lobbyInput.marketHover,     37,  90, 301, 172);
+        drawHover(center_hover, lobbyInput.scoreboardHover, 370, 90, 260, 172);
+        drawHover(big_hover,    lobbyInput.dailyHover,      660, 90, 302, 172);
+
+        // --- BOTTOM ICONS ---
+        drawHover(center_hover, lobbyInput.exitHover,        397, 649, 30, 40);
+        drawHover(center_hover, lobbyInput.informationHover, 459, 637, 30, 40);
+        drawHover(center_hover, lobbyInput.manHover,         584, 649, 30, 40);
+        drawHover(center_hover, lobbyInput.settingsHover,    519, 649, 30, 40);
+
         screen.end();
     }
+
+
 
 
 
