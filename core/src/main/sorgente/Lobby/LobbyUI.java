@@ -62,6 +62,8 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         modeClicked_dark = new Texture("ui/buttons/lobby/dark/game_mode_clicked.png");
         modeHover_dark = new Texture("ui/buttons/lobby/dark/game_mode_hover.png");
 
+        // todo: caricare le icone e stampare le hover
+
         // background
         lobby = isDark ? lobby_dark : lobby_light;
 
@@ -84,7 +86,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
     // metodo per disegnare le grafiche delle impostazioni
     private void drawSettings() {
-        screen.draw(settings, 250, (float)228.5);
+        screen.draw(settings, 246, 229);
 
         // pulsante audio
         // pulsante suono
@@ -114,6 +116,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         drawHover(bigHover,    lobbyInput.dailyHover,      660, 91);
 
         // --- Bottom Icons ---
+        // todo: qui mettere le hover
         drawHover(centerHover, lobbyInput.exitHover,          397, 649);
         drawHover(centerHover, lobbyInput.informationHover,   459, 637);
         drawHover(centerHover, lobbyInput.settingsHover,      519, 649);

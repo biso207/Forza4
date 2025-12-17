@@ -266,6 +266,7 @@ public class LobbyInput implements InputProcessor
         if (settingsArea.contains(x, y))
         {
             settings = true;
+            log.info("Settings cliccato!");
             return true;
         }
 
