@@ -37,15 +37,15 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     @Override
     public void loadImages()
     {
-      lobby= new Texture("lobby_screens/lobby.png");
-      big_clicked=new Texture("ui/buttons/lobby/bottom_big_clicked.png");
-      big_hover=new Texture("ui/buttons/lobby/bottom_big_hover.png");
-      center_clicked=new Texture("ui/buttons/lobby/bottom_center_clicked.png");
-      center_hover=new Texture("ui/buttons/lobby/bottom_center_hover.png");
-      mode_clicked=new Texture("ui/buttons/lobby/game_mode_clicked.png");
-      mode_hover= new Texture("ui/buttons/lobby/game_mode_hover.png");
+      lobby = new Texture("lobby_screens/light/lobby_light.png");
+      big_clicked = new Texture("ui/buttons/lobby/light/bottom_big_clicked.png");
+      big_hover = new Texture("ui/buttons/lobby/light/bottom_big_hover.png");
+      center_clicked = new Texture("ui/buttons/lobby/light/bottom_center_clicked.png");
+      center_hover = new Texture("ui/buttons/lobby/light/bottom_center_hover.png");
+      mode_clicked = new Texture("ui/buttons/lobby/light/game_mode_clicked.png");
+      mode_hover = new Texture("ui/buttons/lobby/light/game_mode_hover.png");
 
-
+      // todo: caricare anche le dark mode, poi vedi te come gestire le stampe
     }
 
     private void drawHover(Texture texture, boolean hover, float x, float y)

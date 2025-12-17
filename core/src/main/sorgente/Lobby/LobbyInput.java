@@ -237,7 +237,7 @@ public class LobbyInput implements InputProcessor
         {
             exit = true;
             // IMPORTANTE! LA POSIZIONE DEVE ESSERE ESATTAMENTE IL CENTRO DELLO SCHERMO (1000/2-widthImg/2, 700/2-heightImg/2)
-            log.info("Exit cliccato!"); // todo: stampare da LobbyUI la grafica logout.png
+            log.info("Exit cliccato!"); // todo: stampare da LobbyUI la grafica logout.png ATTENZIONE al dark e no
             return true;
         }
 
