@@ -35,7 +35,7 @@ public class LobbyInput implements InputProcessor
     protected boolean settingsHover;
     protected boolean informationHover;
     protected boolean exitHover;
-    protected boolean manHover;
+    protected boolean accessibilityHover;
 
     private final Pixmap mouse;
     private final Cursor cursor;
@@ -103,7 +103,7 @@ public class LobbyInput implements InputProcessor
     {
         classicHover = gravity4Hover = horizontalHover = speedyHover = false;
         marketHover = scoreboardHover = dailyHover = false;
-        settingsHover = informationHover = exitHover = manHover = false;
+        settingsHover = informationHover = exitHover = accessibilityHover = false;
     }
 
 
@@ -159,7 +159,7 @@ public class LobbyInput implements InputProcessor
         }
 
         if (manArea.contains(screenX, screenY)) {
-            manHover = true;
+            accessibilityHover = true;
             return true;
         }
 
@@ -236,14 +236,16 @@ public class LobbyInput implements InputProcessor
         if (exitArea.contains(x, y))
         {
             exit = true;
-            log.info("Exit cliccato!");
+            // IMPORTANTE! LA POSIZIONE DEVE ESSERE ESATTAMENTE IL CENTRO DELLO SCHERMO (1000/2-widthImg/2, 700/2-heightImg/2)
+            log.info("Exit cliccato!"); // todo: stampare da LobbyUI la grafica logout.png
             return true;
         }
 
         if (informationArea.contains(x, y))
         {
             information = true;
-            log.info("Information cliccato!");
+            // IMPORTANTE! LA POSIZIONE DEVE ESSERE ESATTAMENTE IL CENTRO DELLO SCHERMO
+            log.info("Information cliccato!"); // todo: stampare da LobbyUI la grafica software_infos.png
             return true;
         }
 

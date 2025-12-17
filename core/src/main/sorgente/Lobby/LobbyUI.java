@@ -20,7 +20,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private boolean cursorVisible = true;
     private final LobbyInput lobbyInput;
 
-    private Texture lobby,big_clicked,big_hover,center_clicked,center_hover,mode_clicked,mode_hover;
+    private Texture lobby, big_clicked, big_hover, center_clicked, center_hover, mode_clicked, mode_hover;
 
     public LobbyUI(Main game) {
         this.game = game;
@@ -48,11 +48,11 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
     }
 
-    private void drawHover(Texture texture, boolean hover, float x, float y, float width, float height)
+    private void drawHover(Texture texture, boolean hover, float x, float y)
     {
         if (hover)
         {
-            screen.draw(texture, x, y, width, height);
+            screen.draw(texture, x, y);
         }
     }
 
@@ -66,28 +66,24 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         screen.draw(lobby, 0, 0);
 
         // --- GAME MODES ---
-        drawHover(mode_hover, lobbyInput.classicHover,     37, 305, 209, 230);
-        drawHover(mode_hover, lobbyInput.gravity4Hover,   275, 305, 209, 230);
-        drawHover(mode_hover, lobbyInput.horizontalHover, 512, 305, 211, 230);
-        drawHover(mode_hover, lobbyInput.speedyHover,     752, 305, 211, 230);
+        drawHover(mode_hover, lobbyInput.classicHover,    35, 304);
+        drawHover(mode_hover, lobbyInput.gravity4Hover,   275, 304);
+        drawHover(mode_hover, lobbyInput.horizontalHover, 513, 304);
+        drawHover(mode_hover, lobbyInput.speedyHover,     753, 304);
 
         // --- SECONDARY BUTTONS ---
-        drawHover(big_hover,    lobbyInput.marketHover,     37,  90, 301, 172);
-        drawHover(center_hover, lobbyInput.scoreboardHover, 370, 90, 260, 172);
-        drawHover(big_hover,    lobbyInput.dailyHover,      660, 90, 302, 172);
+        drawHover(big_hover,    lobbyInput.marketHover,     35,  91);
+        drawHover(center_hover, lobbyInput.scoreboardHover, 369, 91);
+        drawHover(big_hover,    lobbyInput.dailyHover,      660, 91);
 
         // --- BOTTOM ICONS ---
-        drawHover(center_hover, lobbyInput.exitHover,        397, 649, 30, 40);
-        drawHover(center_hover, lobbyInput.informationHover, 459, 637, 30, 40);
-        drawHover(center_hover, lobbyInput.manHover,         584, 649, 30, 40);
-        drawHover(center_hover, lobbyInput.settingsHover,    519, 649, 30, 40);
+        drawHover(center_hover, lobbyInput.exitHover,          397, 649);
+        drawHover(center_hover, lobbyInput.informationHover,   459, 637);
+        drawHover(center_hover, lobbyInput.accessibilityHover, 584, 649);
+        drawHover(center_hover, lobbyInput.settingsHover,      519, 649);
 
         screen.end();
     }
-
-
-
-
 
     @Override
     public void dispose()
