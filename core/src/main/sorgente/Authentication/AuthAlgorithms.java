@@ -391,39 +391,20 @@ public class AuthAlgorithms implements InputProcessor {
         // init progressi del nuovo utente
         UserProgressService.setProgress("avatar", 0);
         UserProgressService.setProgress("credits", 0);
-        UserProgressService.setProgress("credits_missions", 0);
-        UserProgressService.setProgress("total_credits", 0);
-        UserProgressService.setProgress("completed_mission", false);
-        UserProgressService.setProgress("diff_classic_game", 1);
-        UserProgressService.setProgress("diff_space_battle", 1);
-        UserProgressService.setProgress("mission_id", 1);
-        UserProgressService.setProgress("level", 1);
-        UserProgressService.setProgress("movement_type", 1);
-        UserProgressService.setProgress("shot_type", 1);
-        UserProgressService.setProgress("spacecraft_CG", 0);
-        UserProgressService.setProgress("spacecraft_SB", 0);
-        UserProgressService.setProgress("spacecraft_SJ", 0);
-        UserProgressService.setProgress("num_double_points", 1);
-        UserProgressService.setProgress("num_gold_heart", 1);
-        UserProgressService.setProgress("num_shield", 1);
-        UserProgressService.setProgress("num_super_laser", 1);
+        UserProgressService.setProgress("diff_classic", 1);
+        UserProgressService.setProgress("diff_gravity4", 1);
+        UserProgressService.setProgress("diff_horizontal", 1);
+        UserProgressService.setProgress("diff_speedy", 1);
         UserProgressService.setProgress("num_mission", 1);
-        UserProgressService.setProgress("wins_SB_missions", 0);
-        UserProgressService.setProgress("num_aliens_hit", 0);
-        UserProgressService.setProgress("num_aliens_hit_missions", 0);
-        UserProgressService.setProgress("matches_CG", 0);
-        UserProgressService.setProgress("matches_SB", 0);
-        UserProgressService.setProgress("won_SB", 0);
-        UserProgressService.setProgress("win_streak_SB", 0);
+        UserProgressService.setProgress("matches_classic", 0);
+        UserProgressService.setProgress("matches_gravity4", 0);
+        UserProgressService.setProgress("matches_horizontal", 0);
+        UserProgressService.setProgress("matches_speedy", 0);
         UserProgressService.setProgress("points", 0);
-        UserProgressService.setProgress("points_missions", 0);
-        UserProgressService.setProgress("state_product_5", false);
-        UserProgressService.setProgress("state_product_6", false);
-        UserProgressService.setProgress("level_bought", false);
         UserProgressService.setProgress("sound_volume", 0.5);
         UserProgressService.setProgress("music_volume", 0.5);
-        UserProgressService.setProgress("alpha_fragments", 0);
-        UserProgressService.setProgress("show_warning", true);
+        UserProgressService.setProgress("darkMode", false);
+        UserProgressService.setProgress("animations", true);
 
         // salvataggio punti di base in remoto nel loro apposito campo
         try { FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, 0); }

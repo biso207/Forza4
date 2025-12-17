@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Rectangle;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import sorgente.SoundManager;
 
 public class LobbyInput implements InputProcessor
 {
@@ -95,7 +96,13 @@ public class LobbyInput implements InputProcessor
     public boolean touchDown(int screenX, int screenY, int pointer, int button)
     {
         System.out.println(screenX+" "+screenY);
-        return checkHitboxes(screenX, screenY);
+
+        boolean click = checkHitboxes(screenX, screenY);
+
+        // riproduzione del click
+        if (click) SoundManager.playClickButton(50);
+
+        return click;
     }
 
 
@@ -259,7 +266,6 @@ public class LobbyInput implements InputProcessor
         if (settingsArea.contains(x, y))
         {
             settings = true;
-            log.info("Settings cliccato!");
             return true;
         }
 
