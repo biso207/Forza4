@@ -45,22 +45,22 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         // -- Light Mode --
         lobby_light = new Texture("lobby_screens/light/lobby_light.png");
         settings_light = new Texture("lobby_screens/light/settings_light.png");
-        bigClicked_light = new Texture("ui/buttons/lobby/light/bottom_bigClicked.png");
-        bigHover_light = new Texture("ui/buttons/lobby/light/bottom_bigHover.png");
-        centerClicked_light = new Texture("ui/buttons/lobby/light/bottom_centerClicked.png");
-        centerHover_light = new Texture("ui/buttons/lobby/light/bottom_centerHover.png");
-        modeClicked_light = new Texture("ui/buttons/lobby/light/game_modeClicked.png");
-        modeHover_light = new Texture("ui/buttons/lobby/light/game_modeHover.png");
+        bigClicked_light = new Texture("ui/buttons/lobby/light/bottom_big_clicked.png");
+        bigHover_light = new Texture("ui/buttons/lobby/light/bottom_big_hover.png");
+        centerClicked_light = new Texture("ui/buttons/lobby/light/bottom_center_clicked.png");
+        centerHover_light = new Texture("ui/buttons/lobby/light/bottom_center_hover.png");
+        modeClicked_light = new Texture("ui/buttons/lobby/light/game_mode_clicked.png");
+        modeHover_light = new Texture("ui/buttons/lobby/light/game_mode_hover.png");
 
         // -- Dark Mode --
         lobby_dark = new Texture("lobby_screens/dark/lobby_dark.png");
         settings_dark = new Texture("lobby_screens/dark/settings_dark.png");
-        bigClicked_dark = new Texture("ui/buttons/lobby/dark/bottom_bigClicked.png");
-        bigHover_dark = new Texture("ui/buttons/lobby/dark/bottom_bigHover.png");
-        centerClicked_dark = new Texture("ui/buttons/lobby/dark/bottom_centerClicked.png");
-        centerHover_dark = new Texture("ui/buttons/lobby/dark/bottom_centerHover.png");
-        modeClicked_dark = new Texture("ui/buttons/lobby/dark/game_modeClicked.png");
-        modeHover_dark = new Texture("ui/buttons/lobby/dark/game_modeHover.png");
+        bigClicked_dark = new Texture("ui/buttons/lobby/dark/bottom_big_clicked.png");
+        bigHover_dark = new Texture("ui/buttons/lobby/dark/bottom_big_hover.png");
+        centerClicked_dark = new Texture("ui/buttons/lobby/dark/bottom_center_clicked.png");
+        centerHover_dark = new Texture("ui/buttons/lobby/dark/bottom_center_hover.png");
+        modeClicked_dark = new Texture("ui/buttons/lobby/dark/game_mode_clicked.png");
+        modeHover_dark = new Texture("ui/buttons/lobby/dark/game_mode_hover.png");
 
         // background
         lobby = isDark ? lobby_dark : lobby_light;
