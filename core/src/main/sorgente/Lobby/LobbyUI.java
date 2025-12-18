@@ -86,7 +86,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
     // metodo per disegnare le grafiche delle impostazioni
     private void drawSettings() {
-        screen.draw(settings, 246, 229);
+        screen.draw(settings, 244, 229);
 
         // pulsante audio
         // pulsante suono
