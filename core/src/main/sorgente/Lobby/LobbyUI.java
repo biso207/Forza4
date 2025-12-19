@@ -5,11 +5,9 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import sorgente.Authentication.AuthAlgorithms;
 import sorgente.Fonts;
 import sorgente.Main;
 import sorgente.ResourceLoader;
-import sorgente.UserData.UserProgressService;
 
 public class LobbyUI extends ScreenAdapter implements ResourceLoader
 {
@@ -21,14 +19,14 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private boolean cursorVisible = true;
     private final LobbyInput lobbyInput;
 
-    private final boolean isDark = (boolean) UserProgressService.getProgress("darkMode"); // recuperata dai dati utente caricati all'accesso
+    private Texture lobby, software_infos_light, logout_light,settings_light,logout_clicked;
+    private Texture big_clicked,big_hover,center_clicked,center_hover,mode_clicked,mode_hover;
+    private Texture access_clicked,access_hover,infos_clicked,infos_hover;
+    private Texture logout_hover,settings_clicked,settings_hover;
+    private Texture btn_close,btn_close_clicked;
 
-    // light and dark mode textures
-    private Texture lobby, settings, bigClicked, bigHover, centerClicked, centerHover, modeClicked, modeHover;
-    private Texture lobby_dark, settings_light, bigClicked_dark, bigHover_dark, centerClicked_dark, centerHover_dark, modeClicked_dark, modeHover_dark;
-    private Texture lobby_light, settings_dark, bigClicked_light, bigHover_light, centerClicked_light, centerHover_light, modeClicked_light, modeHover_light;
-
-    public LobbyUI(Main game) {
+    public LobbyUI(Main game)
+    {
         this.game = game;
         this.screen = game.screen;
         Fonts.load();
@@ -41,123 +39,131 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     public void loadFont() {}
 
     @Override
-    public void loadImages() {
-        // -- Light Mode --
-        lobby_light = new Texture("lobby_screens/light/lobby_light.png");
-        settings_light = new Texture("lobby_screens/light/settings_light.png");
-        bigClicked_light = new Texture("ui/buttons/lobby/light/bottom_big_clicked.png");
-        bigHover_light = new Texture("ui/buttons/lobby/light/bottom_big_hover.png");
-        centerClicked_light = new Texture("ui/buttons/lobby/light/bottom_center_clicked.png");
-        centerHover_light = new Texture("ui/buttons/lobby/light/bottom_center_hover.png");
-        modeClicked_light = new Texture("ui/buttons/lobby/light/game_mode_clicked.png");
-        modeHover_light = new Texture("ui/buttons/lobby/light/game_mode_hover.png");
+    public void loadImages()
+    {
 
-        // -- Dark Mode --
-        lobby_dark = new Texture("lobby_screens/dark/lobby_dark.png");
-        settings_dark = new Texture("lobby_screens/dark/settings_dark.png");
-        bigClicked_dark = new Texture("ui/buttons/lobby/dark/bottom_big_clicked.png");
-        bigHover_dark = new Texture("ui/buttons/lobby/dark/bottom_big_hover.png");
-        centerClicked_dark = new Texture("ui/buttons/lobby/dark/bottom_center_clicked.png");
-        centerHover_dark = new Texture("ui/buttons/lobby/dark/bottom_center_hover.png");
-        modeClicked_dark = new Texture("ui/buttons/lobby/dark/game_mode_clicked.png");
-        modeHover_dark = new Texture("ui/buttons/lobby/dark/game_mode_hover.png");
+      lobby= new Texture("lobby_screens/light/lobby_light.png");
+      software_infos_light= new Texture("lobby_screens/light/software_infos_light.png");
 
-        // todo: caricare le icone e stampare le hover
+      logout_light=new Texture("lobby_screens/light/logout_light.png");
+      settings_light=new Texture("lobby_screens/light/settings_light.png");
 
-        // background
-        lobby = isDark ? lobby_dark : lobby_light;
+      btn_close=new Texture("ui/buttons/lobby/light/btn_close.png");
+      btn_close_clicked=new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
 
-        // hover textures
-        modeHover   = isDark ? modeHover_dark   : modeHover_light;
-        bigHover    = isDark ? bigHover_dark    : bigHover_light;
-        centerHover = isDark ? centerHover_dark : centerHover_light;
+      big_clicked=new Texture("ui/buttons/lobby/light/bottom_big_clicked.png");
+      big_hover=new Texture("ui/buttons/lobby/light/bottom_big_hover.png");
 
-        // clicked textures
-        modeClicked = isDark ? modeClicked_dark : modeClicked_light;
-        bigClicked  = isDark ? bigClicked_dark  : bigClicked_light;
-        centerClicked = isDark ? centerClicked_dark : centerClicked_light;
+      center_clicked=new Texture("ui/buttons/lobby/light/bottom_center_clicked.png");
+      center_hover=new Texture("ui/buttons/lobby/light/bottom_center_hover.png");
 
-        // secondary pages
-        settings = isDark ? settings_dark : settings_light;
+      mode_clicked=new Texture("ui/buttons/lobby/light/game_mode_clicked.png");
+      mode_hover= new Texture("ui/buttons/lobby/light/game_mode_hover.png");
+
+      access_hover=new Texture("ui/icons/accessibility.png");
+      access_clicked= new Texture("ui/icons/accessibility_clicked.png");
+
+      infos_hover=new Texture("ui/icons/infos.png");
+      infos_clicked=new Texture("ui/icons/infos_clicked.png");
+
+      logout_hover=new Texture("ui/icons/logout.png");
+      logout_clicked=new Texture("ui/icons/logout_clicked.png");
+
+      settings_hover=new Texture("ui/icons/settings.png");
+      settings_clicked=new Texture("ui/icons/settings_clicked.png");
+
+
     }
 
-    // metodo per creare l'effetto hover dei pulsanti
-    private void drawHover(Texture texture, boolean hover, float x, float y) {if (hover)screen.draw(texture, x, y);}
 
-    // metodo per disegnare le grafiche delle impostazioni
-    private void drawSettings() {
-        screen.draw(settings, 244, 229);
-
-        // pulsante audio
-        // pulsante suono
-        // pulsante dark-mode/light-mode
-        // pulsante animations on/off
-        // pulsante X close settings
+    private void draw(Texture texture, boolean response, float x, float y)
+    {
+        if (response)
+        {
+            screen.draw(texture, x, y);
+        }
     }
+
+
 
     @Override
-    public void render(float delta) {
+    public void render(float delta)
+    {
         Gdx.input.setInputProcessor(lobbyInput);
 
         screen.begin();
-
-        // background
         screen.draw(lobby, 0, 0);
 
-        // --- Game Mods ---
-        drawHover(modeHover, lobbyInput.classicHover,    35, 304);
-        drawHover(modeHover, lobbyInput.gravity4Hover,   275, 304);
-        drawHover(modeHover, lobbyInput.horizontalHover, 513, 304);
-        drawHover(modeHover, lobbyInput.speedyHover,     753, 304);
+        // --- GAME MODES ---
+        draw(mode_hover, lobbyInput.classicHover,37, 305);
+        draw(mode_hover, lobbyInput.gravity4Hover,275, 305);
+        draw(mode_hover, lobbyInput.horizontalHover,512, 305);
+        draw(mode_hover, lobbyInput.speedyHover,752, 305);
 
-        // --- Secondary Buttons ---
-        drawHover(bigHover,    lobbyInput.marketHover,     35,  91);
-        drawHover(centerHover, lobbyInput.scoreboardHover, 369, 91);
-        drawHover(bigHover,    lobbyInput.dailyHover,      660, 91);
+        draw(mode_clicked, lobbyInput.classic,37, 305);
+        draw(mode_clicked, lobbyInput.gravity4,275, 305);
+        draw(mode_clicked, lobbyInput.horizontal,512, 305);
+        draw(mode_clicked, lobbyInput.speedy,752, 305);
 
-        // --- Bottom Icons ---
-        // todo: qui mettere le hover
-        drawHover(centerHover, lobbyInput.exitHover,          397, 649);
-        drawHover(centerHover, lobbyInput.informationHover,   459, 637);
-        drawHover(centerHover, lobbyInput.settingsHover,      519, 649);
-        drawHover(centerHover, lobbyInput.accessibilityHover, 584, 649);
 
-        // --- Secondary Screens ---
-        if (lobbyInput.settings) drawSettings();
+        // --- SECONDARY BUTTONS ---
+
+        draw(big_hover,    lobbyInput.marketHover,37,90);
+        draw(center_hover, lobbyInput.scoreboardHover,370,90);
+        draw(big_hover,    lobbyInput.dailyHover,660,90);
+
+        draw(big_clicked,    lobbyInput.market,38,90);
+        draw(center_clicked, lobbyInput.scoreboard,370,90);
+        draw(big_clicked,    lobbyInput.daily,660,90);
+
+        // --- BOTTOM ICONS ---
+        draw(logout_hover, lobbyInput.exitHover,398,41);
+        draw(infos_hover, lobbyInput.informationHover,452,40);
+        draw(access_hover, lobbyInput.accessibilityHover,570,40);
+        draw(settings_hover, lobbyInput.settingsHover,510,40);
+
+        draw(logout_clicked, lobbyInput.exit,398,41);
+        draw(infos_clicked, lobbyInput.information,452,40);
+        draw(access_clicked, lobbyInput.man,570,40);
+        draw(settings_clicked, lobbyInput.settings,510,40);
+
+        // --- WINDOWS ---
+
+        draw(software_infos_light, lobbyInput.isWindowOpenInfo, 244, 194);
+        draw(logout_light,lobbyInput.isWindowOpenExit,294,204);
+        draw(settings_light,lobbyInput.isWindowOpenSettings,244,223);
+
+        //--- CHIUDI ---
+
+
+        if(lobbyInput.isWindowOpenInfo)
+        {
+            draw(btn_close,lobbyInput.isBtnCloseInfoHover,694,438);
+            draw(btn_close_clicked, lobbyInput.btnCloseInfo, 694, 438);
+        }
+
+        if(lobbyInput.isWindowOpenSettings)
+        {
+            draw(btn_close,lobbyInput.isBtnCloseSettingsHover,694,410);
+            draw(btn_close,lobbyInput.btnCloseSettings,694,410);
+        }
 
         screen.end();
     }
 
+
+
+
+
     @Override
-    public void dispose() {
-        // Dispose light mode textures
-        lobby_light.dispose();
-        settings_light.dispose();
-        bigClicked_light.dispose();
-        bigHover_light.dispose();
-        centerClicked_light.dispose();
-        centerHover_light.dispose();
-        modeClicked_light.dispose();
-        modeHover_light.dispose();
-
-        // Dispose dark mode textures
-        lobby_dark.dispose();
-        settings_dark.dispose();
-        bigClicked_dark.dispose();
-        bigHover_dark.dispose();
-        centerClicked_dark.dispose();
-        centerHover_dark.dispose();
-        modeClicked_dark.dispose();
-        modeHover_dark.dispose();
-
-        // Dispose current mode textures
+    public void dispose()
+    {
         lobby.dispose();
-        settings.dispose();
-        bigClicked.dispose();
-        bigHover.dispose();
-        centerClicked.dispose();
-        centerHover.dispose();
-        modeHover.dispose();
-        modeClicked.dispose();
+        big_clicked.dispose();
+        big_hover.dispose();
+        center_clicked.dispose();
+        center_hover.dispose();
+        mode_hover.dispose();
+        mode_clicked.dispose();
     }
 }

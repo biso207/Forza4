@@ -13,6 +13,12 @@ public class LobbyInput implements InputProcessor
 {
     private static final Log log = LogFactory.getLog(LobbyInput.class);
 
+    //Clicked
+
+    protected boolean btnCloseExit;
+    protected boolean btnCloseSettings;
+    protected boolean btnCloseInfo;
+
     protected boolean classic;
     protected boolean gravity4;
     protected boolean horizontal;
@@ -20,12 +26,15 @@ public class LobbyInput implements InputProcessor
     protected boolean market;
     protected boolean scoreboard;
     protected boolean daily;
+
     protected boolean settings;
     protected boolean information;
     protected boolean exit;
     protected boolean man;
 
     // Hover
+    protected boolean isBtnCloseInfoHover;
+    protected boolean isBtnCloseSettingsHover;
     protected boolean classicHover;
     protected boolean gravity4Hover;
     protected boolean horizontalHover;
@@ -38,8 +47,18 @@ public class LobbyInput implements InputProcessor
     protected boolean exitHover;
     protected boolean accessibilityHover;
 
+    //Per Aprire le finestre
+
+    protected boolean isWindowOpenInfo;
+    protected boolean isWindowOpenExit;
+    protected boolean isWindowOpenSettings;
+
     private final Pixmap mouse;
     private final Cursor cursor;
+
+    private final Rectangle btnCloseInfoArea;
+    private final Rectangle btnCloseSettingsArea;
+
 
     private final Rectangle classicArea;
     private final Rectangle gravity4Area;
@@ -60,6 +79,10 @@ public class LobbyInput implements InputProcessor
 
     public LobbyInput()
     {
+        isWindowOpenInfo =false;
+        isWindowOpenExit =false;
+        isWindowOpenSettings=false;
+
         classic = gravity4 = horizontal = speedy = false;
         market = scoreboard = daily = false;
         settings = information = exit = man = false;
@@ -71,15 +94,20 @@ public class LobbyInput implements InputProcessor
         speedyArea      = new Rectangle(730, 160, 190, 250);
 
         // Hitbox secondarie
-        marketArea      = new Rectangle(40, 400, 301, 200);
-        dailyArea       = new Rectangle(665, 400, 301, 200);
-        scoreboardArea  = new Rectangle(370, 400, 240, 220);
+        marketArea      = new Rectangle(37, 400, 301, 200);
+        dailyArea       = new Rectangle(660, 400, 301, 200);
+        scoreboardArea  = new Rectangle(365, 400, 240, 220);
 
-        // Icone in basso
-        exitArea        = new Rectangle(397, 649, 30, 40);
-        informationArea = new Rectangle(459, 637, 30, 40);
-        manArea         = new Rectangle(584, 649, 30, 40);
-        settingsArea    = new Rectangle(519, 649, 30, 40);
+        // Bottoni
+        exitArea        = new Rectangle(390, 615, 30, 30);
+        informationArea = new Rectangle(450, 615, 30, 30);
+        settingsArea    = new Rectangle(510, 615, 30, 30);
+        manArea         = new Rectangle(578, 615, 30, 30);
+
+        btnCloseInfoArea = new Rectangle(708,236,40,40);
+        btnCloseSettingsArea = new Rectangle(705,245,40,40);
+
+
 
         // Cursor personalizzato
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
@@ -111,6 +139,8 @@ public class LobbyInput implements InputProcessor
         classicHover = gravity4Hover = horizontalHover = speedyHover = false;
         marketHover = scoreboardHover = dailyHover = false;
         settingsHover = informationHover = exitHover = accessibilityHover = false;
+        isBtnCloseInfoHover = false;
+        isBtnCloseSettingsHover = false;
     }
 
 
@@ -120,57 +150,87 @@ public class LobbyInput implements InputProcessor
     {
         resetHover();
 
-        if (classicArea.contains(screenX, screenY)) {
+        if(isWindowOpenInfo || isWindowOpenSettings)
+        {
+
+            if(btnCloseInfoArea.contains(screenX,screenY))
+            {
+                isBtnCloseInfoHover = true;
+                return true;
+            }
+
+            if(btnCloseSettingsArea.contains(screenX,screenY))
+            {
+                isBtnCloseSettingsHover = true;
+                return true;
+            }
+
+            return false;
+        }
+
+
+        if (classicArea.contains(screenX, screenY))
+        {
             classicHover = true;
             return true;
         }
 
-        if (gravity4Area.contains(screenX, screenY)) {
+        if (gravity4Area.contains(screenX, screenY))
+        {
             gravity4Hover = true;
             return true;
         }
 
-        if (horizontalArea.contains(screenX, screenY)) {
+        if (horizontalArea.contains(screenX, screenY))
+        {
             horizontalHover = true;
             return true;
         }
 
-        if (speedyArea.contains(screenX, screenY)) {
+        if (speedyArea.contains(screenX, screenY))
+        {
             speedyHover = true;
             return true;
         }
 
-        if (marketArea.contains(screenX, screenY)) {
+        if (marketArea.contains(screenX, screenY))
+        {
             marketHover = true;
             return true;
         }
 
-        if (dailyArea.contains(screenX, screenY)) {
+        if (dailyArea.contains(screenX, screenY))
+        {
             dailyHover = true;
             return true;
         }
 
-        if (scoreboardArea.contains(screenX, screenY)) {
+        if (scoreboardArea.contains(screenX, screenY))
+        {
             scoreboardHover = true;
             return true;
         }
 
-        if (exitArea.contains(screenX, screenY)) {
+        if (exitArea.contains(screenX, screenY))
+        {
             exitHover = true;
             return true;
         }
 
-        if (informationArea.contains(screenX, screenY)) {
+        if (informationArea.contains(screenX, screenY))
+        {
             informationHover = true;
             return true;
         }
 
-        if (manArea.contains(screenX, screenY)) {
+        if (manArea.contains(screenX, screenY))
+        {
             accessibilityHover = true;
             return true;
         }
 
-        if (settingsArea.contains(screenX, screenY)) {
+        if (settingsArea.contains(screenX, screenY))
+        {
             settingsHover = true;
             return true;
         }
@@ -185,11 +245,33 @@ public class LobbyInput implements InputProcessor
         classic = gravity4 = horizontal = speedy = false;
         market = scoreboard = daily = false;
         settings = information = exit = man = false;
+        btnCloseInfo=false;
+        btnCloseSettings=false;
     }
 
     private boolean checkHitboxes(int x, int y)
     {
         setFalse();
+
+        if(isWindowOpenInfo || isWindowOpenSettings)
+        {
+            if(btnCloseInfoArea.contains(x,y))
+            {
+                btnCloseInfo=true;
+                isWindowOpenInfo=false;
+
+                return true;
+            }
+
+            if(btnCloseSettingsArea.contains(x,y))
+            {
+                btnCloseSettings=true;
+                isWindowOpenSettings=false;
+                return true;
+            }
+
+          return false;
+        }
 
         if (classicArea.contains(x, y))
         {
@@ -243,6 +325,7 @@ public class LobbyInput implements InputProcessor
         if (exitArea.contains(x, y))
         {
             exit = true;
+            isWindowOpenExit =true;
             // IMPORTANTE! LA POSIZIONE DEVE ESSERE ESATTAMENTE IL CENTRO DELLO SCHERMO (1000/2-widthImg/2, 700/2-heightImg/2)
             log.info("Exit cliccato!"); // todo: stampare da LobbyUI la grafica logout.png ATTENZIONE al dark e no
             return true;
@@ -251,6 +334,7 @@ public class LobbyInput implements InputProcessor
         if (informationArea.contains(x, y))
         {
             information = true;
+            isWindowOpenInfo =true;
             // IMPORTANTE! LA POSIZIONE DEVE ESSERE ESATTAMENTE IL CENTRO DELLO SCHERMO
             log.info("Information cliccato!"); // todo: stampare da LobbyUI la grafica software_infos.png
             return true;
@@ -266,6 +350,7 @@ public class LobbyInput implements InputProcessor
         if (settingsArea.contains(x, y))
         {
             settings = true;
+            isWindowOpenSettings=true;
             log.info("Settings cliccato!");
             return true;
         }
