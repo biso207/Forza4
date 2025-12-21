@@ -5,6 +5,7 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import sorgente.Authentication.AuthManager;
 import sorgente.Fonts;
 import sorgente.Main;
 import sorgente.ResourceLoader;
@@ -17,6 +18,8 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private final GlyphLayout layout = new GlyphLayout();
     private float cursorTimer = 0f;
     private boolean cursorVisible = true;
+    private boolean goToAuth = false;
+
     private final LobbyInput lobbyInput;
 
     private Texture lobby, software_infos_light, logout_light,settings_light,logout_clicked;
@@ -24,6 +27,8 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private Texture access_clicked,access_hover,infos_clicked,infos_hover;
     private Texture logout_hover,settings_clicked,settings_hover;
     private Texture btn_close,btn_close_clicked;
+    private Texture btn_no,btn_yes,btn_no_clicked,btn_yes_clicked;
+    private Texture star,star_selected;
 
     public LobbyUI(Main game)
     {
@@ -41,6 +46,9 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     @Override
     public void loadImages()
     {
+
+      star=new Texture("ui/icons/star_selected.png");
+      star_selected=new Texture("ui/icons/star.png");
 
       lobby= new Texture("lobby_screens/light/lobby_light.png");
       software_infos_light= new Texture("lobby_screens/light/software_infos_light.png");
@@ -71,6 +79,12 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
       settings_hover=new Texture("ui/icons/settings.png");
       settings_clicked=new Texture("ui/icons/settings_clicked.png");
+
+      btn_no=new Texture("ui/buttons/lobby/btn_no.png");
+      btn_no_clicked=new Texture("ui/buttons/lobby/btn_no_clicked.png");
+
+      btn_yes=new Texture("ui/buttons/lobby/btn_yes.png");
+      btn_yes_clicked=new Texture("ui/buttons/lobby/btn_yes_clicked.png");
 
 
     }
@@ -148,7 +162,117 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
             draw(btn_close,lobbyInput.btnCloseSettings,694,410);
         }
 
+        if(lobbyInput.isWindowOpenExit)
+        {
+            draw(btn_yes,lobbyInput.isBtnYesExitHover,341,246);
+            draw(btn_yes_clicked,lobbyInput.btnYesExit,341,246);
+
+            if(lobbyInput.btnYesExit)
+            {
+                goToAuth=true;
+            }
+
+            draw(btn_no_clicked,lobbyInput.btnNoExit,507,246);
+            draw(btn_no,lobbyInput.isBtnNoExitHover,507,246);
+
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (!lobbyInput.starHover[i])
+            {
+                continue; // se è false, salta
+            }
+
+            switch (i)
+            {
+                case 0:
+                    draw(star_selected, true, 130, 312);   // Classic
+                    break;
+
+                case 1:
+                    draw(star_selected, true, 160, 312);
+                    break;
+
+                case 2:
+                    draw(star_selected, true, 370, 312);
+                    break;
+
+                case 3:
+                    draw(star_selected, true, 400, 312);
+                    break;
+
+                case 4:
+                    draw(star_selected, true, 610, 312);
+                    break;
+
+                case 5:
+                    draw(star_selected, true, 640, 312);
+                    break;
+
+                case 6:
+                    draw(star_selected, true, 850, 312);
+                    break;
+
+                case 7:
+                    draw(star_selected, true, 880, 312);
+                    break;
+            }
+
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            // Disegna solo se la stella è in hover OPPURE è cliccata
+            if (!lobbyInput.starClicked[i])
+                continue;
+
+            switch (i)
+            {
+                case 0:
+                    draw(star, true, 130, 312);   // Classic stella 1
+                    break;
+
+                case 1:
+                    draw(star, true, 160, 312);   // Classic stella 2
+                    break;
+
+                case 2:
+                    draw(star, true, 370, 312);   // Gravity4 stella 1
+                    break;
+
+                case 3:
+                    draw(star, true, 400, 312);   // Gravity4 stella 2
+                    break;
+
+                case 4:
+                    draw(star, true, 610, 312);   // Horizontal stella 1
+                    break;
+
+                case 5:
+                    draw(star, true, 640, 312);   // Horizontal stella 2
+                    break;
+
+                case 6:
+                    draw(star, true, 850, 312);   // Speedy stella 1
+                    break;
+
+                case 7:
+                    draw(star, true, 880, 312);   // Speedy stella 2
+                    break;
+            }
+        }
+
+
+
         screen.end();
+
+        if (goToAuth)
+        {
+            game.setScreen(new AuthManager(game));
+            return;
+        }
+
     }
 
 
