@@ -1,33 +1,32 @@
-package sorgente.Lobby;
+package sorgente.Game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import sorgente.Lobby.LobbyInput;
+import sorgente.Lobby.LobbyUI;
 import sorgente.Main;
-import sorgente.SoundManager;
 
-public class LobbyManager extends ScreenAdapter {
-    private final LobbyUI ui;
-    private final LobbyInput input;
+public class GameManager extends ScreenAdapter
+{
+    private static final Log log = LogFactory.getLog(GameManager.class);
+    private final GameUI ui;
+    private final GameInput input;
     private final Main game;
-    protected static Music soundtrack;
-
-
+    private int difficult;
 
 
     // costruttore
-    public LobbyManager(Main game)
+    public GameManager(Main game, int d, boolean dark)
     {
         this.game = game;
-        input = new LobbyInput();
-        ui = new LobbyUI(game);
-
+        input = new GameInput();
+        ui = new GameUI(game, dark);
+        difficult=d;
+        log.info(difficult);
     }
-
-    // ====================== //
-    //   METODI DELLO SCREEN  //
-    // ====================== //
 
     @Override
     public void render(float delta)
@@ -59,4 +58,5 @@ public class LobbyManager extends ScreenAdapter {
         ui.dispose();
         input.dispose();
     }
+
 }

@@ -6,23 +6,26 @@ import com.badlogic.gdx.audio.Sound;
 
 import java.util.HashMap;
 
+
+
+
 public class SoundManager
 {
 
 
-        private  float volume;
-        private final HashMap<String, Long> lastPlayedTimeMap;
+    private static float volume;
+    private final HashMap<String, Long> lastPlayedTimeMap;
 
-        private static Music soundtrack;
-        private final Sound shotSound, hitSound, creditSound, completedSound, winSound, defeatSound;
-        private static final Sound clickButtonSound = Gdx.audio.newSound(Gdx.files.internal("sounds/click_button.wav"));
-        private static final Sound digitSound = Gdx.audio.newSound(Gdx.files.internal("sounds/digit.wav"));
+    private static Music soundtrack;
+    private final Sound shotSound, hitSound, creditSound, completedSound, winSound, defeatSound;
+    private static final Sound clickButtonSound = Gdx.audio.newSound(Gdx.files.internal("sounds/click_button.wav"));
+    private static final Sound digitSound = Gdx.audio.newSound(Gdx.files.internal("sounds/digit.wav"));
 
-        // intervallo minimo (in ms) tra due riproduzioni dello stesso suono
-        private static final long MIN_INTERVAL_SHOT = 50;  // 20 volte al secondo
-        private static final long MIN_INTERVAL_HIT = 100;  // 10 volte al secondo
+    // intervallo minimo (in ms) tra due riproduzioni dello stesso suono
+    private static final long MIN_INTERVAL_SHOT = 50;  // 20 volte al secondo
+    private static final long MIN_INTERVAL_HIT = 100;  // 10 volte al secondo
 
-        // costruttore
+    // costruttore
     public SoundManager(float volume)
     {
         this.volume = volume;
@@ -48,89 +51,89 @@ public class SoundManager
         }
     } /** Cambia il volume degli EFFETTI in tempo reale */
 
-    public void setEffectsVolume(float value)
+public void setEffectsVolume(float value)
+{
+    volume = value;
+}
+
+    /** Metodi con controllo di "throttle" **/
+    // metodo per riprodurre il suono di sparo
+    public void playLaser()
     {
-        this.volume = value;
+        playThrottled("shot", shotSound, MIN_INTERVAL_SHOT);
     }
 
-        /** Metodi con controllo di "throttle" **/
-        // metodo per riprodurre il suono di sparo
-        public void playLaser()
-        {
-          playThrottled("shot", shotSound, MIN_INTERVAL_SHOT);
-        }
+    // metodo per riprodurre il suono della collisione
+    public void playHit()
+    {
+        playThrottled("hit", hitSound, MIN_INTERVAL_HIT);
+    }
 
-        // metodo per riprodurre il suono della collisione
-        public void playHit()
-        {
-          playThrottled("hit", hitSound, MIN_INTERVAL_HIT);
-        }
+    /** Suoni rari, li riproduciamo sempre **/
+    // metodo per il suono dei crediti
+    public void playCreditEarned()
+    {
+        creditSound.play(volume);
+    }
 
-        /** Suoni rari, li riproduciamo sempre **/
-        // metodo per il suono dei crediti
-        public void playCreditEarned()
-        {
-          creditSound.play(volume);
-        }
+    // metodo per il suono di completamento della missione Missions
+    public void playCompletedMissions()
+    {
+        completedSound.play(volume);
+    }
 
-        // metodo per il suono di completamento della missione Missions
-        public void playCompletedMissions()
-        {
-          completedSound.play(volume);
-        }
+    // metodo per il suono di vittoria di una partita
+    public void playWin()
+    {
+        winSound.play(volume);
+    }
 
-        // metodo per il suono di vittoria di una partita
-        public void playWin()
-        {
-         winSound.play(volume);
-        }
+    // metodo per il suono della sconfitta di una partita
+    public void playDefeat()
+    {
+        defeatSound.play(volume);
+    }
 
-        // metodo per il suono della sconfitta di una partita
-        public void playDefeat()
-        {
-         defeatSound.play(volume);
-        }
+    // metodo per riprodurre il click dei pulsanti
+    public static void playClickButton(float volume)
+    {
+        clickButtonSound.play(volume);
+    }
 
-        // metodo per riprodurre il click dei pulsanti
-        public static void playClickButton(float volume)
-        {
-          clickButtonSound.play(volume);
-        }
-
-        // metodo per riprodurre il suono della digitazione
-        public static void playDigitSound(float volume)
-        {
+    // metodo per riprodurre il suono della digitazione
+    public static void playDigitSound(float volume)
+    {
         digitSound.play(volume);
-        }
+    }
 
-        public static void playLobby(float volume)
+    public static void playLobby(float volume)
+    {
+        soundtrack.setLooping(true);
+        soundtrack.setVolume(volume);// true=loop music; false=no loop
+        soundtrack.play();
+    }
+
+    private void playThrottled(String key, Sound sound, long minIntervalMillis)
+    {
+        long now = System.currentTimeMillis();
+        Long lastPlayed = lastPlayedTimeMap.getOrDefault(key, 0L);
+
+        if (now - lastPlayed >= minIntervalMillis)
         {
-            soundtrack.setLooping(true);
-            soundtrack.setVolume(volume);// true=loop music; false=no loop
-            soundtrack.play();
-        }
-
-        private void playThrottled(String key, Sound sound, long minIntervalMillis)
-        {
-          long now = System.currentTimeMillis();
-          Long lastPlayed = lastPlayedTimeMap.getOrDefault(key, 0L);
-
-          if (now - lastPlayed >= minIntervalMillis)
-          {
             sound.play(volume);
             lastPlayedTimeMap.put(key, now);
-          }
-       }
+        }
+    }
 
-        public void dispose()
-        {
+    public void dispose()
+    {
         shotSound.dispose();
         hitSound.dispose();
         creditSound.dispose();
         completedSound.dispose();
         winSound.dispose();
         defeatSound.dispose();
-       }
+    }
 
 
 }

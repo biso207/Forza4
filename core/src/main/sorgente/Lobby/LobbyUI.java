@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import sorgente.Authentication.AuthManager;
 import sorgente.Fonts;
+import sorgente.Game.GameManager;
+import sorgente.LoadingScreen;
 import sorgente.Main;
 import sorgente.ResourceLoader;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -16,6 +18,8 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 {
     private final Main game;
     private  final SpriteBatch screen;
+
+    private Boolean darkMode;
 
     private final GlyphLayout layout = new GlyphLayout();
     private float cursorTimer = 0f;
@@ -31,6 +35,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private Texture darkLobby,darkLogout,darkSettings,darkSoftware;
     private Texture darkBigClicked,darkBigHover,darkCenterClicked,darkCenterHover;
     private Texture darkBtnClose,darkBtnCloseClicked;
+    private Texture darkMarket,darkMarketClicked;
 
 
     //LIGHT MODE
@@ -38,6 +43,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private Texture lightLobby,lightLogout,lightSettings,lightSoftware;
     private Texture lightBigClicked,lightBigHover,lightCenterClicked,lightCenterHover;
     private Texture lightBtnClose,lightBtnCloseClicked;
+    private Texture lightMarket,lightMarketClicked;
 
     //MODE MODIFICABILE
 
@@ -49,6 +55,10 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private Texture btn_no,btn_yes,btn_no_clicked,btn_yes_clicked;
     private Texture star,star_selected;
     private Texture noMusic,noEffects;
+    private Texture market;
+    private Texture market_clicked;
+
+    private LoadingScreen loadingScreen;
     private int volume;
 
 
@@ -59,6 +69,8 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         Fonts.load();
         lobbyInput=new LobbyInput();
         shapeRenderer = new ShapeRenderer();
+        loadingScreen = new LoadingScreen(game, false);
+
 
         this.loadImages();
 
@@ -82,6 +94,8 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
          darkBtnClose=new Texture("ui/buttons/lobby/dark/btn_close.png");
 
          darkBtnCloseClicked=new Texture("ui/buttons/lobby/dark/btn_close_clicked.png");
+         darkMarket=new Texture("ui/buttons/lobby/dark/market.png");
+         darkMarketClicked=new Texture("ui/buttons/lobby/dark/market_clicked.png");
     }
 
     public void loadLightMode()
@@ -97,12 +111,16 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         lightCenterHover=new Texture("ui/buttons/lobby/light/bottom_center_hover.png");
         lightBtnClose=new Texture("ui/buttons/lobby/light/btn_close.png");
 
-        darkBtnCloseClicked=new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
+        lightBtnCloseClicked=new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
+        lightMarket=new Texture("ui/buttons/lobby/light/market.png");
+        lightMarketClicked=new Texture("ui/buttons/lobby/light/market_clicked.png");
     }
 
     public void darkMode(boolean r)
     {
-        if(r)
+        darkMode=r;
+
+        if(darkMode)
         {
            lobby=darkLobby;
            software_infos=darkSoftware;
@@ -115,6 +133,9 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
            center_hover=darkCenterHover;
            btn_close=darkBtnClose;
            btn_close_clicked=darkBtnCloseClicked;
+
+           market=darkMarket;
+           market_clicked=darkMarketClicked;
         }
         else
         {
@@ -125,10 +146,13 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
             big_clicked=lightBigClicked;
             big_hover=lightBigHover;
-            center_clicked=darkCenterClicked;
+            center_clicked=lightCenterClicked;
             center_hover=lightCenterHover;
             btn_close=lightBtnClose;
             btn_close_clicked=lightBtnCloseClicked;
+
+            market=lightMarket;
+            market_clicked=lightMarketClicked;
         }
     }
 
@@ -207,6 +231,9 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         draw(mode_clicked, lobbyInput.gravity4,275, 305);
         draw(mode_clicked, lobbyInput.horizontal,512, 305);
         draw(mode_clicked, lobbyInput.speedy,752, 305);
+
+        draw(market,lobbyInput.isBtnMarket,832,588);
+        draw(market_clicked,lobbyInput.isBtnMarketClicked,832,588);
 
 
         // --- SECONDARY BUTTONS ---
@@ -300,7 +327,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
                 shapeRenderer.end();
 
-                // 4️⃣ Riapro il batch PRIMA di disegnare i font
+
                 screen.begin();
 
 
@@ -450,6 +477,30 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
             game.setScreen(new AuthManager(game));
             return;
         }
+
+        if(lobbyInput.classic)
+        {
+            game.setScreen(new GameManager(game,lobbyInput.difficolta[0],darkMode));
+        }
+
+        if(lobbyInput.gravity4)
+        {
+            game.setScreen(new GameManager(game,lobbyInput.difficolta[1],darkMode));
+        }
+
+        if(lobbyInput.horizontal)
+        {
+            game.setScreen(new GameManager(game,lobbyInput.difficolta[2],darkMode));
+        }
+
+        if(lobbyInput.speedy)
+        {
+            game.setScreen(new GameManager(game,lobbyInput.difficolta[3],darkMode));
+        }
+
+
+
+
 
 
     }

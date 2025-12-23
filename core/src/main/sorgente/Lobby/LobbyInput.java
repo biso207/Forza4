@@ -49,6 +49,8 @@ public class LobbyInput implements InputProcessor
 
     // Hover
 
+    protected boolean isBtnMarket;
+    protected boolean isBtnMarketClicked;
     protected boolean isBtnSwitch;
     protected boolean isBtnNoExitHover;
     protected boolean isBtnYesExitHover;
@@ -80,9 +82,9 @@ public class LobbyInput implements InputProcessor
 
     protected final Rectangle musicBarArea;
     protected final Rectangle effectsBarArea;
-    final Rectangle switchL;
-    final Rectangle switchD;
-    Rectangle switchE;
+    protected Rectangle switchL;
+    protected final Rectangle switchD;
+    protected Rectangle switchE;
 
     private final Rectangle[] classicStars = new Rectangle[3];
     private final Rectangle[] gravityStars = new Rectangle[3];
@@ -110,6 +112,10 @@ public class LobbyInput implements InputProcessor
     private final Rectangle exitArea;
     private final Rectangle manArea;
 
+    private final Rectangle marketButton;
+
+
+
 
     public LobbyInput()
     {
@@ -122,11 +128,13 @@ public class LobbyInput implements InputProcessor
         market = scoreboard = daily = false;
         settings = information = exit = man = false;
 
+        isBtnMarket=false;
+
         // Hitbox principali
 
 
-        switchD=new Rectangle(407,464,30,30);
-        switchL=new Rectangle(505,464,30,30);
+        switchD=new Rectangle(407,324,30,30);
+        switchL=new Rectangle(535,324,30,30);
 
 
         switchE=switchL;
@@ -170,6 +178,8 @@ public class LobbyInput implements InputProcessor
         btn_no= new Rectangle(503,408,141,52);
         btn_yes= new Rectangle(341,408,141,52);
 
+        marketButton= new Rectangle(831,64,30,30);
+
         // Cursor personalizzato
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
         cursor = Gdx.graphics.newCursor(mouse, 0, 0);
@@ -190,7 +200,7 @@ public class LobbyInput implements InputProcessor
 
         if (click)
         {
-            SoundManager.playClickButton(500000000);
+            //sound.playClickButton();
         }
 
         return click;
@@ -207,6 +217,8 @@ public class LobbyInput implements InputProcessor
         isBtnCloseSettingsHover = false;
         isBtnYesExitHover=false;
         isBtnNoExitHover=false;
+
+        isBtnMarket=false;
 
         starHover[0]=false;
         starHover[1]=false;
@@ -336,6 +348,12 @@ public class LobbyInput implements InputProcessor
             return true;
         }
 
+        if(marketButton.contains(screenX,screenY))
+        {
+            isBtnMarket=true;
+            return true;
+        }
+
 
         if (classicArea.contains(screenX, screenY))
         {
@@ -436,6 +454,7 @@ public class LobbyInput implements InputProcessor
         btnCloseSettings=false;
         btnYesExit=false;
         btnNoExit=false;
+        isBtnMarketClicked=false;
 
         starClicked[0]=false;
         starClicked[1]=false;
@@ -670,6 +689,14 @@ public class LobbyInput implements InputProcessor
             }
             return true;
         }
+
+        if(marketButton.contains(x,y))
+        {
+            isBtnMarketClicked=true;
+            new Timer().schedule(new TimerTask() { @Override public void run() { isBtnMarketClicked = false; } }, 100);
+            return true;
+        }
+
 
 
         if (classicArea.contains(x, y))
