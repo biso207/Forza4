@@ -4,21 +4,30 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.SoundManager;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class LobbyInput implements InputProcessor
 {
     private static final Log log = LogFactory.getLog(LobbyInput.class);
-
+    private AudioSettings audio= new AudioSettings();
+    private int numero=0;
 
     //Clicked
 
     protected int[] difficolta=new int[8];
     protected boolean[] starHover=new boolean[8];
     protected boolean[] starClicked=new boolean[8];
+
+    protected boolean draggingMusic = false;
+    protected boolean draggingEffects = false;
+
 
     protected boolean btnNoExit;
     protected boolean btnYesExit;
@@ -40,6 +49,7 @@ public class LobbyInput implements InputProcessor
 
     // Hover
 
+    protected boolean isBtnSwitch;
     protected boolean isBtnNoExitHover;
     protected boolean isBtnYesExitHover;
     protected boolean isBtnCloseInfoHover;
@@ -67,6 +77,12 @@ public class LobbyInput implements InputProcessor
 
 
     //Hitbox
+
+    protected final Rectangle musicBarArea;
+    protected final Rectangle effectsBarArea;
+    final Rectangle switchL;
+    final Rectangle switchD;
+    Rectangle switchE;
 
     private final Rectangle[] classicStars = new Rectangle[3];
     private final Rectangle[] gravityStars = new Rectangle[3];
@@ -108,6 +124,16 @@ public class LobbyInput implements InputProcessor
 
         // Hitbox principali
 
+
+        switchD=new Rectangle(407,464,30,30);
+        switchL=new Rectangle(505,464,30,30);
+
+
+        switchE=switchL;
+
+        // Barra volume musica
+        musicBarArea = new Rectangle(316, 375, 370, 40); // x, y, width, height // Barra volume effetti
+        effectsBarArea = new Rectangle(316, 425, 370, 40);
 
         classicStars[0]= new Rectangle( 129, 375, 20, 20);
         classicStars[1]= new Rectangle(145,375,20,20);
@@ -181,6 +207,7 @@ public class LobbyInput implements InputProcessor
         isBtnCloseSettingsHover = false;
         isBtnYesExitHover=false;
         isBtnNoExitHover=false;
+
         starHover[0]=false;
         starHover[1]=false;
         starHover[2]=false;
@@ -197,6 +224,7 @@ public class LobbyInput implements InputProcessor
     public boolean mouseMoved(int screenX, int screenY)
     {
         resetHover();
+
 
         if(isWindowOpenInfo || isWindowOpenSettings || isWindowOpenExit)
         {
@@ -312,6 +340,7 @@ public class LobbyInput implements InputProcessor
         if (classicArea.contains(screenX, screenY))
         {
             classicHover = true;
+
             return true;
         }
 
@@ -379,6 +408,23 @@ public class LobbyInput implements InputProcessor
         return false;
     }
 
+    private void updateMusicVolumeFromX(int x)
+    {
+        float relative = (x - musicBarArea.x) / musicBarArea.width;
+        relative = MathUtils.clamp(relative, 0f, 1f);
+
+        AudioSettings.setMusicVolume(relative);
+    }
+
+    private void updateEffectsVolumeFromX(int x)
+    {
+        float relative = (x - effectsBarArea.x) / effectsBarArea.width;
+        relative = MathUtils.clamp(relative, 0f, 1f);
+
+        AudioSettings.setEffectsVolume(relative);
+    }
+
+
 
 
     private void setFalse()
@@ -390,6 +436,7 @@ public class LobbyInput implements InputProcessor
         btnCloseSettings=false;
         btnYesExit=false;
         btnNoExit=false;
+
         starClicked[0]=false;
         starClicked[1]=false;
         starClicked[2]=false;
@@ -444,7 +491,47 @@ public class LobbyInput implements InputProcessor
                 }
             }
 
-          return false;
+            if (isWindowOpenSettings)
+            {
+
+                // CLICK SULLA BARRA MUSICA
+                if (musicBarArea.contains(x, y))
+                {
+                    log.info("sono dentro");
+                    draggingMusic = true;
+                    updateMusicVolumeFromX(x);
+                    return true;
+                }
+
+                // CLICK SULLA BARRA EFFETTI
+                if (effectsBarArea.contains(x, y))
+                {
+                    log.info("sono dentro1");
+                    draggingEffects = true;
+                    updateEffectsVolumeFromX(x);
+                    return true;
+                }
+
+                if(switchE.contains(x,y))
+                {
+                    log.info("sono switch");
+                    if(switchE == switchD)
+                    {
+                        switchE=switchL;
+                        isBtnSwitch=false;
+                    }
+                    else
+                    {
+                        isBtnSwitch=true;
+                        switchE=switchD;
+                    }
+
+                    return true;
+                }
+            }
+
+
+            return false;
         }
 
 
@@ -590,6 +677,7 @@ public class LobbyInput implements InputProcessor
 
             classic = true;
             log.info("Classic cliccato!");
+            new Timer().schedule(new TimerTask() { @Override public void run() { classic = false; } }, 100);
 
             return true;
         }
@@ -599,13 +687,17 @@ public class LobbyInput implements InputProcessor
             gravity4 = true;
             log.info("Gravity cliccato!");
 
+            new Timer().schedule(new TimerTask() { @Override public void run() { gravity4 = false; } }, 100);
+
             return true;
         }
 
         if (horizontalArea.contains(x, y))
         {
-                horizontal= true;
-                log.info("Horizontal  cliccato!");
+            horizontal= true;
+            log.info("Horizontal  cliccato!");
+
+            new Timer().schedule(new TimerTask() { @Override public void run() { horizontal = false; } }, 100);
 
             return true;
         }
@@ -613,10 +705,9 @@ public class LobbyInput implements InputProcessor
         if (speedyArea.contains(x, y))
         {
 
-
             speedy = true;
             log.info("Speedy cliccato!");
-
+            new Timer().schedule(new TimerTask() { @Override public void run() { speedy = false; } }, 100);
 
             return true;
         }
@@ -624,7 +715,9 @@ public class LobbyInput implements InputProcessor
         if (marketArea.contains(x, y))
         {
             market = true;
-            log.info("Market cliccato!");
+            log.info("Card cliccato!");
+            new Timer().schedule(new TimerTask() { @Override public void run() { market = false; } }, 100);
+
             return true;
         }
 
@@ -632,6 +725,8 @@ public class LobbyInput implements InputProcessor
         {
             daily = true;
             log.info("Daily cliccato!");
+            new Timer().schedule(new TimerTask() { @Override public void run() { daily = false; } }, 100);
+
             return true;
         }
 
@@ -639,6 +734,7 @@ public class LobbyInput implements InputProcessor
         {
             scoreboard = true;
             log.info("Scoreboard cliccato!");
+            new Timer().schedule(new TimerTask() { @Override public void run() { scoreboard = false; } }, 100);
             return true;
         }
 
@@ -678,14 +774,30 @@ public class LobbyInput implements InputProcessor
         return false;
     }
 
-    @Override public boolean touchUp(int i, int i1, int i2, int i3)
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button)
     {
-      return false;
+        draggingMusic = false;
+        draggingEffects = false;
+        return false;
     }
 
+
     @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer)
-    {
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+
+        if (draggingMusic)
+        {
+            updateMusicVolumeFromX(screenX);
+            return true;
+        }
+
+        if (draggingEffects)
+        {
+            updateEffectsVolumeFromX(screenX);
+            return true;
+        }
+
         return false;
     }
 

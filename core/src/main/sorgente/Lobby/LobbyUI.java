@@ -9,6 +9,8 @@ import sorgente.Authentication.AuthManager;
 import sorgente.Fonts;
 import sorgente.Main;
 import sorgente.ResourceLoader;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+
 
 public class LobbyUI extends ScreenAdapter implements ResourceLoader
 {
@@ -21,14 +23,34 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private boolean goToAuth = false;
 
     private final LobbyInput lobbyInput;
+    private ShapeRenderer shapeRenderer;
 
-    private Texture lobby, software_infos_light, logout_light,settings_light,logout_clicked;
+
+    //DARK MODE
+
+    private Texture darkLobby,darkLogout,darkSettings,darkSoftware;
+    private Texture darkBigClicked,darkBigHover,darkCenterClicked,darkCenterHover;
+    private Texture darkBtnClose,darkBtnCloseClicked;
+
+
+    //LIGHT MODE
+
+    private Texture lightLobby,lightLogout,lightSettings,lightSoftware;
+    private Texture lightBigClicked,lightBigHover,lightCenterClicked,lightCenterHover;
+    private Texture lightBtnClose,lightBtnCloseClicked;
+
+    //MODE MODIFICABILE
+
+    private Texture lobby, software_infos, logout, settings,logout_clicked;
     private Texture big_clicked,big_hover,center_clicked,center_hover,mode_clicked,mode_hover;
     private Texture access_clicked,access_hover,infos_clicked,infos_hover;
     private Texture logout_hover,settings_clicked,settings_hover;
     private Texture btn_close,btn_close_clicked;
     private Texture btn_no,btn_yes,btn_no_clicked,btn_yes_clicked;
     private Texture star,star_selected;
+    private Texture noMusic,noEffects;
+    private int volume;
+
 
     public LobbyUI(Main game)
     {
@@ -36,6 +58,8 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         this.screen = game.screen;
         Fonts.load();
         lobbyInput=new LobbyInput();
+        shapeRenderer = new ShapeRenderer();
+
         this.loadImages();
 
     }
@@ -43,27 +67,92 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     @Override
     public void loadFont() {}
 
+
+    public void  loadDarkMode()
+    {
+         darkLobby=new Texture("lobby_screens/dark/lobby_dark.png");
+         darkLogout=new Texture("lobby_screens/dark/logout_dark.png");
+         darkSettings=new Texture("lobby_screens/dark/settings_dark.png");
+         darkSoftware=new Texture("lobby_screens/dark/software_info_dark.png");
+
+         darkBigClicked=new Texture("ui/buttons/lobby/dark/bottom_big_clicked.png");
+         darkBigHover=new Texture("ui/buttons/lobby/dark/bottom_big_hover.png");
+         darkCenterClicked=new Texture("ui/buttons/lobby/dark/bottom_center_clicked.png");
+         darkCenterHover=new Texture("ui/buttons/lobby/dark/bottom_center_hover.png");
+         darkBtnClose=new Texture("ui/buttons/lobby/dark/btn_close.png");
+
+         darkBtnCloseClicked=new Texture("ui/buttons/lobby/dark/btn_close_clicked.png");
+    }
+
+    public void loadLightMode()
+    {
+        lightLobby=new Texture("lobby_screens/light/lobby_light.png");
+        lightLogout=new Texture("lobby_screens/light/logout_light.png");
+        lightSettings=new Texture("lobby_screens/light/settings_light.png");
+        lightSoftware=new Texture("lobby_screens/light/software_infos_light.png");
+
+        lightBigClicked=new Texture("ui/buttons/lobby/light/bottom_big_clicked.png");
+        lightBigHover=new Texture("ui/buttons/lobby/light/bottom_big_hover.png");
+        lightCenterClicked=new Texture("ui/buttons/lobby/light/bottom_center_clicked.png");
+        lightCenterHover=new Texture("ui/buttons/lobby/light/bottom_center_hover.png");
+        lightBtnClose=new Texture("ui/buttons/lobby/light/btn_close.png");
+
+        darkBtnCloseClicked=new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
+    }
+
+    public void darkMode(boolean r)
+    {
+        if(r)
+        {
+           lobby=darkLobby;
+           software_infos=darkSoftware;
+           logout=darkLogout;
+           settings=darkSettings;
+
+           big_clicked=darkBigClicked;
+           big_hover=darkBigHover;
+           center_clicked=darkCenterClicked;
+           center_hover=darkCenterHover;
+           btn_close=darkBtnClose;
+           btn_close_clicked=darkBtnCloseClicked;
+        }
+        else
+        {
+            lobby=lightLobby;
+            software_infos=lightSoftware;
+            logout=lightLogout;
+            settings=lightSettings;
+
+            big_clicked=lightBigClicked;
+            big_hover=lightBigHover;
+            center_clicked=darkCenterClicked;
+            center_hover=lightCenterHover;
+            btn_close=lightBtnClose;
+            btn_close_clicked=lightBtnCloseClicked;
+        }
+    }
+
     @Override
     public void loadImages()
     {
 
+     //DARK MODE
+
+        loadDarkMode();
+        loadLightMode();
+
+        darkMode(false);
+
+
+
+      noMusic=new Texture("ui/icons/no_music.png");
+      noEffects=new Texture("ui/icons/no_sound.png");
+
       star=new Texture("ui/icons/star_selected.png");
       star_selected=new Texture("ui/icons/star.png");
 
-      lobby= new Texture("lobby_screens/light/lobby_light.png");
-      software_infos_light= new Texture("lobby_screens/light/software_infos_light.png");
 
-      logout_light=new Texture("lobby_screens/light/logout_light.png");
-      settings_light=new Texture("lobby_screens/light/settings_light.png");
 
-      btn_close=new Texture("ui/buttons/lobby/light/btn_close.png");
-      btn_close_clicked=new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
-
-      big_clicked=new Texture("ui/buttons/lobby/light/bottom_big_clicked.png");
-      big_hover=new Texture("ui/buttons/lobby/light/bottom_big_hover.png");
-
-      center_clicked=new Texture("ui/buttons/lobby/light/bottom_center_clicked.png");
-      center_hover=new Texture("ui/buttons/lobby/light/bottom_center_hover.png");
 
       mode_clicked=new Texture("ui/buttons/lobby/light/game_mode_clicked.png");
       mode_hover= new Texture("ui/buttons/lobby/light/game_mode_hover.png");
@@ -143,9 +232,9 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
         // --- WINDOWS ---
 
-        draw(software_infos_light, lobbyInput.isWindowOpenInfo, 244, 194);
-        draw(logout_light,lobbyInput.isWindowOpenExit,294,204);
-        draw(settings_light,lobbyInput.isWindowOpenSettings,244,223);
+        draw(software_infos, lobbyInput.isWindowOpenInfo, 244, 194);
+        draw(logout,lobbyInput.isWindowOpenExit,294,204);
+        draw(settings,lobbyInput.isWindowOpenSettings,244,223);
 
         //--- CHIUDI ---
 
@@ -158,8 +247,94 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
         if(lobbyInput.isWindowOpenSettings)
         {
-            draw(btn_close,lobbyInput.isBtnCloseSettingsHover,694,410);
-            draw(btn_close,lobbyInput.btnCloseSettings,694,410);
+
+                // 1️⃣ Disegno la finestra normalmente
+                screen.draw(settings, 244, 223);
+
+                draw(btn_close,lobbyInput.isBtnCloseSettingsHover,694,410);
+                draw(btn_close,lobbyInput.btnCloseSettings,694,410);
+
+                // 2️⃣ Chiudo il batch
+                screen.end();
+
+                // 3️⃣ Disegno le barre con ShapeRenderer
+                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+                // --- MUSIC BAR BACKGROUND ---
+                shapeRenderer.setColor(0.2f, 0.2f, 0.2f, 1f);
+                shapeRenderer.rect(
+                    lobbyInput.musicBarArea.x,
+                    680-lobbyInput.musicBarArea.y,
+                    lobbyInput.musicBarArea.width-8,
+                    lobbyInput.musicBarArea.height-10
+                );
+
+                // --- MUSIC BAR FILL ---
+                shapeRenderer.setColor(0.9f, 0.3f, 0.3f, 1f);
+                float musicWidth = AudioSettings.musicVolume * lobbyInput.musicBarArea.width;
+                shapeRenderer.rect(
+                    lobbyInput.musicBarArea.x,
+                    680-lobbyInput.musicBarArea.y,
+                    musicWidth-8,
+                    lobbyInput.musicBarArea.height-10
+                );
+
+                // --- EFFECTS BAR BACKGROUND ---
+                shapeRenderer.setColor(0.2f, 0.2f, 0.2f, 1f);
+                shapeRenderer.rect(
+                    lobbyInput.effectsBarArea.x,
+                    680-lobbyInput.effectsBarArea.y,
+                    lobbyInput.effectsBarArea.width-8,
+                    lobbyInput.effectsBarArea.height-10
+                );
+
+                // --- EFFECTS BAR FILL ---
+                shapeRenderer.setColor(0.3f, 0.6f, 0.9f, 1f);
+                float effectsWidth = AudioSettings.effectsVolume * lobbyInput.effectsBarArea.width;
+                shapeRenderer.rect(
+                    lobbyInput.effectsBarArea.x,
+                    680-lobbyInput.effectsBarArea.y,
+                    effectsWidth-8,
+                    lobbyInput.effectsBarArea.height-10
+                );
+
+                shapeRenderer.end();
+
+                // 4️⃣ Riapro il batch PRIMA di disegnare i font
+                screen.begin();
+
+
+            // --- TEXT PERCENTAGES ---
+            Fonts.draw(
+                screen,
+                (int)(AudioSettings.musicVolume * 100) + "%",
+                lobbyInput.musicBarArea.x + lobbyInput.musicBarArea.width + 9,
+                690 - lobbyInput.musicBarArea.y + 15,
+                Fonts.bold20
+            );
+
+            Fonts.draw(
+                screen,
+                (int)(AudioSettings.effectsVolume * 100) + "%",
+                lobbyInput.effectsBarArea.x + lobbyInput.effectsBarArea.width + 9,
+                690 - lobbyInput.effectsBarArea.y + 15,
+                Fonts.bold20
+            );
+
+            volume=(int) (AudioSettings.musicVolume*100);
+
+            if(volume == 0)
+            {
+               draw(noMusic,true,266,308);
+            }
+
+            volume=(int) (AudioSettings.effectsVolume*100);
+
+            if(volume == 0 )
+            {
+               draw(noEffects,true,266,256);
+            }
+
         }
 
         if(lobbyInput.isWindowOpenExit)
@@ -261,8 +436,11 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
                     draw(star, true, 880, 312);   // Speedy stella 2
                     break;
             }
+
         }
 
+
+        darkMode(lobbyInput.isBtnSwitch);
 
 
         screen.end();
@@ -272,6 +450,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
             game.setScreen(new AuthManager(game));
             return;
         }
+
 
     }
 

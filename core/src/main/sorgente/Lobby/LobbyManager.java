@@ -5,12 +5,15 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import sorgente.Main;
+import sorgente.SoundManager;
 
 public class LobbyManager extends ScreenAdapter {
     private final LobbyUI ui;
     private final LobbyInput input;
     private final Main game;
     protected static Music soundtrack;
+
+
 
 
     // costruttore
@@ -20,9 +23,7 @@ public class LobbyManager extends ScreenAdapter {
         input = new LobbyInput();
         ui = new LobbyUI(game);
 
-        soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.ogg")); // file audio
-        soundtrack.setLooping(true); // true=loop music; false=no loop
-        soundtrack.play(); // avvio musica
+
 
     }
 

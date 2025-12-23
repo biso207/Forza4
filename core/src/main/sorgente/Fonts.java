@@ -1,7 +1,6 @@
 package sorgente;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -31,7 +30,7 @@ public class Fonts {
     public static BitmapFont cyrillicLight20, cyrillicMedium20, cyrillicBold25, cyrillicBold32, cyrillicBold40,
     cyrillicBold60;
 
-    public static void load() {
+    public static BitmapFont load() {
 
         // ---------- GENERATORI LATINI ----------
         FreeTypeFontGenerator genLight =
@@ -96,6 +95,7 @@ public class Fonts {
         genCyrMedium.dispose();
         genCyrBold.dispose();
 
+        return null;
     }
 
 
