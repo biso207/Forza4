@@ -28,7 +28,12 @@ public class LoadingScreen implements Screen, ProgressListener {
 
     private int bg;
     private Texture background;
-    private final String[] colorsLoader = {"#201F6B", "#640414", "#022159", "#A11608", "#0E2036", "#9D9D9D"};
+    private final String[] colorsLoader = {
+        "#201F6B",
+        "#022159",
+        "#A11608",
+        "#9D9D9D"
+    };
 
     private Music openSound;
     private final boolean playMusic;
@@ -118,16 +123,14 @@ public class LoadingScreen implements Screen, ProgressListener {
 
     public void selectScreen() {
         Random r = new Random();
-        if (playMusic) bg = r.nextInt(5);
-        else bg = 5;
+        if (playMusic) bg = r.nextInt(3);
+        else bg = 3;
 
         String[] bgPaths = {
             "loading_screens/loading_screen_0.png",
             "loading_screens/loading_screen_1.png",
             "loading_screens/loading_screen_2.png",
-            "loading_screens/loading_screen_3.png",
-            "loading_screens/loading_screen_4.png",
-            "loading_screens/loading_screen_5.png"
+            "loading_screens/loading_screen_3.png"
         };
         background = new Texture(bgPaths[bg]);
     }
