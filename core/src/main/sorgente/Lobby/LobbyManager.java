@@ -1,11 +1,21 @@
+/*
+Forza4 • class LobbyManager •
+Gestisce la grafica e gli input della lobby
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente.Lobby;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
+import sorgente.Authentication.AuthManager;
+import sorgente.Game.GameManager;
 import sorgente.Main;
-import sorgente.SoundManager;
+import sorgente.UserData.UserProgressService;
 
 public class LobbyManager extends ScreenAdapter {
     private final LobbyUI ui;
@@ -13,16 +23,20 @@ public class LobbyManager extends ScreenAdapter {
     private final Main game;
     protected static Music soundtrack;
 
-
+    private final boolean darkMode = (boolean) UserProgressService.getProgress("darkMode");
 
 
     // costruttore
-    public LobbyManager(Main game)
-    {
+    public LobbyManager(Main game) {
         this.game = game;
         input = new LobbyInput();
-        ui = new LobbyUI(game);
+        ui = new LobbyUI(game, input);
+    }
 
+    // "interruttore" per l'input
+    private void setLobbyInputEnabled(boolean enabled) {
+        input.setInputEnabled(enabled);
+        Gdx.input.setInputProcessor(enabled ? input : null);
     }
 
     // ====================== //
@@ -30,33 +44,33 @@ public class LobbyManager extends ScreenAdapter {
     // ====================== //
 
     @Override
-    public void render(float delta)
-    {
+    public void render(float delta) {
+
+        input.update(delta);
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        ui.render(delta);
+
+        ui.lobbyRender(delta);
     }
 
+
     @Override
-    public void resize(int width, int height)
-    {
-        ui.resize(width, height);
-    }
+    public void resize(int width, int height) {}
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(input);
+        input.setInputEnabled(true);
     }
 
     @Override
-    public void hide()
-    {
-        Gdx.input.setInputProcessor(null);
-    }
+    public void hide() { setLobbyInputEnabled(false); }
 
     @Override
-    public void dispose()
-    {
-        ui.dispose();
+    public void dispose() {
+        setLobbyInputEnabled(false);
+        ui.disposeUI();
         input.dispose();
     }
 }

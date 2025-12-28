@@ -53,15 +53,12 @@ public class AuthAlgorithms implements InputProcessor {
     protected boolean pendingAuthProcess = false;
     protected float authDelay = 0f;
 
-
     // variabili per gli errori durante le autenticazioni
     protected boolean error = false; // "Password wrong"/"Nickname already in use"
     protected boolean error1 = false; // "Nickname not found"
     protected boolean error2 = false; // "No Internet Connection"
     protected boolean error3 = false; // "Your session is already open on another device"
     protected boolean error4 = false; // "Nickname not valid"
-
-
 
     /* pagina di riferimento
             0 = LogIn
@@ -403,7 +400,7 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("points", 0);
         UserProgressService.setProgress("sound_volume", 0.5);
         UserProgressService.setProgress("music_volume", 0.5);
-        UserProgressService.setProgress("darkMode", false);
+        UserProgressService.setProgress("darkMode", true);
         UserProgressService.setProgress("animations", true);
 
         // salvataggio punti di base in remoto nel loro apposito campo
@@ -607,9 +604,7 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // digitazione data di registrazione SOLO nella pagina 2
-        if (state==2) {
-            return handleResetKeyTyped(character);
-        }
+        if (state==2) { return handleResetKeyTyped(character); }
 
         // ENTER termina la digitazione o avvia il processo di autenticazione
         if (character == '\n' || character == '\r') {

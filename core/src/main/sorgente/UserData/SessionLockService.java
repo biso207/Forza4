@@ -60,7 +60,7 @@ public final class SessionLockService {
                 }
 
                 cont_hb++;
-                System.out.println("[DEBUG] Heartbeat #" + cont_hb + " inviato per utente " + username);
+                //System.out.println("[DEBUG] Heartbeat #" + cont_hb + " inviato per utente " + username);
             }
         }, 0, HEARTBEAT_INTERVAL_MS, TimeUnit.MILLISECONDS);
     }

@@ -12,13 +12,13 @@ public class AudioSettings {
     public static SoundManager sound = new SoundManager(100);// 0 → muto, 1 → 100%
 
     public AudioSettings() {
-        sound.playLobby(100);
+        SoundManager.playLobby(100);
     }
 
     public static void setMusicVolume(float value) {
         musicVolume = MathUtils.clamp(value, 0f, 1f);
         // Se hai un MusicManager, aggiorna la musica in tempo reale
-        sound.setMusicVolume(musicVolume);
+        SoundManager.setMusicVolume(musicVolume);
     }
 
     public static void setEffectsVolume(float value) {
