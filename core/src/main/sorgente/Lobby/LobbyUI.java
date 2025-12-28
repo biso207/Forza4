@@ -1,5 +1,13 @@
+/*
+Forza4 • class LobbyInput •
+Gestisce la grafica della lobby
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente.Lobby;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,10 +20,10 @@ import sorgente.LoadingScreen;
 import sorgente.Main;
 import sorgente.ResourceLoader;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import sorgente.UserData.UserProgressService;
 
 
-public class LobbyUI extends ScreenAdapter implements ResourceLoader
-{
+public class LobbyUI implements ResourceLoader {
     private final Main game;
     private  final SpriteBatch screen;
 
@@ -30,50 +38,57 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
     private ShapeRenderer shapeRenderer;
 
 
-    //DARK MODE
-
-    private Texture darkLobby,darkLogout,darkSettings,darkSoftware;
+    // DARK MODE
+    private Texture darkLobby,darkLogout,darkSettings,darkCredits, darkScoreboard, darkMarket;
     private Texture darkBigClicked,darkBigHover,darkCenterClicked,darkCenterHover;
     private Texture darkBtnClose,darkBtnCloseClicked;
-    private Texture darkMarket,darkMarketClicked;
+    private Texture darkBtnMarket,darkBtnMarketClicked;
 
 
-    //LIGHT MODE
-
-    private Texture lightLobby,lightLogout,lightSettings,lightSoftware;
+    // LIGHT MODE
+    private Texture lightLobby,lightLogout,lightSettings,lightCredits, lightScoreboard, lightMarket;
     private Texture lightBigClicked,lightBigHover,lightCenterClicked,lightCenterHover;
     private Texture lightBtnClose,lightBtnCloseClicked;
-    private Texture lightMarket,lightMarketClicked;
+    private Texture lightBtnMarket,lightBtnMarketClicked;
 
-    //MODE MODIFICABILE
-
-    private Texture lobby, software_infos, logout, settings,logout_clicked;
+    // MODE MODIFICABILE
+    private Texture lobby, software_infos, logout, settings,logout_clicked, scoreboard, market;
     private Texture big_clicked,big_hover,center_clicked,center_hover,mode_clicked,mode_hover;
-    private Texture access_clicked,access_hover,infos_clicked,infos_hover;
+    private Texture infos_clicked,infos_hover;
     private Texture logout_hover,settings_clicked,settings_hover;
     private Texture btn_close,btn_close_clicked;
     private Texture btn_no,btn_yes,btn_no_clicked,btn_yes_clicked;
     private Texture star,star_selected;
     private Texture noMusic,noEffects;
-    private Texture market;
+    private Texture market_hover;
     private Texture market_clicked;
 
     private LoadingScreen loadingScreen;
     private int volume;
 
+    // --- GAME MODE TRANSITION (delay per mostrare "clicked") ---
+    private static final float MODE_CLICK_DELAY = 0.14f; // puoi cambiare (0.10f–0.18f)
 
-    public LobbyUI(Main game)
-    {
+    private boolean modeTransition = false;
+    private float modeTransitionTimer = 0f;
+    private int pendingMode = -1; // 0..3 (classic, gravity4, horizontal, speedy)
+
+
+    // costruttore
+    public LobbyUI(Main game, LobbyInput lobbyInput) {
+        modeTransition = false;
+        modeTransitionTimer = 0f;
+        pendingMode = -1;
+
         this.game = game;
         this.screen = game.screen;
         Fonts.load();
-        lobbyInput=new LobbyInput();
+
+        this.lobbyInput = lobbyInput;   // ✅ usa quello passato
         shapeRenderer = new ShapeRenderer();
         loadingScreen = new LoadingScreen(game, false);
 
-
         this.loadImages();
-
     }
 
     @Override
@@ -85,7 +100,9 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
          darkLobby=new Texture("lobby_screens/dark/lobby_dark.png");
          darkLogout=new Texture("lobby_screens/dark/logout_dark.png");
          darkSettings=new Texture("lobby_screens/dark/settings_dark.png");
-         darkSoftware=new Texture("lobby_screens/dark/software_info_dark.png");
+         darkCredits=new Texture("lobby_screens/dark/software_info_dark.png");
+         darkScoreboard=new Texture("lobby_screens/dark/scoreboard_dark.png");
+         darkMarket=new Texture("lobby_screens/dark/market_dark.png");
 
          darkBigClicked=new Texture("ui/buttons/lobby/dark/bottom_big_clicked.png");
          darkBigHover=new Texture("ui/buttons/lobby/dark/bottom_big_hover.png");
@@ -94,8 +111,8 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
          darkBtnClose=new Texture("ui/buttons/lobby/dark/btn_close.png");
 
          darkBtnCloseClicked=new Texture("ui/buttons/lobby/dark/btn_close_clicked.png");
-         darkMarket=new Texture("ui/buttons/lobby/dark/market.png");
-         darkMarketClicked=new Texture("ui/buttons/lobby/dark/market_clicked.png");
+         darkBtnMarket=new Texture("ui/buttons/lobby/dark/market.png");
+         darkBtnMarketClicked=new Texture("ui/buttons/lobby/dark/market_clicked.png");
     }
 
     public void loadLightMode()
@@ -103,7 +120,9 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         lightLobby=new Texture("lobby_screens/light/lobby_light.png");
         lightLogout=new Texture("lobby_screens/light/logout_light.png");
         lightSettings=new Texture("lobby_screens/light/settings_light.png");
-        lightSoftware=new Texture("lobby_screens/light/software_infos_light.png");
+        lightCredits=new Texture("lobby_screens/light/software_infos_light.png");
+        lightScoreboard=new Texture("lobby_screens/light/scoreboard_light.png");
+        lightMarket=new Texture("lobby_screens/light/market_light.png");
 
         lightBigClicked=new Texture("ui/buttons/lobby/light/bottom_big_clicked.png");
         lightBigHover=new Texture("ui/buttons/lobby/light/bottom_big_hover.png");
@@ -112,20 +131,21 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         lightBtnClose=new Texture("ui/buttons/lobby/light/btn_close.png");
 
         lightBtnCloseClicked=new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
-        lightMarket=new Texture("ui/buttons/lobby/light/market.png");
-        lightMarketClicked=new Texture("ui/buttons/lobby/light/market_clicked.png");
+        lightBtnMarket=new Texture("ui/buttons/lobby/light/market.png");
+        lightBtnMarketClicked=new Texture("ui/buttons/lobby/light/market_clicked.png");
     }
 
-    public void darkMode(boolean r)
+    public void darkMode(boolean isDarkMode)
     {
-        darkMode=r;
+        darkMode=isDarkMode;
 
-        if(darkMode)
-        {
+        if(darkMode) {
            lobby=darkLobby;
-           software_infos=darkSoftware;
+           software_infos=darkCredits;
            logout=darkLogout;
            settings=darkSettings;
+           scoreboard=darkScoreboard;
+           market=darkMarket;
 
            big_clicked=darkBigClicked;
            big_hover=darkBigHover;
@@ -134,15 +154,16 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
            btn_close=darkBtnClose;
            btn_close_clicked=darkBtnCloseClicked;
 
-           market=darkMarket;
-           market_clicked=darkMarketClicked;
+           market_hover=darkBtnMarket;
+           market_clicked=darkBtnMarketClicked;
         }
-        else
-        {
+        else {
             lobby=lightLobby;
-            software_infos=lightSoftware;
+            software_infos=lightCredits;
             logout=lightLogout;
             settings=lightSettings;
+            scoreboard=lightScoreboard;
+            market=lightMarket;
 
             big_clicked=lightBigClicked;
             big_hover=lightBigHover;
@@ -151,57 +172,44 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
             btn_close=lightBtnClose;
             btn_close_clicked=lightBtnCloseClicked;
 
-            market=lightMarket;
-            market_clicked=lightMarketClicked;
+            market_hover=lightBtnMarket;
+            market_clicked=lightBtnMarketClicked;
         }
     }
 
     @Override
-    public void loadImages()
-    {
-
-     //DARK MODE
+    public void loadImages() {
+        //DARK MODE
 
         loadDarkMode();
         loadLightMode();
 
-        darkMode(false);
+        darkMode((boolean)UserProgressService.getProgress("darkMode")); // lettura da progressi utente
 
+        noMusic=new Texture("ui/icons/no_music.png");
+        noEffects=new Texture("ui/icons/no_sound.png");
 
+        star=new Texture("ui/icons/star.png");
+        star_selected=new Texture("ui/icons/star_selected.png");
 
-      noMusic=new Texture("ui/icons/no_music.png");
-      noEffects=new Texture("ui/icons/no_sound.png");
+        mode_clicked=new Texture("ui/buttons/lobby/light/game_mode_clicked.png");
+        mode_hover= new Texture("ui/buttons/lobby/light/game_mode_hover.png");
 
-      star=new Texture("ui/icons/star_selected.png");
-      star_selected=new Texture("ui/icons/star.png");
+        infos_hover=new Texture("ui/icons/infos.png");
+        infos_clicked=new Texture("ui/icons/infos_clicked.png");
 
+        logout_hover=new Texture("ui/icons/logout.png");
+        logout_clicked=new Texture("ui/icons/logout_clicked.png");
 
+        settings_hover=new Texture("ui/icons/settings.png");
+        settings_clicked=new Texture("ui/icons/settings_clicked.png");
 
+        btn_no=new Texture("ui/buttons/lobby/btn_no.png");
+        btn_no_clicked=new Texture("ui/buttons/lobby/btn_no_clicked.png");
 
-      mode_clicked=new Texture("ui/buttons/lobby/light/game_mode_clicked.png");
-      mode_hover= new Texture("ui/buttons/lobby/light/game_mode_hover.png");
-
-      access_hover=new Texture("ui/icons/accessibility.png");
-      access_clicked= new Texture("ui/icons/accessibility_clicked.png");
-
-      infos_hover=new Texture("ui/icons/infos.png");
-      infos_clicked=new Texture("ui/icons/infos_clicked.png");
-
-      logout_hover=new Texture("ui/icons/logout.png");
-      logout_clicked=new Texture("ui/icons/logout_clicked.png");
-
-      settings_hover=new Texture("ui/icons/settings.png");
-      settings_clicked=new Texture("ui/icons/settings_clicked.png");
-
-      btn_no=new Texture("ui/buttons/lobby/btn_no.png");
-      btn_no_clicked=new Texture("ui/buttons/lobby/btn_no_clicked.png");
-
-      btn_yes=new Texture("ui/buttons/lobby/btn_yes.png");
-      btn_yes_clicked=new Texture("ui/buttons/lobby/btn_yes_clicked.png");
-
-
+        btn_yes=new Texture("ui/buttons/lobby/btn_yes.png");
+        btn_yes_clicked=new Texture("ui/buttons/lobby/btn_yes_clicked.png");
     }
-
 
     private void draw(Texture texture, boolean response, float x, float y)
     {
@@ -211,70 +219,59 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
         }
     }
 
-
-
-    @Override
-    public void render(float delta)
-    {
-        Gdx.input.setInputProcessor(lobbyInput);
-
+    public void lobbyRender(float delta) {
         screen.begin();
         screen.draw(lobby, 0, 0);
 
         // --- GAME MODES ---
-        draw(mode_hover, lobbyInput.classicHover,37, 305);
-        draw(mode_hover, lobbyInput.gravity4Hover,275, 305);
-        draw(mode_hover, lobbyInput.horizontalHover,512, 305);
-        draw(mode_hover, lobbyInput.speedyHover,752, 305);
+        draw(mode_hover, lobbyInput.classicHover,35, 334);
+        draw(mode_hover, lobbyInput.gravity4Hover,275, 334);
+        draw(mode_hover, lobbyInput.horizontalHover,513, 334);
+        draw(mode_hover, lobbyInput.speedyHover,753, 334);
 
-        draw(mode_clicked, lobbyInput.classic,37, 305);
-        draw(mode_clicked, lobbyInput.gravity4,275, 305);
-        draw(mode_clicked, lobbyInput.horizontal,512, 305);
-        draw(mode_clicked, lobbyInput.speedy,752, 305);
+        draw(mode_clicked, lobbyInput.classic,35, 334);
+        draw(mode_clicked, lobbyInput.gravity4,275, 334);
+        draw(mode_clicked, lobbyInput.horizontal,512, 334);
+        draw(mode_clicked, lobbyInput.speedy,752, 334);
 
-        draw(market,lobbyInput.isBtnMarket,832,588);
-        draw(market_clicked,lobbyInput.isBtnMarketClicked,832,588);
+        draw(market_hover,   lobbyInput.isBtnMarket,833,588);
+        draw(market_clicked, lobbyInput.isBtnMarketClicked,833,588);
 
 
         // --- SECONDARY BUTTONS ---
 
-        draw(big_hover,    lobbyInput.marketHover,37,90);
-        draw(center_hover, lobbyInput.scoreboardHover,370,90);
-        draw(big_hover,    lobbyInput.dailyHover,660,90);
+        draw(big_hover,    lobbyInput.marketHover,35,91);
+        draw(center_hover, lobbyInput.scoreboardHover,369,91);
 
-        draw(big_clicked,    lobbyInput.market,38,90);
-        draw(center_clicked, lobbyInput.scoreboard,370,90);
-        draw(big_clicked,    lobbyInput.daily,660,90);
+        draw(center_clicked, lobbyInput.scoreboard,369,91);
+        draw(big_clicked,    lobbyInput.daily,660,91);
 
-        // --- BOTTOM ICONS ---
-        draw(logout_hover, lobbyInput.exitHover,398,41);
-        draw(infos_hover, lobbyInput.informationHover,452,40);
-        draw(access_hover, lobbyInput.accessibilityHover,570,40);
+        // --- COMMAND BAR ICONS ---
+        draw(logout_hover,   lobbyInput.exitHover,398,41);
+        draw(infos_hover,    lobbyInput.informationHover,452,40);
         draw(settings_hover, lobbyInput.settingsHover,510,40);
 
-        draw(logout_clicked, lobbyInput.exit,398,41);
-        draw(infos_clicked, lobbyInput.information,452,40);
-        draw(access_clicked, lobbyInput.man,570,40);
+        draw(logout_clicked,   lobbyInput.exit,398,41);
+        draw(infos_clicked,    lobbyInput.information,452,40);
         draw(settings_clicked, lobbyInput.settings,510,40);
 
-        // --- WINDOWS ---
-
-        draw(software_infos, lobbyInput.isWindowOpenInfo, 244, 194);
-        draw(logout,lobbyInput.isWindowOpenExit,294,204);
-        draw(settings,lobbyInput.isWindowOpenSettings,244,223);
+        // --- SECONDARY WINDOWS ---
+        draw(software_infos, lobbyInput.isWindowOpenInfo,      244,194);
+        draw(logout,         lobbyInput.isWindowOpenExit,      294,204);
+        draw(settings,       lobbyInput.isWindowOpenSettings,  244,223);
+        draw(scoreboard,     lobbyInput.isWindowOpenScoreboard,100,163);
+        draw(market,         lobbyInput.isWindowOpenMarket,    100,150);
 
         //--- CHIUDI ---
 
-
-        if(lobbyInput.isWindowOpenInfo)
-        {
-            draw(btn_close,lobbyInput.isBtnCloseInfoHover,694,438);
-            draw(btn_close_clicked, lobbyInput.btnCloseInfo, 694, 438);
+        // schermata crediti di gioco
+        if(lobbyInput.isWindowOpenInfo) {
+            draw(btn_close,lobbyInput.isBtnCloseInfoHover,686,484);
+            draw(btn_close_clicked, lobbyInput.btnCloseInfo, 686, 484);
         }
 
-        if(lobbyInput.isWindowOpenSettings)
-        {
-
+        // schermata impostazioni
+        if(lobbyInput.isWindowOpenSettings) {
                 // 1️⃣ Disegno la finestra normalmente
                 screen.draw(settings, 244, 223);
 
@@ -364,6 +361,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
         }
 
+        // schermata logout
         if(lobbyInput.isWindowOpenExit)
         {
             draw(btn_yes,lobbyInput.isBtnYesExitHover,341,246);
@@ -381,7 +379,7 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
 
         for (int i = 0; i < 8; i++)
         {
-            if (!lobbyInput.starHover[i])
+            if (!lobbyInput.starClicked[i])
             {
                 continue; // se è false, salta
             }
@@ -389,78 +387,79 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
             switch (i)
             {
                 case 0:
-                    draw(star_selected, true, 130, 312);   // Classic
+                    draw(star_selected, true, 130, 302);   // Classic
                     break;
 
                 case 1:
-                    draw(star_selected, true, 160, 312);
+                    draw(star_selected, true, 160, 302);
                     break;
 
                 case 2:
-                    draw(star_selected, true, 370, 312);
+                    draw(star_selected, true, 370, 302);
                     break;
 
                 case 3:
-                    draw(star_selected, true, 400, 312);
+                    draw(star_selected, true, 400, 302);
                     break;
 
                 case 4:
-                    draw(star_selected, true, 610, 312);
+                    draw(star_selected, true, 610, 302);
                     break;
 
                 case 5:
-                    draw(star_selected, true, 640, 312);
+                    draw(star_selected, true, 640, 302);
                     break;
 
                 case 6:
-                    draw(star_selected, true, 850, 312);
+                    draw(star_selected, true, 850, 302);
                     break;
 
                 case 7:
-                    draw(star_selected, true, 880, 312);
+                    draw(star_selected, true, 880, 302);
                     break;
             }
 
         }
 
+        // todo: errore -> vengono stampate le stelle solo dell'ultima cliccata, devono rimanere stampate anche le altre modalità di gioco
         for (int i = 0; i < 8; i++)
         {
             // Disegna solo se la stella è in hover OPPURE è cliccata
-            if (!lobbyInput.starClicked[i])
+            if (!lobbyInput.starHover[i])
                 continue;
 
             switch (i)
             {
                 case 0:
-                    draw(star, true, 130, 312);   // Classic stella 1
+                    draw(star, true, 130, 302);   // Classic stella 1
                     break;
 
                 case 1:
-                    draw(star, true, 160, 312);   // Classic stella 2
+                    draw(star, true, 160, 302);   // Classic stella 2
                     break;
 
                 case 2:
-                    draw(star, true, 370, 312);   // Gravity4 stella 1
+                    draw(star, true, 370, 302);   // Gravity4 stella 1
                     break;
 
                 case 3:
-                    draw(star, true, 400, 312);   // Gravity4 stella 2
+                    draw(star, true, 400, 302);   // Gravity4 stella 2
                     break;
 
                 case 4:
-                    draw(star, true, 610, 312);   // Horizontal stella 1
+                    draw(star, true, 610, 302);   // Horizontal stella 1
                     break;
 
                 case 5:
-                    draw(star, true, 640, 312);   // Horizontal stella 2
+                    draw(star, true, 640, 302);   // Horizontal stella 2
                     break;
 
                 case 6:
-                    draw(star, true, 850, 312);   // Speedy stella 1
+                    draw(star, true, 850, 302);   // Speedy stella 1
                     break;
 
                 case 7:
-                    draw(star, true, 880, 312);   // Speedy stella 2
+                    draw(star, true, 880, 302);   // Speedy stella 2
                     break;
             }
 
@@ -478,39 +477,51 @@ public class LobbyUI extends ScreenAdapter implements ResourceLoader
             return;
         }
 
-        if(lobbyInput.classic)
+        // --- GAME MODE TRANSITION (delay per mostrare "clicked") ---
+        if (!modeTransition)
         {
-            game.setScreen(new GameManager(game,lobbyInput.difficolta[0],darkMode));
+            if (lobbyInput.classic)      { pendingMode = 0; modeTransition = true; modeTransitionTimer = 0f; lobbyInput.setInputEnabled(false); }
+            else if (lobbyInput.gravity4){ pendingMode = 1; modeTransition = true; modeTransitionTimer = 0f; lobbyInput.setInputEnabled(false); }
+            else if (lobbyInput.horizontal){ pendingMode = 2; modeTransition = true; modeTransitionTimer = 0f; lobbyInput.setInputEnabled(false); }
+            else if (lobbyInput.speedy)  { pendingMode = 3; modeTransition = true; modeTransitionTimer = 0f; lobbyInput.setInputEnabled(false); }
         }
 
-        if(lobbyInput.gravity4)
+        if (modeTransition)
         {
-            game.setScreen(new GameManager(game,lobbyInput.difficolta[1],darkMode));
+            modeTransitionTimer += delta;
+
+            if (modeTransitionTimer >= MODE_CLICK_DELAY)
+            {
+                switch (pendingMode)
+                {
+                    case 0:
+                        game.setScreen(new GameManager(game, lobbyInput.difficolta[0], darkMode));
+                        return;
+                    case 1:
+                        game.setScreen(new GameManager(game, lobbyInput.difficolta[1], darkMode));
+                        return;
+                    case 2:
+                        game.setScreen(new GameManager(game, lobbyInput.difficolta[2], darkMode));
+                        return;
+                    case 3:
+                        game.setScreen(new GameManager(game, lobbyInput.difficolta[3], darkMode));
+                        return;
+                }
+            }
         }
 
-        if(lobbyInput.horizontal)
-        {
-            game.setScreen(new GameManager(game,lobbyInput.difficolta[2],darkMode));
-        }
-
-        if(lobbyInput.speedy)
-        {
-            game.setScreen(new GameManager(game,lobbyInput.difficolta[3],darkMode));
-        }
+}
 
 
-
-
-
-
+    public void hide()
+    {
+        // Quando si cambia schermata, spegni input della lobby e ripristina input processor
+        try { lobbyInput.setInputEnabled(false); } catch (Exception ignored) {}
+        try { Gdx.input.setInputProcessor(null); } catch (Exception ignored) {}
     }
 
-
-
-
-
-    @Override
-    public void dispose()
+    // metodo per il rilascio delle risorse
+    public void disposeUI()
     {
         lobby.dispose();
         big_clicked.dispose();
