@@ -27,7 +27,7 @@ public class LobbyInput implements InputProcessor {
     protected static float effectsPercent, musicPercent;
 
     // clicked
-    protected int[] difficolta=new int[8];
+    protected static int[] difficolta=new int[8];
     protected boolean[] starHover=new boolean[8];
     protected boolean[] starClicked=new boolean[8];
 
@@ -156,6 +156,11 @@ public class LobbyInput implements InputProcessor {
         // volumi
         effectsPercent = ((Number) UserProgressService.getProgress("effects_volume")).floatValue();
         musicPercent = ((Number) UserProgressService.getProgress("music_volume")).floatValue();
+        // difficoltà
+        difficolta[0] = (int) UserProgressService.getProgress("diff_classic");
+        difficolta[1] = (int) UserProgressService.getProgress("diff_gravity4");
+        difficolta[2] = (int) UserProgressService.getProgress("diff_horizontal");
+        difficolta[3] = (int) UserProgressService.getProgress("diff_speedy");
     }
 
     // metodo per la creazione dei rectangle
@@ -481,27 +486,23 @@ public class LobbyInput implements InputProcessor {
         }
 
         // controllo click stelle difficoltà 1 per disattivare le altre
-        if (classicStar1.contains(x, y)) { starClicked[0]=false; starClicked[1]=false; return clicked(); }
-        if (gravityStar1.contains(x, y)) { starClicked[2]=false; starClicked[3]=false; return clicked(); }
-        if (horizontalStar1.contains(x, y)) { starClicked[4]=false; starClicked[5]=false; return clicked(); }
-        if (speedyStar1.contains(x, y)) { starClicked[6]=false; starClicked[7]=false; return clicked(); }
+        if (classicStar1.contains(x, y))    { difficolta[0]=0; return clicked(); }
+        if (gravityStar1.contains(x, y))    { difficolta[1]=0; return clicked(); }
+        if (horizontalStar1.contains(x, y)) { difficolta[2]=0; return clicked(); }
+        if (speedyStar1.contains(x, y))     { difficolta[3]=0; return clicked(); }
 
         // -- Difficoltà Game Mode "Classic" --
         // stella difficoltà 2
         if (classicStars[0].contains(x, y)) {
-            boolean hadSecond = starClicked[1];
-            if (hadSecond) starClicked[1] = false;          // se era attiva la 2, spegni anche lei
-
-            starClicked[0] = !hadSecond && !starClicked[0]; // se la 2 era ON -> spegne tutto, altrimenti toggle 1
-            difficolta[0] = starClicked[0] ? 1 : 0;
+            if (difficolta[0] == 1 || difficolta[0] == 2) difficolta[0] = 0;   // se era 1 o 2 -> torna 0
+            else difficolta[0] = 1;   // se era 0 -> diventa 1
 
             return clicked();
         }
         // stella difficoltà 3
         if (classicStars[1].contains(x, y)) {
-            starClicked[1] = !starClicked[1];               // toggle stella 2
-            starClicked[0] = true;                          // se tocchi la 2, la 1 deve essere ON
-            difficolta[0] = starClicked[1] ? 2 : 1;          // ON -> 2, OFF -> 1
+            if (difficolta[0] == 2) difficolta[0] = 1;   // se era 2 -> torna 1
+            else difficolta[0] = 2;   // se era 0 o 1 -> diventa 2
 
             return clicked();
         }
@@ -509,60 +510,42 @@ public class LobbyInput implements InputProcessor {
         // -- Difficoltà Game Mode "Gravity4" --
         // stella difficoltà 2
         if (gravityStars[0].contains(x, y)) {
-            boolean hadSecond = starClicked[3];
-            if (hadSecond) starClicked[3] = false;
-
-            starClicked[2] = !hadSecond && !starClicked[2];
-            difficolta[1] = starClicked[2] ? 1 : 0;
-
+            if (difficolta[1] == 1 || difficolta[1] == 2) difficolta[1] = 0;
+            else difficolta[1] = 1;
             return clicked();
         }
         // stella difficoltà 3
         if (gravityStars[1].contains(x, y)) {
-            starClicked[3] = !starClicked[3];
-            starClicked[2] = true;
-            difficolta[1] = starClicked[3] ? 2 : 1;
-
+            if (difficolta[1] == 2) difficolta[1] = 1;
+            else difficolta[1] = 2;
             return clicked();
         }
 
         // -- Difficoltà Game Mode "Horizontal" --
         // stella difficoltà 1
         if (horizontalStars[0].contains(x, y)) {
-            boolean hadSecond = starClicked[5];
-            if (hadSecond) starClicked[5] = false;
-
-            starClicked[4] = !hadSecond && !starClicked[4];
-            difficolta[2] = starClicked[4] ? 1 : 0;
-
+            if (difficolta[2] == 1 || difficolta[2] == 2) difficolta[2] = 0;
+            else difficolta[2] = 1;
             return clicked();
         }
         // stella difficoltà 2
         if (horizontalStars[1].contains(x, y)) {
-            starClicked[5] = !starClicked[5];
-            starClicked[4] = true;
-            difficolta[2] = starClicked[5] ? 2 : 1;
-
+            if (difficolta[2] == 2) difficolta[2] = 1;
+            else difficolta[2] = 2;
             return clicked();
         }
 
         // -- Difficoltà Game Mode "Speedy" --
         // stella difficoltà 1
         if (speedyStars[0].contains(x, y)) {
-            boolean hadSecond = starClicked[7];
-            if (hadSecond) starClicked[7] = false;
-
-            starClicked[6] = !hadSecond && !starClicked[6];
-            difficolta[3] = starClicked[6] ? 1 : 0;
-
+            if (difficolta[3] == 1 || difficolta[3] == 2) difficolta[3] = 0;
+            else difficolta[3] = 1;
             return clicked();
         }
         // stella difficoltà 2
         if (speedyStars[1].contains(x, y)) {
-            starClicked[7] = !starClicked[7];
-            starClicked[6] = true;
-            difficolta[3] = starClicked[7] ? 2 : 1;
-
+            if (difficolta[3] == 2) difficolta[3] = 1;
+            else difficolta[3] = 2;
             return clicked();
         }
 

@@ -85,53 +85,70 @@ public class FirestoreUserRepository
         response.close();
     }
 
-    // metodo per caricare i punti di tutti gli utenti
     public static void loadAllUserPoints() throws IOException {
-        String url = DATABASE_URL + "users?pageSize=1000";
+        userPointsMap.clear(); // pulizia iniziale
 
+        String nextPageToken = null;
         OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-            .url(url)
-            .header("Authorization", "Bearer " + getAccessToken())
-            .get()
-            .build();
 
-        Response response = client.newCall(request).execute();
-        String body = response.body().string();
-        response.close();
+        do {
+            // base URL con pageSize 1000
+            String url = DATABASE_URL + "users?pageSize=1000";
 
-        Map<String, Object> responseMap = new Gson().fromJson(body, Map.class);
+            // se c'è un token, aggiungilo (pagina successiva)
+            if (nextPageToken != null) {
+                url += "&pageToken=" + nextPageToken;
+            }
 
-        if (!responseMap.containsKey("documents")) {
-            System.out.println("Nessun documento trovato!");
-            return;
-        }
+            Request request = new Request.Builder()
+                .url(url)
+                .header("Authorization", "Bearer " + getAccessToken())
+                .get()
+                .build();
 
-        List<Map<String, Object>> documents = (List<Map<String, Object>>) responseMap.get("documents");
-        userPointsMap.clear();
+            Response response = client.newCall(request).execute();
+            String body = response.body().string();
+            response.close();
 
-        for (Map<String, Object> doc : documents) {
-            String namePath = (String) doc.get("name");
-            String[] parts = namePath.split("/");
-            String username = parts[parts.length - 1];
+            Map<String, Object> responseMap = new Gson().fromJson(body, Map.class);
 
-            Map<String, Object> fields = (Map<String, Object>) doc.get("fields");
+            // se non ci sono documenti, finiamo
+            if (!responseMap.containsKey("documents")) {
+                break;
+            }
 
-            if (fields.containsKey("points")) {
-                Map<String, Object> pointsMap = (Map<String, Object>) fields.get("points");
-                Object valueObj = pointsMap.get("integerValue");
+            List<Map<String, Object>> documents = (List<Map<String, Object>>) responseMap.get("documents");
 
-                if (valueObj != null) {
-                    try {
-                        int points = Integer.parseInt(valueObj.toString());
-                        userPointsMap.put(username, points);
-                    } catch (NumberFormatException e) {
-                        System.err.println("Valore non valido per 'points' dell'utente " + username);
+            // --- Parsing dei dati della pagina corrente ---
+            for (Map<String, Object> doc : documents) {
+                String namePath = (String) doc.get("name");
+                String[] parts = namePath.split("/");
+                String username = parts[parts.length - 1];
+
+                Map<String, Object> fields = (Map<String, Object>) doc.get("fields");
+                if (fields != null && fields.containsKey("points")) {
+                    Map<String, Object> pointsMap = (Map<String, Object>) fields.get("points");
+                    Object valueObj = pointsMap.get("integerValue");
+
+                    if (valueObj != null) {
+                        try {
+                            int points = Integer.parseInt(valueObj.toString());
+                            userPointsMap.put(username, points);
+                        } catch (NumberFormatException ignore) {
+                            System.err.println("Valore non valido per l'utente: " + username);
+                        }
                     }
                 }
             }
-        }
+
+            // se esiste una prossima pagina, ripeti
+            nextPageToken = (String) responseMap.get("nextPageToken");
+
+        } while (nextPageToken != null);
+
+        System.out.println("Caricati " + userPointsMap.size() + " utenti da Firestore.");
     }
+
 
     // PASSWORD //
     // metodo per recuperare la password utente

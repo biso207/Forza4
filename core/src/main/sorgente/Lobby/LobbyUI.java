@@ -16,10 +16,15 @@ import sorgente.Fonts;
 import sorgente.Game.GameManager;
 import sorgente.Main;
 import sorgente.ResourceLoader;
+import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.UserProgressService;
 import sorgente.VersionInfo;
 
 import java.awt.*;
+import java.text.NumberFormat;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 public class LobbyUI implements ResourceLoader {
@@ -72,6 +77,8 @@ public class LobbyUI implements ResourceLoader {
     private float modeTransitionTimer = 0f;
     private int pendingMode = -1; // 0..3 (classic, gravity4, horizontal, speedy)
 
+    // formatter per la virgola delle migliaia !in automatico converte l'intero in stringa
+    private final NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
 
     // costruttore
     public LobbyUI(Main game, LobbyInput lobbyInput) {
@@ -212,6 +219,38 @@ public class LobbyUI implements ResourceLoader {
         btn_yes_clicked=new Texture("ui/buttons/lobby/btn_yes_clicked.png");
     }
 
+    // metodo per stampare la top 5 nella lobby
+    public void drawScoreboard(int numUsers) {
+        Map<String, Integer> map = FirestoreUserRepository.userPointsMap;
+
+        // ordinamento: prima per punti (desc), a parità per nome (asc)
+        TreeMap<String, Integer> sortedMap = new TreeMap<>(
+            (s1, s2) -> {
+                int cmp = map.get(s2).compareTo(map.get(s1));
+                return (cmp != 0) ? cmp : s1.compareTo(s2);
+            }
+        );
+
+        sortedMap.putAll(map);
+
+        int y = 207;
+        int count = 0;
+
+        for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+            String name = entry.getKey();
+            int points = entry.getValue();
+
+            // stampa nome e punti
+            Fonts.draw(screen, name, 410, y, Fonts.bold15);
+            Fonts.draw(screen, formatter.format(points), 555, y, Fonts.bold15);
+
+            y -= 22;
+            count++;
+
+            if (count == numUsers) break;
+        }
+    }
+
     // metodo per disegnare un elemento su schermo
     private void draw(Texture texture, boolean response, float x, float y) {
         if (response) screen.draw(texture, x, y);
@@ -227,61 +266,44 @@ public class LobbyUI implements ResourceLoader {
 
         screen.draw(lobby, 0, 0);
 
-        // nome software house //
+        // NOME AZIENDA //
         Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
-        // versione di gioco //
+        // VERSIONE DI GIOCO //
         String text = "Beta " + VersionInfo.getVersion();
         // calcolo larghezza del testo
         GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
         // stampa testo
         Fonts.medium20.draw(screen, layout, (955 - layout.width), 63);
 
-        // crediti //
+        // CREDITI UTENTE //
         int credits = (int) UserProgressService.getProgress("credits");
         // versione di gioco
         String text2 = String.valueOf(credits);
-        // Calcolo larghezza del testo
+        // calcolo larghezza del testo
         GlyphLayout layout2 = new GlyphLayout(Fonts.bold25, text2);
         // stampa testo
         Fonts.bold25.draw(screen, layout2, (775 - layout2.width), 623);
 
+        // SCOREBOARD TOP 5 USERS //
+        drawScoreboard(5);
+
         // star selected
-        for (int i = 0; i < 8; i++) {
-            if (!lobbyInput.starClicked[i]) continue; // se è false, salta
-
-
-            switch (i) {
-                case 0:
-                    draw(star_selected, true, 131, 301);   // Classic
-                    break;
-
-                case 1:
-                    draw(star_selected, true, 161, 301);
-                    break;
-
-                case 2:
-                    draw(star_selected, true, 371, 301);
-                    break;
-
-                case 3:
-                    draw(star_selected, true, 401, 301);
-                    break;
-
-                case 4:
-                    draw(star_selected, true, 609, 301);
-                    break;
-
-                case 5:
-                    draw(star_selected, true, 639, 301);
-                    break;
-
-                case 6:
-                    draw(star_selected, true, 849, 301);
-                    break;
-
-                case 7:
-                    draw(star_selected, true, 879, 301);
-                    break;
+        int[][] posX = {
+            {131, 161}, // blocco 0 -> diff 1, diff 2
+            {371, 401}, // blocco 1
+            {609, 639}, // blocco 2
+            {849, 879}  // blocco 3
+        };
+        for (int i = 0; i < 4; i++) {
+            int diff = LobbyInput.difficolta[i]; // 0, 1 o 2
+            if (diff == 1) {
+                // prima stella
+                draw(star_selected, true, posX[i][0], 301);
+            }
+            if (diff == 2) {
+                // seconda stella e prima stella
+                draw(star_selected, true, posX[i][0], 301);
+                draw(star_selected, true, posX[i][1], 301);
             }
         }
         // star hover
@@ -381,8 +403,7 @@ public class LobbyUI implements ResourceLoader {
             draw(btn_close, lobbyInput.isBtnCloseSettingsHover, 694,411);
             draw(btn_close_clicked, lobbyInput.btnCloseSettings,694,411);
 
-            // todo: stampare come su Astro Invasion la barra dei volumi
-            // --- MUSIC BAR FILL (texture) ---
+            // --- VOLUME BAR ---
             // disegno barre volume
             float filledWidth1 = (LobbyInput.musicPercent) * 361;
             float filledWidth2 = (LobbyInput.effectsPercent) * 361;
@@ -455,19 +476,28 @@ public class LobbyUI implements ResourceLoader {
 
                 switch (pendingMode) {
                     case 0:
-                        game.setScreen(new GameManager(game, lobbyInput.difficolta[0], darkMode));
+                        game.setScreen(new GameManager(game, LobbyInput.difficolta[0], darkMode));
                         return;
                     case 1:
-                        game.setScreen(new GameManager(game, lobbyInput.difficolta[1], darkMode));
+                        game.setScreen(new GameManager(game, LobbyInput.difficolta[1], darkMode));
                         return;
                     case 2:
-                        game.setScreen(new GameManager(game, lobbyInput.difficolta[2], darkMode));
+                        game.setScreen(new GameManager(game, LobbyInput.difficolta[2], darkMode));
                         return;
                     case 3:
-                        game.setScreen(new GameManager(game, lobbyInput.difficolta[3], darkMode));
+                        game.setScreen(new GameManager(game, LobbyInput.difficolta[3], darkMode));
                         return;
                     case 4:
-                        LobbyManager.soundtrack.stop(); // interruzione musica
+                        // interruzione musica
+                        LobbyManager.soundtrack.stop();
+
+                        // salvataggio difficoltà modalità di gioco
+                        UserProgressService.setProgress("diff_classic", LobbyInput.difficolta[0]);
+                        UserProgressService.setProgress("diff_gravity4", LobbyInput.difficolta[1]);
+                        UserProgressService.setProgress("diff_horizontal", LobbyInput.difficolta[2]);
+                        UserProgressService.setProgress("diff_speedy", LobbyInput.difficolta[3]);
+
+                        // passaggio schermata di autenticazione
                         game.setScreen(new AuthManager(game));
                 }
             }
