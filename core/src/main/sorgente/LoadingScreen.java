@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import sorgente.Authentication.AuthAlgorithms;
 import sorgente.Authentication.AuthManager;
 import sorgente.Lobby.LobbyManager;
 import sorgente.dbManagement.GlobalProgressManager;

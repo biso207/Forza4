@@ -618,7 +618,7 @@ public class AuthAlgorithms implements InputProcessor {
                 // connessione assente
                 if (!checkInternetConnection()) {
                     resetErrors(); // reset di qualunque errore
-                    resetTexts(); // reset lunghezza campi digitati
+                    //resetTexts(); // reset lunghezza campi digitati
                     error2 = true; // stampa errore
                 }
                 // processi di autenticazione

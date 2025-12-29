@@ -19,6 +19,8 @@ import sorgente.ResourceLoader;
 import sorgente.UserData.UserProgressService;
 import sorgente.VersionInfo;
 
+import java.awt.*;
+
 
 public class LobbyUI implements ResourceLoader {
     private final Main game;
@@ -49,10 +51,10 @@ public class LobbyUI implements ResourceLoader {
     private Texture volume_bar_light;
 
     // MODE MODIFICABILE
-    private Texture lobby, software_infos, logout, settings,logout_clicked, scoreboard, market;
+    private Texture lobby, software_infos, logout, settings,btn_logout_clicked, scoreboard, market;
     private Texture gameMode_clicked, gameMode_hover, center_clicked,center_hover;
-    private Texture infos_clicked,infos_hover;
-    private Texture logout_hover,settings_clicked,settings_hover;
+    private Texture btn_infos_clicked,btn_infos;
+    private Texture btn_logout,btn_settings_clicked,btn_settings;
     private Texture btn_close,btn_close_clicked;
     private Texture btn_no,btn_yes,btn_no_clicked,btn_yes_clicked;
     private Texture star,star_selected;
@@ -186,9 +188,6 @@ public class LobbyUI implements ResourceLoader {
         loadDarkMode();
         loadLightMode();
 
-        // stampa light o dark mode
-        darkMode((boolean)UserProgressService.getProgress("darkMode")); // lettura da progressi utente
-
         music     = new Texture("ui/icons/music.png");
         effects   = new Texture("ui/icons/sound.png");
         noMusic   = new Texture("ui/icons/no_music.png");
@@ -197,14 +196,14 @@ public class LobbyUI implements ResourceLoader {
         star=new Texture("ui/icons/star.png");
         star_selected=new Texture("ui/icons/star_selected.png");
 
-        infos_hover=new Texture("ui/icons/infos.png");
-        infos_clicked=new Texture("ui/icons/infos_clicked.png");
+        btn_infos=new Texture("ui/icons/infos.png");
+        btn_infos_clicked=new Texture("ui/icons/infos_clicked.png");
 
-        logout_hover=new Texture("ui/icons/logout.png");
-        logout_clicked=new Texture("ui/icons/logout_clicked.png");
+        btn_logout=new Texture("ui/icons/logout.png");
+        btn_logout_clicked=new Texture("ui/icons/logout_clicked.png");
 
-        settings_hover=new Texture("ui/icons/settings.png");
-        settings_clicked=new Texture("ui/icons/settings_clicked.png");
+        btn_settings=new Texture("ui/icons/settings.png");
+        btn_settings_clicked=new Texture("ui/icons/settings_clicked.png");
 
         btn_no=new Texture("ui/buttons/lobby/btn_no.png");
         btn_no_clicked=new Texture("ui/buttons/lobby/btn_no_clicked.png");
@@ -223,106 +222,28 @@ public class LobbyUI implements ResourceLoader {
         // init screen
         screen.begin();
 
+        // stampa light o dark mode
+        darkMode((boolean)UserProgressService.getProgress("darkMode")); // lettura da progressi utente
+
         screen.draw(lobby, 0, 0);
 
-        // crediti gioco
+        // nome software house //
         Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
-        // versione di gioco
+        // versione di gioco //
         String text = "Beta " + VersionInfo.getVersion();
-        float rightX = 940;   // X finale dove deve arrivare il testo
-        float y = 63;
-
-        // Calcolo larghezza del testo
+        // calcolo larghezza del testo
         GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
-        // Allineamento a destra
-        float x = rightX - layout.width;
         // stampa testo
-        Fonts.medium20.draw(screen, layout, x, y);
+        Fonts.medium20.draw(screen, layout, (940 - layout.width), 63);
 
-        // --- GAME MODES ---
-        draw(gameMode_hover, lobbyInput.classicHover,35, 334);
-        draw(gameMode_hover, lobbyInput.gravity4Hover,275, 334);
-        draw(gameMode_hover, lobbyInput.horizontalHover,513, 334);
-        draw(gameMode_hover, lobbyInput.speedyHover,753, 334);
-
-        draw(gameMode_clicked, lobbyInput.classic,35, 334);
-        draw(gameMode_clicked, lobbyInput.gravity4,275, 334);
-        draw(gameMode_clicked, lobbyInput.horizontal,512, 334);
-        draw(gameMode_clicked, lobbyInput.speedy,752, 334);
-
-        draw(market_hover,   lobbyInput.isBtnMarket,833,588);
-        draw(market_clicked, lobbyInput.isBtnMarketClicked,833,588);
-
-
-        // --- SECONDARY BUTTONS ---
-        draw(center_hover, lobbyInput.scoreboardHover,369,91);
-        draw(center_clicked, lobbyInput.scoreboard,369,91);
-
-        // --- COMMAND BAR ICONS ---
-        draw(logout_hover,   lobbyInput.exitHover,430,41);
-        draw(infos_hover,    lobbyInput.informationHover,481,40);
-        draw(settings_hover, lobbyInput.settingsHover,540,40);
-
-        draw(logout_clicked,   lobbyInput.exit,430,41);
-        draw(infos_clicked,    lobbyInput.information,481,40);
-        draw(settings_clicked, lobbyInput.settings,540,40);
-
-        // --- SECONDARY WINDOWS ---
-        draw(software_infos, lobbyInput.isWindowOpenInfo,      244,194);
-        draw(logout,         lobbyInput.isWindowOpenExit,      294,204);
-        draw(settings,       lobbyInput.isWindowOpenSettings,  244,223);
-        draw(scoreboard,     lobbyInput.isWindowOpenScoreboard,93,142);
-        draw(market,         lobbyInput.isWindowOpenMarket,    93,155);
-
-        //--- CHIUSURA ---
-        //schermata marketPlace
-        if(lobbyInput.isWindowOpenMarket) {
-            draw(btn_close,lobbyInput.isBtnCloseMarketHover,822,470);
-            draw(btn_close_clicked, lobbyInput.isBtnCloseMarket, 822, 470);
-        }
-
-        // schermata crediti di gioco
-        if(lobbyInput.isWindowOpenInfo) {
-            draw(btn_close,lobbyInput.isBtnCloseInfoHover,694,440);
-            draw(btn_close_clicked, lobbyInput.btnCloseInfo, 694, 440);
-        }
-
-        // schermata impostazioni
-        if(lobbyInput.isWindowOpenSettings) {
-            // finestra impostazioni
-            screen.draw(settings, 244, 223);
-
-            // pulsante chiusura
-            draw(btn_close, lobbyInput.isBtnCloseSettingsHover, 694,411);
-            draw(btn_close_clicked, lobbyInput.btnCloseSettings,694,411);
-
-            // todo: stampare come su Astro Invasion la barra dei volumi
-            // --- MUSIC BAR FILL (texture) ---
-            // disegno barre volume
-            float filledWidth1 = (LobbyInput.musicPercent) * 361;
-            float filledWidth2 = (LobbyInput.effectsPercent) * 361;
-            if (filledWidth1 > 0.0) screen.draw(volume_bar, 320, 310, filledWidth1, 25);
-            if (filledWidth2 > 0.0) screen.draw(volume_bar, 320, 258, filledWidth2, 25);
-
-            // --- icone per il volume a 0 ---
-            if (LobbyInput.effectsPercent==0f) screen.draw(noEffects, 266, 256);
-            else screen.draw(effects, 266, 256);
-            if (LobbyInput.musicPercent==0f) screen.draw(noMusic, 266, 308);
-            else screen.draw(music, 266, 308);
-
-            // percentuale volumi
-            Fonts.bold15.draw(screen, Math.round(LobbyInput.musicPercent*100)+"%", 700, 327);
-            Fonts.bold15.draw(screen, Math.round(LobbyInput.effectsPercent*100)+"%", 700, 275);
-        }
-
-        // schermata logout
-        if(lobbyInput.isWindowOpenExit) {
-            draw(btn_yes,lobbyInput.isBtnYesExitHover,342,244);
-            draw(btn_yes_clicked,lobbyInput.btnYesExit,342,244);
-
-            draw(btn_no_clicked,lobbyInput.btnNoExit,506,244);
-            draw(btn_no,lobbyInput.isBtnNoExitHover,506,244);
-        }
+        // crediti //
+        int credits = (int) UserProgressService.getProgress("credits");
+        // versione di gioco
+        String text2 = String.valueOf(credits);
+        // Calcolo larghezza del testo
+        GlyphLayout layout2 = new GlyphLayout(Fonts.bold25, text2);
+        // stampa testo
+        Fonts.bold25.draw(screen, layout2, (775 - layout2.width), 623);
 
         // star selected
         for (int i = 0; i < 8; i++) {
@@ -401,6 +322,91 @@ public class LobbyUI implements ResourceLoader {
                     draw(star, true, 879, 301);   // Speedy stella 2
                     break;
             }
+        }
+
+        // --- GAME MODES ---
+        draw(gameMode_hover, lobbyInput.classicHover,35, 334);
+        draw(gameMode_hover, lobbyInput.gravity4Hover,275, 334);
+        draw(gameMode_hover, lobbyInput.horizontalHover,513, 334);
+        draw(gameMode_hover, lobbyInput.speedyHover,753, 334);
+
+        draw(gameMode_clicked, lobbyInput.classic,35, 334);
+        draw(gameMode_clicked, lobbyInput.gravity4,275, 334);
+        draw(gameMode_clicked, lobbyInput.horizontal,512, 334);
+        draw(gameMode_clicked, lobbyInput.speedy,752, 334);
+
+        draw(market_hover,   lobbyInput.isBtnMarket,833,588);
+        draw(market_clicked, lobbyInput.isBtnMarketClicked,833,588);
+
+
+        // --- SECONDARY BUTTONS ---
+        draw(center_hover, lobbyInput.scoreboardHover,369,91);
+        draw(center_clicked, lobbyInput.scoreboard,369,91);
+
+        // --- COMMAND BAR ICONS ---
+        draw(btn_logout,   !lobbyInput.exit,429,41);
+        draw(btn_infos,    !lobbyInput.information,481,41);
+        draw(btn_settings, !lobbyInput.settings,541,41);
+
+        draw(btn_logout_clicked,   lobbyInput.exit,429,41);
+        draw(btn_infos_clicked,    lobbyInput.information,481,41);
+        draw(btn_settings_clicked, lobbyInput.settings,541,41);
+
+        // --- SECONDARY WINDOWS ---
+        draw(software_infos, lobbyInput.isWindowOpenInfo,      244,194);
+        draw(logout,         lobbyInput.isWindowOpenExit,      294,204);
+        draw(settings,       lobbyInput.isWindowOpenSettings,  244,223);
+        draw(scoreboard,     lobbyInput.isWindowOpenScoreboard,93,142);
+        draw(market,         lobbyInput.isWindowOpenMarket,    93,155);
+
+        //--- CHIUSURA ---
+        //schermata marketPlace
+        if(lobbyInput.isWindowOpenMarket) {
+            draw(btn_close,lobbyInput.isBtnCloseMarketHover,822,470);
+            draw(btn_close_clicked, lobbyInput.isBtnCloseMarket, 822, 470);
+        }
+
+        // schermata crediti di gioco
+        if(lobbyInput.isWindowOpenInfo) {
+            draw(btn_close,lobbyInput.isBtnCloseInfoHover,694,440);
+            draw(btn_close_clicked, lobbyInput.btnCloseInfo, 694, 440);
+        }
+
+        // schermata impostazioni
+        if(lobbyInput.isWindowOpenSettings) {
+            // finestra impostazioni
+            screen.draw(settings, 244, 223);
+
+            // pulsante chiusura
+            draw(btn_close, lobbyInput.isBtnCloseSettingsHover, 694,411);
+            draw(btn_close_clicked, lobbyInput.btnCloseSettings,694,411);
+
+            // todo: stampare come su Astro Invasion la barra dei volumi
+            // --- MUSIC BAR FILL (texture) ---
+            // disegno barre volume
+            float filledWidth1 = (LobbyInput.musicPercent) * 361;
+            float filledWidth2 = (LobbyInput.effectsPercent) * 361;
+            if (filledWidth1 > 0.0) screen.draw(volume_bar, 320, 310, filledWidth1, 25);
+            if (filledWidth2 > 0.0) screen.draw(volume_bar, 320, 258, filledWidth2, 25);
+
+            // --- icone per il volume a 0 ---
+            if (LobbyInput.effectsPercent==0f) screen.draw(noEffects, 266, 256);
+            else screen.draw(effects, 266, 256);
+            if (LobbyInput.musicPercent==0f) screen.draw(noMusic, 266, 308);
+            else screen.draw(music, 266, 308);
+
+            // percentuale volumi
+            Fonts.bold15.draw(screen, Math.round(LobbyInput.musicPercent*100)+"%", 700, 327);
+            Fonts.bold15.draw(screen, Math.round(LobbyInput.effectsPercent*100)+"%", 700, 275);
+        }
+
+        // schermata logout
+        if(lobbyInput.isWindowOpenExit) {
+            draw(btn_yes,lobbyInput.isBtnYesExitHover,342,244);
+            draw(btn_yes_clicked,lobbyInput.btnYesExit,342,244);
+
+            draw(btn_no_clicked,lobbyInput.btnNoExit,506,244);
+            draw(btn_no,lobbyInput.isBtnNoExitHover,506,244);
         }
 
         // chiusura batch -> prima chiudere poi passare alla nuova schermata in caso di transizione
@@ -507,14 +513,14 @@ public class LobbyUI implements ResourceLoader {
         software_infos.dispose();
         logout.dispose();
         settings.dispose();
-        logout_clicked.dispose();
+        btn_logout_clicked.dispose();
         scoreboard.dispose();
         market.dispose();
-        infos_clicked.dispose();
-        infos_hover.dispose();
-        logout_hover.dispose();
-        settings_clicked.dispose();
-        settings_hover.dispose();
+        btn_infos_clicked.dispose();
+        btn_infos.dispose();
+        btn_logout.dispose();
+        btn_settings_clicked.dispose();
+        btn_settings.dispose();
         btn_close.dispose();
         btn_close_clicked.dispose();
         btn_no.dispose();

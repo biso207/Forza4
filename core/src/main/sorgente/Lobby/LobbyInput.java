@@ -65,9 +65,6 @@ public class LobbyInput implements InputProcessor {
     protected boolean speedyHover;
     protected boolean marketHover;
     protected boolean scoreboardHover;
-    protected boolean settingsHover;
-    protected boolean informationHover;
-    protected boolean exitHover;
 
     // per aprire le finestre in sovra impressione
     protected boolean isWindowOpenInfo, isWindowOpenExit, isWindowOpenSettings, isWindowOpenScoreboard,
@@ -89,9 +86,7 @@ public class LobbyInput implements InputProcessor {
     // hitbox
     protected Rectangle musicBarArea;
     protected Rectangle effectsBarArea;
-    protected Rectangle switchL;
-    protected Rectangle switchD;
-    protected Rectangle switchE;
+    protected Rectangle switchDL;
 
     private Rectangle classicStar1, gravityStar1, horizontalStar1, speedyStar1;
     private final Rectangle[] classicStars = new Rectangle[3];
@@ -123,6 +118,10 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_CLOSE_INFO = 1;
     public static final int ACT_CLOSE_SETTINGS = 2;
     public static final int ACT_CLOSE_MARKET = 3;
+    public static final int ACT_OPEN_INFO = 4;
+    public static final int ACT_OPEN_SETTINGS = 5;
+    public static final int ACT_OPEN_EXIT = 6;
+
     public static final int ACT_START_CLASSIC = 10;
     public static final int ACT_START_GRAVITY4 = 11;
     public static final int ACT_START_HORIZONTAL = 12;
@@ -161,9 +160,7 @@ public class LobbyInput implements InputProcessor {
     // metodo per la creazione dei rectangle
     private void createHitboxes() {
         // Hitbox principali
-        switchD=new Rectangle(407,324,30,30);
-        switchL=new Rectangle(535,324,30,30);
-        switchE=switchL;
+        switchDL=new Rectangle(449,302,85,36);
 
         // Barra volume musica
         musicBarArea = new Rectangle(312, 363, 361, 25); // x, y, width, height // Barra volume effetti
@@ -195,9 +192,9 @@ public class LobbyInput implements InputProcessor {
         scoreboardArea  = new Rectangle(360, 436, 260, 170);
 
         // Bottoni
-        exitArea        = new Rectangle(430, 615, 30, 30);
-        informationArea = new Rectangle(481, 615, 30, 30);
-        settingsArea    = new Rectangle(540, 615, 30, 30);
+        exitArea        = new Rectangle(422, 629, 30, 30);
+        informationArea = new Rectangle(475, 629, 30, 30);
+        settingsArea    = new Rectangle(534, 629, 30, 30);
 
         btnCloseInfoArea = new Rectangle(686,217,40,40);
         btnCloseSettingsArea = new Rectangle(686,245,40,40);
@@ -214,15 +211,17 @@ public class LobbyInput implements InputProcessor {
         btnCloseSettings = false;
         btnNoExit = false;
         btnYesExit = false;
-
-        // se vuoi includere anche questi:
         isBtnMarketClicked = false;
+        isBtnCloseMarket=false;
         classic = false;
         gravity4 = false;
         horizontal = false;
         speedy = false;
         daily = false;
         scoreboard = false;
+        exit = false;
+        settings = false;
+        information = false;
     }
 
     // la UI chiama questo e se c'è un'azione pronta la consuma
@@ -260,7 +259,6 @@ public class LobbyInput implements InputProcessor {
     {
         classicHover = gravity4Hover = horizontalHover = speedyHover = false;
         marketHover = scoreboardHover = false;
-        settingsHover = informationHover = exitHover = false;
         isBtnCloseInfoHover = false;
         isBtnCloseSettingsHover = false;
         isBtnCloseMarketHover=false;
@@ -393,21 +391,6 @@ public class LobbyInput implements InputProcessor {
             return true;
         }
 
-        if (exitArea.contains(screenX, screenY)) { // schermata logout
-            exitHover = true;
-            return true;
-        }
-
-        if (informationArea.contains(screenX, screenY)) { // schermata crediti di gioco
-            informationHover = true;
-            return true;
-        }
-
-        if (settingsArea.contains(screenX, screenY)) { // schermata impostazioni
-            settingsHover = true;
-            return true;
-        }
-
         return false;
     }
 
@@ -426,8 +409,8 @@ public class LobbyInput implements InputProcessor {
 
         setFalse();
 
-        if(isWindowOpenInfo || isWindowOpenSettings || isWindowOpenExit || isWindowOpenScoreboard || isWindowOpenMarket)
-        {
+        if(isWindowOpenInfo || isWindowOpenSettings || isWindowOpenExit || isWindowOpenScoreboard || isWindowOpenMarket) {
+            // chiusura credits
             if (isWindowOpenInfo && btnCloseInfoArea.contains(x, y)) {
                 btnCloseInfo = true;
                 clickedTimer = 0.15f;
@@ -435,7 +418,7 @@ public class LobbyInput implements InputProcessor {
                 scheduleScreenChange(ACT_CLOSE_INFO, 0.20f);
                 return true;
             }
-
+            // chiusura impostazioni
             if (isWindowOpenSettings && btnCloseSettingsArea.contains(x, y)) {
                 // salvataggio modifiche audio
                 UserProgressService.setProgress("sound_volume", effectsPercent); // salvataggio volume audio
@@ -448,7 +431,9 @@ public class LobbyInput implements InputProcessor {
                 return true;
             }
 
+            // logout
             if (isWindowOpenExit) {
+                // click sul NO
                 if (btn_no.contains(x, y)) {
                     btnNoExit = true;
                     clickedTimer = 0.15f;
@@ -456,7 +441,7 @@ public class LobbyInput implements InputProcessor {
                     scheduleScreenChange(ACT_CLOSE_EXIT, 0.20f);
                     return true;
                 }
-
+                // click sul YES
                 if (btn_yes.contains(x, y)) {
                     btnYesExit = true;
                     clickedTimer = 0.15f;
@@ -466,8 +451,8 @@ public class LobbyInput implements InputProcessor {
                 }
             }
 
-            if (isWindowOpenSettings)
-            {
+            // impostazioni
+            if (isWindowOpenSettings) {
 
                 // CLICK SULLA BARRA MUSICA
                 if (musicBarArea.contains(x, y)) {
@@ -483,24 +468,17 @@ public class LobbyInput implements InputProcessor {
                     return true;
                 }
 
-                if(switchE.contains(x,y))
-                {
-                    log.info("sono switch");
-                    if(switchE == switchD)
-                    {
-                        switchE=switchL;
-                        isBtnSwitch=false;
-                    }
-                    else
-                    {
-                        isBtnSwitch=true;
-                        switchE=switchD;
-                    }
+                // on/off dark mode switch
+                if (switchDL.contains(x,y)) {
+                    if ((boolean)UserProgressService.getProgress("darkMode")) UserProgressService.setProgress("darkMode", false);
+                    else UserProgressService.setProgress("darkMode", true);
 
+                    System.out.println((boolean)UserProgressService.getProgress("darkMode") ? "on" : "off");
                     return true;
                 }
             }
 
+            // chiusura mercato
             if(isWindowOpenMarket && btnCloseMarketArea.contains(x,y)) {
                 btnCloseInfo = true;
                 clickedTimer = 0.15f;
@@ -511,7 +489,6 @@ public class LobbyInput implements InputProcessor {
                 return true;
 
             }
-
             return false;
         }
 
@@ -657,24 +634,25 @@ public class LobbyInput implements InputProcessor {
         // -- COMMAND BAR --
         if (exitArea.contains(x, y)) {
             exit = true;
-            isWindowOpenExit =true;
-            // IMPORTANTE! LA POSIZIONE DEVE ESSERE ESATTAMENTE IL CENTRO DELLO SCHERMO (1000/2-widthImg/2, 700/2-heightImg/2)
-            log.info("Exit cliccato!"); // todo: stampare da LobbyUI la grafica logout.png ATTENZIONE al dark e no
+            clickedTimer = 0.10f;
+            setInputEnabled(false);
+            scheduleScreenChange(ACT_OPEN_EXIT, 0.20f);
             return true;
         }
 
         if (informationArea.contains(x, y)) {
             information = true;
-            isWindowOpenInfo =true;
-            // IMPORTANTE! LA POSIZIONE DEVE ESSERE ESATTAMENTE IL CENTRO DELLO SCHERMO
-            log.info("Information cliccato!"); // todo: stampare da LobbyUI la grafica software_infos.png
+            clickedTimer = 0.10f;
+            setInputEnabled(false);
+            scheduleScreenChange(ACT_OPEN_INFO, 0.20f);
             return true;
         }
 
         if (settingsArea.contains(x, y)) {
             settings = true;
-            isWindowOpenSettings=true;
-            log.info("Settings cliccato!");
+            clickedTimer = 0.10f;
+            setInputEnabled(false);
+            scheduleScreenChange(ACT_OPEN_SETTINGS, 0.20f);
             return true;
         }
 
@@ -816,6 +794,18 @@ public class LobbyInput implements InputProcessor {
 
             case ACT_OPEN_SCOREBOARD:
                 isWindowOpenScoreboard = true;
+                break;
+
+            case ACT_OPEN_INFO:
+                isWindowOpenInfo = true;
+                break;
+
+            case ACT_OPEN_SETTINGS:
+                isWindowOpenSettings = true;
+                break;
+
+            case ACT_OPEN_EXIT:
+                isWindowOpenExit = true;
                 break;
 
             case ACT_CLOSE_INFO:
