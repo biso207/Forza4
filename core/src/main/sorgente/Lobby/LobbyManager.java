@@ -38,6 +38,11 @@ public class LobbyManager extends ScreenAdapter {
 
         // init dello screen
         this.screen = game.screen;
+
+        // musica di sottofondo
+        soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.ogg")); // file audio
+        soundtrack.setLooping(true); // true=loop music; false=no loop
+        soundtrack.play(); // avvio musica
     }
 
     // "interruttore" per l'input
@@ -56,6 +61,13 @@ public class LobbyManager extends ScreenAdapter {
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        /*
+        setting del volume di sottofondo
+        fondamentale che sia qui perché in caso di cambiamento durante una sessione di gioco
+        il volume deve cambiare dinamicamente
+        */
+        soundtrack.setVolume(LobbyInput.musicPercent); // volume musica
 
         ui.lobbyRender(delta);
     }

@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Rectangle;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import sorgente.SoundManager;
 import sorgente.UserData.UserProgressService;
 
 public class LobbyInput implements InputProcessor {
@@ -237,20 +238,9 @@ public class LobbyInput implements InputProcessor {
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button)
-    {
-
-        //if (!inputEnabled) return false;
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         System.out.println(screenX + " " + screenY);
-
-        boolean click = checkHitboxes(screenX, screenY);
-
-        if (click)
-        {
-           // SoundManager.playClickButton();
-        }
-
-        return click;
+        return checkHitboxes(screenX, screenY);
     }
 
 
@@ -470,6 +460,7 @@ public class LobbyInput implements InputProcessor {
 
                 // on/off dark mode switch
                 if (switchDL.contains(x,y)) {
+                    SoundManager.playClickButton(effectsPercent); // riproduzione suono click
                     if ((boolean)UserProgressService.getProgress("darkMode")) UserProgressService.setProgress("darkMode", false);
                     else UserProgressService.setProgress("darkMode", true);
 

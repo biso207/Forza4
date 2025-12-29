@@ -234,7 +234,7 @@ public class LobbyUI implements ResourceLoader {
         // calcolo larghezza del testo
         GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
         // stampa testo
-        Fonts.medium20.draw(screen, layout, (940 - layout.width), 63);
+        Fonts.medium20.draw(screen, layout, (955 - layout.width), 63);
 
         // crediti //
         int credits = (int) UserProgressService.getProgress("credits");
@@ -467,8 +467,8 @@ public class LobbyUI implements ResourceLoader {
                         game.setScreen(new GameManager(game, lobbyInput.difficolta[3], darkMode));
                         return;
                     case 4:
+                        LobbyManager.soundtrack.stop(); // interruzione musica
                         game.setScreen(new AuthManager(game));
-                        return;
                 }
             }
         }

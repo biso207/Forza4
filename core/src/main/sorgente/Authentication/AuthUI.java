@@ -343,7 +343,7 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         // versione di gioco
         String text = "Beta " + VersionInfo.getVersion();
 
-        float rightX = 940;   // X finale dove deve arrivare il testo
+        float rightX = 955;   // X finale dove deve arrivare il testo
         float y = 63;
 
         // Calcolo larghezza del testo
