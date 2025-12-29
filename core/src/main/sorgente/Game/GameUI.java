@@ -30,6 +30,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     private Texture forza;
 
+    private Texture exit;
+    private Texture exitHover;
+
 
 
 
@@ -47,6 +50,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     }
 
+    private void draw(Texture texture, boolean response, float x, float y)
+    {
+        if (response)
+        {
+            screen.draw(texture, x, y);
+        }
+    }
+
     @Override
     public void render(float delta)
     {
@@ -54,6 +65,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         screen.begin();
 
         screen.draw(forza,0,0);
+
+
+           draw(exit, gameInput.isBtnExitClicked, 122,122);
+
 
         screen.end();
     }
@@ -70,10 +85,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
        if(darkMode)
        {
            forza = new Texture("game_mods_screens/base_dark.png");
+           exit= new Texture("ui/buttons/lobby/dark/btn_close.png");
+           exitHover=new Texture("ui/buttons/lobby/light/btn_close.png");
        }
        else
        {
            forza = new Texture("game_mods_screens/base_light.png");
+           exit= new Texture("ui/buttons/lobby/light/btn_close.png");
+           exitHover=new Texture("ui/buttons/lobby/light/btn_close.png");
        }
     }
 

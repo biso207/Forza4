@@ -43,6 +43,7 @@ public class LobbyUI implements ResourceLoader {
     private Texture darkBigClicked,darkBigHover,darkCenterClicked,darkCenterHover;
     private Texture darkBtnClose,darkBtnCloseClicked;
     private Texture darkBtnMarket,darkBtnMarketClicked;
+    private Texture volume_bar_dark;
 
 
     // LIGHT MODE
@@ -50,6 +51,7 @@ public class LobbyUI implements ResourceLoader {
     private Texture lightBigClicked,lightBigHover,lightCenterClicked,lightCenterHover;
     private Texture lightBtnClose,lightBtnCloseClicked;
     private Texture lightBtnMarket,lightBtnMarketClicked;
+    private Texture volume_bar_light;
 
     // MODE MODIFICABILE
     private Texture lobby, software_infos, logout, settings,logout_clicked, scoreboard, market;
@@ -62,6 +64,7 @@ public class LobbyUI implements ResourceLoader {
     private Texture noMusic,noEffects;
     private Texture market_hover;
     private Texture market_clicked;
+    private Texture volume_bar;
 
     private LoadingScreen loadingScreen;
     private int volume;
@@ -97,22 +100,25 @@ public class LobbyUI implements ResourceLoader {
 
     public void  loadDarkMode()
     {
-         darkLobby=new Texture("lobby_screens/dark/lobby_dark.png");
-         darkLogout=new Texture("lobby_screens/dark/logout_dark.png");
-         darkSettings=new Texture("lobby_screens/dark/settings_dark.png");
-         darkCredits=new Texture("lobby_screens/dark/software_info_dark.png");
-         darkScoreboard=new Texture("lobby_screens/dark/scoreboard_dark.png");
-         darkMarket=new Texture("lobby_screens/dark/market_dark.png");
+        darkLobby=new Texture("lobby_screens/dark/lobby_dark.png");
+        darkLogout=new Texture("lobby_screens/dark/logout_dark.png");
+        darkSettings=new Texture("lobby_screens/dark/settings_dark.png");
+        darkCredits=new Texture("lobby_screens/dark/software_info_dark.png");
+        darkScoreboard=new Texture("lobby_screens/dark/scoreboard_dark.png");
+        darkMarket=new Texture("lobby_screens/dark/market_dark.png");
 
-         darkBigClicked=new Texture("ui/buttons/lobby/dark/bottom_big_clicked.png");
-         darkBigHover=new Texture("ui/buttons/lobby/dark/bottom_big_hover.png");
-         darkCenterClicked=new Texture("ui/buttons/lobby/dark/bottom_center_clicked.png");
-         darkCenterHover=new Texture("ui/buttons/lobby/dark/bottom_center_hover.png");
-         darkBtnClose=new Texture("ui/buttons/lobby/dark/btn_close.png");
+        darkBigClicked=new Texture("ui/buttons/lobby/dark/bottom_big_clicked.png");
+        darkBigHover=new Texture("ui/buttons/lobby/dark/bottom_big_hover.png");
+        darkCenterClicked=new Texture("ui/buttons/lobby/dark/bottom_center_clicked.png");
+        darkCenterHover=new Texture("ui/buttons/lobby/dark/bottom_center_hover.png");
+        darkBtnClose=new Texture("ui/buttons/lobby/dark/btn_close.png");
 
-         darkBtnCloseClicked=new Texture("ui/buttons/lobby/dark/btn_close_clicked.png");
-         darkBtnMarket=new Texture("ui/buttons/lobby/dark/market.png");
-         darkBtnMarketClicked=new Texture("ui/buttons/lobby/dark/market_clicked.png");
+        darkBtnCloseClicked=new Texture("ui/buttons/lobby/dark/btn_close_clicked.png");
+        darkBtnMarket=new Texture("ui/buttons/lobby/dark/market.png");
+        darkBtnMarketClicked=new Texture("ui/buttons/lobby/dark/market_clicked.png");
+
+        volume_bar_dark=new Texture("ui/buttons/lobby/dark/volume_bar_dark.png");
+
     }
 
     public void loadLightMode()
@@ -133,6 +139,8 @@ public class LobbyUI implements ResourceLoader {
         lightBtnCloseClicked=new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
         lightBtnMarket=new Texture("ui/buttons/lobby/light/market.png");
         lightBtnMarketClicked=new Texture("ui/buttons/lobby/light/market_clicked.png");
+
+        volume_bar_light=new Texture("ui/buttons/lobby/light/volume_bar_light.png");
     }
 
     public void darkMode(boolean isDarkMode)
@@ -140,22 +148,24 @@ public class LobbyUI implements ResourceLoader {
         darkMode=isDarkMode;
 
         if(darkMode) {
-           lobby=darkLobby;
-           software_infos=darkCredits;
-           logout=darkLogout;
-           settings=darkSettings;
-           scoreboard=darkScoreboard;
-           market=darkMarket;
+            lobby=darkLobby;
+            software_infos=darkCredits;
+            logout=darkLogout;
+            settings=darkSettings;
+            scoreboard=darkScoreboard;
+            market=darkMarket;
 
-           big_clicked=darkBigClicked;
-           big_hover=darkBigHover;
-           center_clicked=darkCenterClicked;
-           center_hover=darkCenterHover;
-           btn_close=darkBtnClose;
-           btn_close_clicked=darkBtnCloseClicked;
+            big_clicked=darkBigClicked;
+            big_hover=darkBigHover;
+            center_clicked=darkCenterClicked;
+            center_hover=darkCenterHover;
+            btn_close=darkBtnClose;
+            btn_close_clicked=darkBtnCloseClicked;
 
-           market_hover=darkBtnMarket;
-           market_clicked=darkBtnMarketClicked;
+            market_hover=darkBtnMarket;
+            market_clicked=darkBtnMarketClicked;
+
+            volume_bar=volume_bar_dark;
         }
         else {
             lobby=lightLobby;
@@ -174,6 +184,8 @@ public class LobbyUI implements ResourceLoader {
 
             market_hover=lightBtnMarket;
             market_clicked=lightBtnMarketClicked;
+
+            volume_bar=volume_bar_light;
         }
     }
 
@@ -247,13 +259,13 @@ public class LobbyUI implements ResourceLoader {
         draw(big_clicked,    lobbyInput.daily,660,91);
 
         // --- COMMAND BAR ICONS ---
-        draw(logout_hover,   lobbyInput.exitHover,398,41);
-        draw(infos_hover,    lobbyInput.informationHover,452,40);
-        draw(settings_hover, lobbyInput.settingsHover,510,40);
+        draw(logout_hover,   lobbyInput.exitHover,430,41);
+        draw(infos_hover,    lobbyInput.informationHover,481,40);
+        draw(settings_hover, lobbyInput.settingsHover,540,40);
 
-        draw(logout_clicked,   lobbyInput.exit,398,41);
-        draw(infos_clicked,    lobbyInput.information,452,40);
-        draw(settings_clicked, lobbyInput.settings,510,40);
+        draw(logout_clicked,   lobbyInput.exit,430,41);
+        draw(infos_clicked,    lobbyInput.information,481,40);
+        draw(settings_clicked, lobbyInput.settings,540,40);
 
         // --- SECONDARY WINDOWS ---
         draw(software_infos, lobbyInput.isWindowOpenInfo,      244,194);
@@ -264,69 +276,59 @@ public class LobbyUI implements ResourceLoader {
 
         //--- CHIUDI ---
 
+
+        //schermata marketPlace
+
+        if(lobbyInput.isWindowOpenMarket)
+        {
+            draw(btn_close,lobbyInput.isBtnCloseMarketHover,830,465);
+            draw(btn_close_clicked, lobbyInput.isBtnCloseMarket, 830, 465);
+        }
+
         // schermata crediti di gioco
         if(lobbyInput.isWindowOpenInfo) {
-            draw(btn_close,lobbyInput.isBtnCloseInfoHover,686,484);
-            draw(btn_close_clicked, lobbyInput.btnCloseInfo, 686, 484);
+            draw(btn_close,lobbyInput.isBtnCloseInfoHover,696,440);
+            draw(btn_close_clicked, lobbyInput.btnCloseInfo, 696, 440);
         }
 
         // schermata impostazioni
         if(lobbyInput.isWindowOpenSettings) {
-                // 1️⃣ Disegno la finestra normalmente
-                screen.draw(settings, 244, 223);
 
-                draw(btn_close,lobbyInput.isBtnCloseSettingsHover,694,410);
-                draw(btn_close,lobbyInput.btnCloseSettings,694,410);
+            // 1️⃣ Disegno la finestra normalmente (contiene già la barra vuota)
+            screen.draw(settings, 244, 223);
 
-                // 2️⃣ Chiudo il batch
-                screen.end();
+            draw(btn_close, lobbyInput.isBtnCloseSettingsHover, 694, 410);
+            draw(btn_close, lobbyInput.btnCloseSettings, 694, 410);
 
-                // 3️⃣ Disegno le barre con ShapeRenderer
-                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            // 2️⃣ Chiudo il batch per sicurezza (non serve ShapeRenderer)
+            screen.end();
 
-                // --- MUSIC BAR BACKGROUND ---
-                shapeRenderer.setColor(0.2f, 0.2f, 0.2f, 1f);
-                shapeRenderer.rect(
-                    lobbyInput.musicBarArea.x,
-                    680-lobbyInput.musicBarArea.y,
-                    lobbyInput.musicBarArea.width-8,
-                    lobbyInput.musicBarArea.height-10
-                );
+            // 3️⃣ Riapro il batch per disegnare la barra piena
+            screen.begin();
 
-                // --- MUSIC BAR FILL ---
-                shapeRenderer.setColor(0.9f, 0.3f, 0.3f, 1f);
-                float musicWidth = AudioSettings.musicVolume * lobbyInput.musicBarArea.width;
-                shapeRenderer.rect(
-                    lobbyInput.musicBarArea.x,
-                    680-lobbyInput.musicBarArea.y,
-                    musicWidth-8,
-                    lobbyInput.musicBarArea.height-10
-                );
+            // --- MUSIC BAR FILL (texture) ---
+            float fullWidthMusic = volume_bar.getWidth();              // larghezza originale texture
+            float fillWidthMusic = AudioSettings.musicVolume * fullWidthMusic;
 
-                // --- EFFECTS BAR BACKGROUND ---
-                shapeRenderer.setColor(0.2f, 0.2f, 0.2f, 1f);
-                shapeRenderer.rect(
-                    lobbyInput.effectsBarArea.x,
-                    680-lobbyInput.effectsBarArea.y,
-                    lobbyInput.effectsBarArea.width-8,
-                    lobbyInput.effectsBarArea.height-10
-                );
+            screen.draw(
+                volume_bar,
+                lobbyInput.musicBarArea.x,
+                685 - lobbyInput.musicBarArea.y,
+                fillWidthMusic,                 // larghezza dinamica
+                volume_bar.getHeight()            // altezza originale
+            );
 
-                // --- EFFECTS BAR FILL ---
-                shapeRenderer.setColor(0.3f, 0.6f, 0.9f, 1f);
-                float effectsWidth = AudioSettings.effectsVolume * lobbyInput.effectsBarArea.width;
-                shapeRenderer.rect(
-                    lobbyInput.effectsBarArea.x,
-                    680-lobbyInput.effectsBarArea.y,
-                    effectsWidth-8,
-                    lobbyInput.effectsBarArea.height-10
-                );
+            // --- EFFECTS BAR FILL (texture) ---
+            float fullWidthEffects = volume_bar.getWidth();
+            float fillWidthEffects = AudioSettings.effectsVolume * fullWidthEffects;
 
-                shapeRenderer.end();
-
-
-                screen.begin();
-
+            screen.draw(
+                volume_bar,
+                lobbyInput.effectsBarArea.x,
+                683 - lobbyInput.effectsBarArea.y,
+                fillWidthEffects,
+                volume_bar.getHeight()
+            );
 
             // --- TEXT PERCENTAGES ---
             Fonts.draw(
@@ -345,20 +347,16 @@ public class LobbyUI implements ResourceLoader {
                 Fonts.bold20
             );
 
-            volume=(int) (AudioSettings.musicVolume*100);
-
-            if(volume == 0)
-            {
-               draw(noMusic,true,266,308);
+            // --- ICONS WHEN VOLUME = 0 ---
+            volume = (int)(AudioSettings.musicVolume * 100);
+            if(volume == 0) {
+                draw(noMusic, true, 266, 308);
             }
 
-            volume=(int) (AudioSettings.effectsVolume*100);
-
-            if(volume == 0 )
-            {
-               draw(noEffects,true,266,256);
+            volume = (int)(AudioSettings.effectsVolume * 100);
+            if(volume == 0) {
+                draw(noEffects, true, 266, 256);
             }
-
         }
 
         // schermata logout
@@ -510,7 +508,7 @@ public class LobbyUI implements ResourceLoader {
             }
         }
 
-}
+    }
 
 
     public void hide()
