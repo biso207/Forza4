@@ -13,25 +13,25 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import sorgente.UserData.UserProgressService;
 
 public class LobbyInput implements InputProcessor {
     private static final Log log = LogFactory.getLog(LobbyInput.class);
-    private AudioSettings audio= new AudioSettings();
     private int numero=0;
 
-    //Clicked
+    // percentuale audio
+    protected static float effectsPercent, musicPercent;
 
+    // clicked
     protected int[] difficolta=new int[8];
     protected boolean[] starHover=new boolean[8];
     protected boolean[] starClicked=new boolean[8];
 
     protected boolean draggingMusic = false;
     protected boolean draggingEffects = false;
-
 
     protected boolean btnNoExit;
     protected boolean btnYesExit;
@@ -49,7 +49,7 @@ public class LobbyInput implements InputProcessor {
     protected boolean information;
     protected boolean exit;
 
-    // Hover
+    // hover
     protected boolean isBtnMarket;
     protected boolean isBtnMarketClicked;
     protected boolean isBtnSwitch;
@@ -69,7 +69,7 @@ public class LobbyInput implements InputProcessor {
     protected boolean informationHover;
     protected boolean exitHover;
 
-    //Per Aprire le finestre
+    // per aprire le finestre in sovra impressione
     protected boolean isWindowOpenInfo, isWindowOpenExit, isWindowOpenSettings, isWindowOpenScoreboard,
         isWindowOpenMarket;
 
@@ -84,49 +84,45 @@ public class LobbyInput implements InputProcessor {
 
     // azione pronta da eseguire fuori (solo per cambio screen / exit)
     private int readyAction = -1;
-
     private boolean inputEnabled = true;
 
-    //Hitbox
-    protected final Rectangle musicBarArea;
-    protected final Rectangle effectsBarArea;
+    // hitbox
+    protected Rectangle musicBarArea;
+    protected Rectangle effectsBarArea;
     protected Rectangle switchL;
-    protected final Rectangle switchD;
+    protected Rectangle switchD;
     protected Rectangle switchE;
 
-    private final Rectangle classicStar1, gravityStar1, horizontalStar1, speedyStar1;
+    private Rectangle classicStar1, gravityStar1, horizontalStar1, speedyStar1;
     private final Rectangle[] classicStars = new Rectangle[3];
     private final Rectangle[] gravityStars = new Rectangle[3];
     private final Rectangle[] horizontalStars = new Rectangle[3];
     private final Rectangle[] speedyStars = new Rectangle[3];
 
-    private final Rectangle btnCloseInfoArea;
-    private final Rectangle btnCloseSettingsArea;
-    private final Rectangle btnCloseMarketArea;
+    private Rectangle btnCloseInfoArea;
+    private Rectangle btnCloseSettingsArea;
+    private Rectangle btnCloseMarketArea;
 
-    private final Rectangle btn_no;
-    private final Rectangle btn_yes;
+    private Rectangle btn_no;
+    private Rectangle btn_yes;
 
-    private final Rectangle classicArea;
-    private final Rectangle gravity4Area;
-    private final Rectangle horizontalArea;
+    private Rectangle classicArea;
+    private Rectangle gravity4Area;
+    private Rectangle horizontalArea;
 
-    private final Rectangle speedyArea;
-    private final Rectangle scoreboardArea;
+    private Rectangle speedyArea;
+    private Rectangle scoreboardArea;
 
-    private final Rectangle settingsArea;
-    private final Rectangle informationArea;
+    private Rectangle settingsArea;
+    private Rectangle informationArea;
 
-    private final Rectangle exitArea;
-
-    private final Rectangle marketButton;
+    private Rectangle exitArea;
+    private Rectangle marketButton;
 
     // azioni click sulle schermate
     public static final int ACT_CLOSE_INFO = 1;
     public static final int ACT_CLOSE_SETTINGS = 2;
     public static final int ACT_CLOSE_MARKET = 3;
-
-
     public static final int ACT_START_CLASSIC = 10;
     public static final int ACT_START_GRAVITY4 = 11;
     public static final int ACT_START_HORIZONTAL = 12;
@@ -134,6 +130,7 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_OPEN_SCOREBOARD = 30;
     public static final int ACT_OPEN_MARKET = 31;
     public static final int ACT_CLOSE_EXIT = 32;
+    public static final int ACT_YES_EXIT = 33;
 
     // costruttore
     public LobbyInput() {
@@ -147,14 +144,30 @@ public class LobbyInput implements InputProcessor {
 
         isBtnMarket=false;
 
+        // creazione hit boxes
+        createHitboxes();
+
+        // Cursor personalizzato
+        mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
+        cursor = Gdx.graphics.newCursor(mouse, 0, 0);
+        Gdx.graphics.setCursor(cursor);
+
+        // -- DATI UTENTE --
+        // volumi
+        effectsPercent = ((Number) UserProgressService.getProgress("effects_volume")).floatValue();
+        musicPercent = ((Number) UserProgressService.getProgress("music_volume")).floatValue();
+    }
+
+    // metodo per la creazione dei rectangle
+    private void createHitboxes() {
         // Hitbox principali
         switchD=new Rectangle(407,324,30,30);
         switchL=new Rectangle(535,324,30,30);
         switchE=switchL;
 
         // Barra volume musica
-        musicBarArea = new Rectangle(316, 375, 370, 40); // x, y, width, height // Barra volume effetti
-        effectsBarArea = new Rectangle(316, 425, 370, 40);
+        musicBarArea = new Rectangle(312, 363, 361, 25); // x, y, width, height // Barra volume effetti
+        effectsBarArea = new Rectangle(312, 415, 361, 25);
 
         // stelle difficoltà di gioco
         classicStar1 = new Rectangle( 93, 376, 20, 20);
@@ -173,7 +186,6 @@ public class LobbyInput implements InputProcessor {
         speedyStars[0] = new Rectangle( 841, 376, 20, 20);
         speedyStars[1] = new Rectangle(871,376,20,20);
 
-
         classicArea     = new Rectangle(26, 163, 210, 200);
         gravity4Area    = new Rectangle(266, 163, 210, 200);
         horizontalArea  = new Rectangle(504, 163, 210, 200);
@@ -189,17 +201,12 @@ public class LobbyInput implements InputProcessor {
 
         btnCloseInfoArea = new Rectangle(686,217,40,40);
         btnCloseSettingsArea = new Rectangle(686,245,40,40);
-        btnCloseMarketArea= new Rectangle(826,219,40,40);
+        btnCloseMarketArea= new Rectangle(814,187,40,40);
 
         btn_no= new Rectangle(503,408,150,50);
         btn_yes= new Rectangle(341,408,150,50);
 
         marketButton= new Rectangle(831,64,50,50);
-
-        // Cursor personalizzato
-        mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
-        cursor = Gdx.graphics.newCursor(mouse, 0, 0);
-        Gdx.graphics.setCursor(cursor);
     }
 
     private void resetClickedFlags() {
@@ -235,7 +242,7 @@ public class LobbyInput implements InputProcessor {
     {
 
         //if (!inputEnabled) return false;
-        System.out.println(screenX+" "+screenY);
+        System.out.println(screenX + " " + screenY);
 
         boolean click = checkHitboxes(screenX, screenY);
 
@@ -404,25 +411,6 @@ public class LobbyInput implements InputProcessor {
         return false;
     }
 
-    // cambio volume musica di gioco
-    private void updateMusicVolumeFromX(int x) {
-        float relative = (x - musicBarArea.x) / musicBarArea.width;
-        relative = MathUtils.clamp(relative, 0f, 1f);
-
-        AudioSettings.setMusicVolume(relative);
-    }
-
-    // cambio volume audio di gioco
-    private void updateEffectsVolumeFromX(int x) {
-        float relative = (x - effectsBarArea.x) / effectsBarArea.width;
-        relative = MathUtils.clamp(relative, 0f, 1f);
-
-        AudioSettings.setEffectsVolume(relative);
-    }
-
-
-
-
     private void setFalse() {
         classic = gravity4 = horizontal = speedy = scoreboard = daily = false;
         settings = information = exit = false;
@@ -433,12 +421,10 @@ public class LobbyInput implements InputProcessor {
         isBtnCloseMarket=false;
     }
 
-
     // metodo per il controllo dei click
     private boolean checkHitboxes(int x, int y) {
 
         setFalse();
-
 
         if(isWindowOpenInfo || isWindowOpenSettings || isWindowOpenExit || isWindowOpenScoreboard || isWindowOpenMarket)
         {
@@ -451,6 +437,10 @@ public class LobbyInput implements InputProcessor {
             }
 
             if (isWindowOpenSettings && btnCloseSettingsArea.contains(x, y)) {
+                // salvataggio modifiche audio
+                UserProgressService.setProgress("sound_volume", effectsPercent); // salvataggio volume audio
+                UserProgressService.setProgress("music_volume", musicPercent); // salvataggio volume musica
+
                 btnCloseSettings = true;
                 clickedTimer = 0.15f;
                 setInputEnabled(false);
@@ -469,7 +459,10 @@ public class LobbyInput implements InputProcessor {
 
                 if (btn_yes.contains(x, y)) {
                     btnYesExit = true;
-                    return true; // IMPORTANTISSIMO: prima non tornavi true
+                    clickedTimer = 0.15f;
+                    setInputEnabled(false);
+                    scheduleScreenChange(ACT_YES_EXIT, 0.20f);
+                    return true;
                 }
             }
 
@@ -477,20 +470,16 @@ public class LobbyInput implements InputProcessor {
             {
 
                 // CLICK SULLA BARRA MUSICA
-                if (musicBarArea.contains(x, y))
-                {
+                if (musicBarArea.contains(x, y)) {
                     log.info("sono dentro");
                     draggingMusic = true;
-                    updateMusicVolumeFromX(x);
                     return true;
                 }
 
                 // CLICK SULLA BARRA EFFETTI
-                if (effectsBarArea.contains(x, y))
-                {
+                if (effectsBarArea.contains(x, y)) {
                     log.info("sono dentro1");
                     draggingEffects = true;
-                    updateEffectsVolumeFromX(x);
                     return true;
                 }
 
@@ -512,8 +501,7 @@ public class LobbyInput implements InputProcessor {
                 }
             }
 
-            if(isWindowOpenMarket && btnCloseMarketArea.contains(x,y))
-            {
+            if(isWindowOpenMarket && btnCloseMarketArea.contains(x,y)) {
                 btnCloseInfo = true;
                 clickedTimer = 0.15f;
                 setInputEnabled(false);
@@ -709,15 +697,12 @@ public class LobbyInput implements InputProcessor {
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if (!inputEnabled) return false;
-        if (draggingMusic) {
-            updateMusicVolumeFromX(screenX);
-            return true;
-        }
 
-        if (draggingEffects) {
-            updateEffectsVolumeFromX(screenX);
-            return true;
-        }
+        // barra volume effetti
+        if (draggingEffects) effectsPercent = Math.min(1f, Math.max(0f, (screenX - 285) / (float) (685 - 285)));
+        // barra volume musica
+        if (draggingMusic) musicPercent = Math.min(1f, Math.max(0f, (screenX - 285) / (float) (685 - 285)));
+
 
         return false;
     }
@@ -757,6 +742,7 @@ public class LobbyInput implements InputProcessor {
                 isBtnNoExitHover = false;
                 return true;
             }
+            else if (!isWindowOpenMarket && !isWindowOpenScoreboard) isWindowOpenExit = true;
 
             if (isWindowOpenMarket) {
                 isWindowOpenMarket = false;
@@ -852,13 +838,17 @@ public class LobbyInput implements InputProcessor {
                 isBtnNoExitHover = false;
                 break;
 
+            case ACT_YES_EXIT:
+                isWindowOpenExit = false;
+                btnYesExit = false;
+                isBtnYesExitHover = false;
+                break;
+
             case ACT_CLOSE_MARKET:
                 isWindowOpenMarket=false;
                 isBtnMarketClicked=false;
                 isBtnMarket=false;
-
-
-
+                break;
         }
     }
 }

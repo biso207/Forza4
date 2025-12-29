@@ -12,25 +12,32 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import sorgente.Authentication.AuthManager;
 import sorgente.Game.GameManager;
 import sorgente.Main;
 import sorgente.UserData.UserProgressService;
 
 public class LobbyManager extends ScreenAdapter {
+    // istanze grafica e input
     private final LobbyUI ui;
     private final LobbyInput input;
-    private final Main game;
+
+    protected static Main game; // variabile di riferimento tipo gioco
+
+    // dichiarazione screen
+    private final SpriteBatch screen;
     protected static Music soundtrack;
-
-    private final boolean darkMode = (boolean) UserProgressService.getProgress("darkMode");
-
 
     // costruttore
     public LobbyManager(Main game) {
-        this.game = game;
+        LobbyManager.game = game;
+
         input = new LobbyInput();
         ui = new LobbyUI(game, input);
+
+        // init dello screen
+        this.screen = game.screen;
     }
 
     // "interruttore" per l'input
@@ -45,7 +52,6 @@ public class LobbyManager extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-
         input.update(delta);
 
         Gdx.gl.glClearColor(0, 0, 0, 1);

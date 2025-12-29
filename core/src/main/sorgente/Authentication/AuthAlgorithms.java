@@ -398,7 +398,7 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("matches_horizontal", 0);
         UserProgressService.setProgress("matches_speedy", 0);
         UserProgressService.setProgress("points", 0);
-        UserProgressService.setProgress("sound_volume", 0.5);
+        UserProgressService.setProgress("effects_volume", 0.5);
         UserProgressService.setProgress("music_volume", 0.5);
         UserProgressService.setProgress("darkMode", true);
         UserProgressService.setProgress("animations", true);

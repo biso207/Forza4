@@ -51,22 +51,9 @@ public class SoundManager
         }
     } /** Cambia il volume degli EFFETTI in tempo reale */
 
-public void setEffectsVolume(float value)
-{
-    volume = value;
-}
-
-    /** Metodi con controllo di "throttle" **/
-    // metodo per riprodurre il suono di sparo
-    public void playLaser()
+    public void setEffectsVolume(float value)
     {
-        playThrottled("shot", shotSound, MIN_INTERVAL_SHOT);
-    }
-
-    // metodo per riprodurre il suono della collisione
-    public void playHit()
-    {
-        playThrottled("hit", hitSound, MIN_INTERVAL_HIT);
+        volume = value;
     }
 
     /** Suoni rari, li riproduciamo sempre **/
@@ -106,15 +93,13 @@ public void setEffectsVolume(float value)
         digitSound.play(volume);
     }
 
-    public static void playLobby(float volume)
-    {
+    public static void playLobby(float volume) {
         soundtrack.setLooping(true);
         soundtrack.setVolume(volume);// true=loop music; false=no loop
         soundtrack.play();
     }
 
-    private void playThrottled(String key, Sound sound, long minIntervalMillis)
-    {
+    private void playThrottled(String key, Sound sound, long minIntervalMillis) {
         long now = System.currentTimeMillis();
         Long lastPlayed = lastPlayedTimeMap.getOrDefault(key, 0L);
 
@@ -125,8 +110,7 @@ public void setEffectsVolume(float value)
         }
     }
 
-    public void dispose()
-    {
+    public void dispose() {
         shotSound.dispose();
         hitSound.dispose();
         creditSound.dispose();

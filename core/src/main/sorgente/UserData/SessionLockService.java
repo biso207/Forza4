@@ -48,7 +48,7 @@ public final class SessionLockService {
             if (!checkInternetConnection()) {
                 // internet assente
                 //UIManager.isConnected = false;
-                System.out.println("[DEBUG] Connessione assente");
+                //System.out.println("[DEBUG] Connessione assente");
             } else {
                // UIManager.isConnected = true;
 
@@ -75,7 +75,7 @@ public final class SessionLockService {
             stopRecovery();
             if (currentUsername != null) {
                 LocalLockStore.setLockStatus(currentUsername, false);
-                System.out.println("[DEBUG] Lock rilasciato per utente " + currentUsername);
+                //System.out.println("[DEBUG] Lock rilasciato per utente " + currentUsername);
             }
         } catch (IOException e) {
             System.out.println("Errore durante il rilascio del lock: " + e.getMessage());
@@ -86,7 +86,7 @@ public final class SessionLockService {
     private static void stopHeartbeat() {
         if (heartbeatExecutor != null && !heartbeatExecutor.isShutdown()) {
             heartbeatExecutor.shutdownNow();
-            System.out.println("[DEBUG] Heartbeat fermato");
+            //System.out.println("[DEBUG] Heartbeat fermato");
         }
     }
 
@@ -94,7 +94,7 @@ public final class SessionLockService {
     private static void stopRecovery() {
         if (recoveryExecutor != null && !recoveryExecutor.isShutdown()) {
             recoveryExecutor.shutdownNow();
-            System.out.println("[DEBUG] Recovery fermato");
+            //System.out.println("[DEBUG] Recovery fermato");
         }
     }
 

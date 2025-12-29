@@ -138,7 +138,7 @@ public class FirestoreUserRepository
     public static String getPassword(String username) throws IOException {
         String url = DATABASE_URL + "users/" + username;
 
-        System.out.println(url);
+        //System.out.println(url);
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
