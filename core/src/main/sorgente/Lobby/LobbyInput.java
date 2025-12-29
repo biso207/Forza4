@@ -225,15 +225,13 @@ public class LobbyInput implements InputProcessor {
         information = false;
     }
 
-    // la UI chiama questo e se c'è un'azione pronta la consuma
-    public int consumeReadyAction() {
-        int a = readyAction;
-        readyAction = -1;
-        return a;
+    // genera il suono al click
+    private boolean clicked() {
+        SoundManager.playClickButton(effectsPercent);
+        return true;
     }
 
-    public void dispose()
-    {
+    public void dispose() {
         mouse.dispose();
     }
 
@@ -244,9 +242,8 @@ public class LobbyInput implements InputProcessor {
     }
 
 
-
-    private void resetHover()
-    {
+    // resetta lo stato di Hover dei pulsanti
+    private void resetHover() {
         classicHover = gravity4Hover = horizontalHover = speedyHover = false;
         marketHover = scoreboardHover = false;
         isBtnCloseInfoHover = false;
@@ -406,7 +403,7 @@ public class LobbyInput implements InputProcessor {
                 clickedTimer = 0.15f;
                 setInputEnabled(false);
                 scheduleScreenChange(ACT_CLOSE_INFO, 0.20f);
-                return true;
+                return clicked();
             }
             // chiusura impostazioni
             if (isWindowOpenSettings && btnCloseSettingsArea.contains(x, y)) {
@@ -418,7 +415,7 @@ public class LobbyInput implements InputProcessor {
                 clickedTimer = 0.15f;
                 setInputEnabled(false);
                 scheduleScreenChange(ACT_CLOSE_SETTINGS, 0.20f);
-                return true;
+                return clicked();
             }
 
             // logout
@@ -429,7 +426,7 @@ public class LobbyInput implements InputProcessor {
                     clickedTimer = 0.15f;
                     setInputEnabled(false);
                     scheduleScreenChange(ACT_CLOSE_EXIT, 0.20f);
-                    return true;
+                    return clicked();
                 }
                 // click sul YES
                 if (btn_yes.contains(x, y)) {
@@ -437,7 +434,7 @@ public class LobbyInput implements InputProcessor {
                     clickedTimer = 0.15f;
                     setInputEnabled(false);
                     scheduleScreenChange(ACT_YES_EXIT, 0.20f);
-                    return true;
+                    return clicked();
                 }
             }
 
@@ -448,14 +445,14 @@ public class LobbyInput implements InputProcessor {
                 if (musicBarArea.contains(x, y)) {
                     log.info("sono dentro");
                     draggingMusic = true;
-                    return true;
+                    return clicked();
                 }
 
                 // CLICK SULLA BARRA EFFETTI
                 if (effectsBarArea.contains(x, y)) {
                     log.info("sono dentro1");
                     draggingEffects = true;
-                    return true;
+                    return clicked();
                 }
 
                 // on/off dark mode switch
@@ -465,7 +462,7 @@ public class LobbyInput implements InputProcessor {
                     else UserProgressService.setProgress("darkMode", true);
 
                     System.out.println((boolean)UserProgressService.getProgress("darkMode") ? "on" : "off");
-                    return true;
+                    return clicked();
                 }
             }
 
@@ -477,17 +474,17 @@ public class LobbyInput implements InputProcessor {
 
                 isBtnCloseMarket=true;
                 scheduleScreenChange(ACT_CLOSE_MARKET, 0.20f);
-                return true;
+                return clicked();
 
             }
             return false;
         }
 
         // controllo click stelle difficoltà 1 per disattivare le altre
-        if (classicStar1.contains(x, y)) { starClicked[0]=false; starClicked[1]=false; return true; }
-        if (gravityStar1.contains(x, y)) { starClicked[2]=false; starClicked[3]=false; return true; }
-        if (horizontalStar1.contains(x, y)) { starClicked[4]=false; starClicked[5]=false; return true; }
-        if (speedyStar1.contains(x, y)) { starClicked[6]=false; starClicked[7]=false; return true; }
+        if (classicStar1.contains(x, y)) { starClicked[0]=false; starClicked[1]=false; return clicked(); }
+        if (gravityStar1.contains(x, y)) { starClicked[2]=false; starClicked[3]=false; return clicked(); }
+        if (horizontalStar1.contains(x, y)) { starClicked[4]=false; starClicked[5]=false; return clicked(); }
+        if (speedyStar1.contains(x, y)) { starClicked[6]=false; starClicked[7]=false; return clicked(); }
 
         // -- Difficoltà Game Mode "Classic" --
         // stella difficoltà 2
@@ -498,7 +495,7 @@ public class LobbyInput implements InputProcessor {
             starClicked[0] = !hadSecond && !starClicked[0]; // se la 2 era ON -> spegne tutto, altrimenti toggle 1
             difficolta[0] = starClicked[0] ? 1 : 0;
 
-            return true;
+            return clicked();
         }
         // stella difficoltà 3
         if (classicStars[1].contains(x, y)) {
@@ -506,7 +503,7 @@ public class LobbyInput implements InputProcessor {
             starClicked[0] = true;                          // se tocchi la 2, la 1 deve essere ON
             difficolta[0] = starClicked[1] ? 2 : 1;          // ON -> 2, OFF -> 1
 
-            return true;
+            return clicked();
         }
 
         // -- Difficoltà Game Mode "Gravity4" --
@@ -518,7 +515,7 @@ public class LobbyInput implements InputProcessor {
             starClicked[2] = !hadSecond && !starClicked[2];
             difficolta[1] = starClicked[2] ? 1 : 0;
 
-            return true;
+            return clicked();
         }
         // stella difficoltà 3
         if (gravityStars[1].contains(x, y)) {
@@ -526,7 +523,7 @@ public class LobbyInput implements InputProcessor {
             starClicked[2] = true;
             difficolta[1] = starClicked[3] ? 2 : 1;
 
-            return true;
+            return clicked();
         }
 
         // -- Difficoltà Game Mode "Horizontal" --
@@ -538,7 +535,7 @@ public class LobbyInput implements InputProcessor {
             starClicked[4] = !hadSecond && !starClicked[4];
             difficolta[2] = starClicked[4] ? 1 : 0;
 
-            return true;
+            return clicked();
         }
         // stella difficoltà 2
         if (horizontalStars[1].contains(x, y)) {
@@ -546,7 +543,7 @@ public class LobbyInput implements InputProcessor {
             starClicked[4] = true;
             difficolta[2] = starClicked[5] ? 2 : 1;
 
-            return true;
+            return clicked();
         }
 
         // -- Difficoltà Game Mode "Speedy" --
@@ -558,7 +555,7 @@ public class LobbyInput implements InputProcessor {
             starClicked[6] = !hadSecond && !starClicked[6];
             difficolta[3] = starClicked[6] ? 1 : 0;
 
-            return true;
+            return clicked();
         }
         // stella difficoltà 2
         if (speedyStars[1].contains(x, y)) {
@@ -566,7 +563,7 @@ public class LobbyInput implements InputProcessor {
             starClicked[6] = true;
             difficolta[3] = starClicked[7] ? 2 : 1;
 
-            return true;
+            return clicked();
         }
 
         // click pulsante modalità "classic"
@@ -575,7 +572,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.15f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_START_CLASSIC, 0.20f);
-            return true;
+            return clicked();
         }
 
         // click pulsante modalità "gravity4"
@@ -584,7 +581,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.15f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_START_GRAVITY4, 0.20f);
-            return true;
+            return clicked();
         }
 
         // click pulsante modalità "horizontal"
@@ -593,7 +590,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.15f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_START_HORIZONTAL, 0.20f);
-            return true;
+            return clicked();
         }
 
         // click pulsante modalità "speedy"
@@ -602,7 +599,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.15f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_START_SPEEDY, 0.20f);
-            return true;
+            return clicked();
         }
 
         if(marketButton.contains(x,y)) {
@@ -610,7 +607,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_MARKET, 0.20f);
-            return true;
+            return clicked();
         }
 
         // click pulsante classifica
@@ -619,7 +616,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_SCOREBOARD, 0.20f);
-            return true;
+            return clicked();
         }
 
         // -- COMMAND BAR --
@@ -628,7 +625,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_EXIT, 0.20f);
-            return true;
+            return clicked();
         }
 
         if (informationArea.contains(x, y)) {
@@ -636,7 +633,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_INFO, 0.20f);
-            return true;
+            return clicked();
         }
 
         if (settingsArea.contains(x, y)) {
@@ -644,7 +641,7 @@ public class LobbyInput implements InputProcessor {
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_SETTINGS, 0.20f);
-            return true;
+            return clicked();
         }
 
         return false;
@@ -652,8 +649,7 @@ public class LobbyInput implements InputProcessor {
 
     // controllo rilascio del mouse
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button)
-    {
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 
         if (!inputEnabled) return false;
         draggingMusic = false;
