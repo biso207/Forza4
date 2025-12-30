@@ -38,28 +38,28 @@ public class LobbyInput implements InputProcessor {
     protected boolean btnYesExit;
     protected boolean btnCloseSettings;
     protected boolean btnCloseInfo;
+    protected boolean btnCloseMarket;
+    protected boolean btnCloseScoreboard;
 
     protected boolean classic;
     protected boolean gravity4;
     protected boolean horizontal;
     protected boolean speedy;
     protected boolean scoreboard;
-    protected boolean daily;
+    protected boolean market;
 
     protected boolean settings;
     protected boolean information;
     protected boolean exit;
 
     // hover
-    protected boolean isBtnMarket;
     protected boolean isBtnMarketClicked;
-    protected boolean isBtnSwitch;
     protected boolean isBtnNoExitHover;
     protected boolean isBtnYesExitHover;
     protected boolean isBtnCloseInfoHover;
     protected boolean isBtnCloseSettingsHover;
-    protected boolean isBtnCloseMarket;
     protected boolean isBtnCloseMarketHover;
+    protected boolean isBtnCloseScoreboardHover;
     protected boolean classicHover;
     protected boolean gravity4Hover;
     protected boolean horizontalHover;
@@ -81,7 +81,6 @@ public class LobbyInput implements InputProcessor {
     protected int pendingNextState = -1;
 
     // azione pronta da eseguire fuori (solo per cambio screen / exit)
-    private int readyAction = -1;
     private boolean inputEnabled = true;
 
     // hitbox
@@ -98,6 +97,7 @@ public class LobbyInput implements InputProcessor {
     private Rectangle btnCloseInfoArea;
     private Rectangle btnCloseSettingsArea;
     private Rectangle btnCloseMarketArea;
+    private Rectangle btnCloseScoreboardArea;
 
     private Rectangle btn_no;
     private Rectangle btn_yes;
@@ -122,6 +122,7 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_OPEN_INFO = 4;
     public static final int ACT_OPEN_SETTINGS = 5;
     public static final int ACT_OPEN_EXIT = 6;
+    public static final int ACT_CLOSE_SCOREBOARD = 7;
 
     public static final int ACT_START_CLASSIC = 10;
     public static final int ACT_START_GRAVITY4 = 11;
@@ -139,10 +140,8 @@ public class LobbyInput implements InputProcessor {
         isWindowOpenSettings=false;
 
 
-        classic = gravity4 = horizontal = speedy = scoreboard = daily = false;
+        classic = gravity4 = horizontal = speedy = scoreboard = market = false;
         settings = information = exit = false;
-
-        isBtnMarket=false;
 
         // creazione hit boxes
         createHitboxes();
@@ -205,6 +204,7 @@ public class LobbyInput implements InputProcessor {
         btnCloseInfoArea = new Rectangle(686,217,40,40);
         btnCloseSettingsArea = new Rectangle(686,245,40,40);
         btnCloseMarketArea= new Rectangle(814,187,40,40);
+        btnCloseScoreboardArea= new Rectangle(814,174,40,40);
 
         btn_no= new Rectangle(503,408,150,50);
         btn_yes= new Rectangle(341,408,150,50);
@@ -218,16 +218,17 @@ public class LobbyInput implements InputProcessor {
         btnNoExit = false;
         btnYesExit = false;
         isBtnMarketClicked = false;
-        isBtnCloseMarket=false;
+        btnCloseMarket=false;
+        btnCloseScoreboard=false;
         classic = false;
         gravity4 = false;
         horizontal = false;
         speedy = false;
-        daily = false;
         scoreboard = false;
         exit = false;
         settings = false;
         information = false;
+        market = false;
     }
 
     // genera il suono al click
@@ -256,8 +257,9 @@ public class LobbyInput implements InputProcessor {
         isBtnCloseMarketHover=false;
         isBtnYesExitHover=false;
         isBtnNoExitHover=false;
+        isBtnCloseScoreboardHover=false;
 
-        isBtnMarket=false;
+        market=false;
 
         starHover[0]=false;
         starHover[1]=false;
@@ -300,10 +302,14 @@ public class LobbyInput implements InputProcessor {
                 return  true;
             }
 
-            if(btnCloseMarketArea.contains(screenX,screenY))
-            {
-              isBtnCloseMarketHover=true;
-              return true;
+            if(btnCloseMarketArea.contains(screenX,screenY)) {
+                isBtnCloseMarketHover=true;
+                return true;
+            }
+
+            if (btnCloseScoreboardArea.contains(screenX,screenY)) {
+                isBtnCloseScoreboardHover=true;
+                return true;
             }
 
             return false;
@@ -352,7 +358,7 @@ public class LobbyInput implements InputProcessor {
 
         // hover per i pulsanti delle schermate secondarie
         if(marketButton.contains(screenX,screenY)) { // mercato
-            isBtnMarket=true;
+            market=true;
             return true;
         }
 
@@ -387,13 +393,14 @@ public class LobbyInput implements InputProcessor {
     }
 
     private void setFalse() {
-        classic = gravity4 = horizontal = speedy = scoreboard = daily = false;
+        classic = gravity4 = horizontal = speedy = scoreboard = market = false;
         settings = information = exit = false;
         btnCloseInfo=false;
         btnCloseSettings=false;
         btnYesExit=false;
         btnNoExit=false;
-        isBtnCloseMarket=false;
+        btnCloseMarket=false;
+        btnCloseScoreboard=false;
     }
 
     // metodo per il controllo dei click
@@ -448,14 +455,12 @@ public class LobbyInput implements InputProcessor {
 
                 // CLICK SULLA BARRA MUSICA
                 if (musicBarArea.contains(x, y)) {
-                    log.info("sono dentro");
                     draggingMusic = true;
                     return clicked();
                 }
 
                 // CLICK SULLA BARRA EFFETTI
                 if (effectsBarArea.contains(x, y)) {
-                    log.info("sono dentro1");
                     draggingEffects = true;
                     return clicked();
                 }
@@ -473,14 +478,23 @@ public class LobbyInput implements InputProcessor {
 
             // chiusura mercato
             if(isWindowOpenMarket && btnCloseMarketArea.contains(x,y)) {
-                btnCloseInfo = true;
+                btnCloseMarket=true;
                 clickedTimer = 0.15f;
                 setInputEnabled(false);
 
-                isBtnCloseMarket=true;
                 scheduleScreenChange(ACT_CLOSE_MARKET, 0.20f);
                 return clicked();
 
+            }
+
+            // chiusura scoreboard
+            if(isWindowOpenScoreboard && btnCloseScoreboardArea.contains(x, y)) {
+                btnCloseScoreboard = true;
+                clickedTimer = 0.15f;
+                setInputEnabled(false);
+
+                scheduleScreenChange(ACT_CLOSE_SCOREBOARD, 0.20f);
+                return clicked();
             }
             return false;
         }
@@ -807,7 +821,11 @@ public class LobbyInput implements InputProcessor {
             case ACT_CLOSE_MARKET:
                 isWindowOpenMarket=false;
                 isBtnMarketClicked=false;
-                isBtnMarket=false;
+                market=false;
+                break;
+
+            case ACT_CLOSE_SCOREBOARD:
+                isWindowOpenScoreboard=false;
                 break;
         }
     }

@@ -357,7 +357,7 @@ public class LobbyUI implements ResourceLoader {
         draw(gameMode_clicked, lobbyInput.horizontal,512, 334);
         draw(gameMode_clicked, lobbyInput.speedy,752, 334);
 
-        draw(market_hover,   lobbyInput.isBtnMarket,833,588);
+        draw(market_hover,   lobbyInput.market,833,588);
         draw(market_clicked, lobbyInput.isBtnMarketClicked,833,588);
 
 
@@ -381,21 +381,21 @@ public class LobbyUI implements ResourceLoader {
         draw(scoreboard,     lobbyInput.isWindowOpenScoreboard,93,142);
         draw(market,         lobbyInput.isWindowOpenMarket,    93,155);
 
-        //--- CHIUSURA ---
-        //schermata marketPlace
-        if(lobbyInput.isWindowOpenMarket) {
+        //--- SCHERMATE IN SOVRA IMPRESSIONE ---
+        // marketPlace
+        if (lobbyInput.isWindowOpenMarket) {
             draw(btn_close,lobbyInput.isBtnCloseMarketHover,822,470);
-            draw(btn_close_clicked, lobbyInput.isBtnCloseMarket, 822, 470);
+            draw(btn_close_clicked, lobbyInput.btnCloseMarket, 822, 470);
         }
 
-        // schermata crediti di gioco
-        if(lobbyInput.isWindowOpenInfo) {
+        // crediti sviluppo gioco
+        if (lobbyInput.isWindowOpenInfo) {
             draw(btn_close,lobbyInput.isBtnCloseInfoHover,694,440);
             draw(btn_close_clicked, lobbyInput.btnCloseInfo, 694, 440);
         }
 
-        // schermata impostazioni
-        if(lobbyInput.isWindowOpenSettings) {
+        // impostazioni
+        if (lobbyInput.isWindowOpenSettings) {
             // finestra impostazioni
             screen.draw(settings, 244, 223);
 
@@ -421,13 +421,22 @@ public class LobbyUI implements ResourceLoader {
             Fonts.bold15.draw(screen, Math.round(LobbyInput.effectsPercent*100)+"%", 700, 275);
         }
 
-        // schermata logout
-        if(lobbyInput.isWindowOpenExit) {
+        // logout
+        if (lobbyInput.isWindowOpenExit) {
             draw(btn_yes,lobbyInput.isBtnYesExitHover,342,244);
             draw(btn_yes_clicked,lobbyInput.btnYesExit,342,244);
 
             draw(btn_no_clicked,lobbyInput.btnNoExit,506,244);
             draw(btn_no,lobbyInput.isBtnNoExitHover,506,244);
+        }
+
+        // scoreboard
+        if (lobbyInput.isWindowOpenScoreboard) {
+            draw(btn_close, lobbyInput.isBtnCloseScoreboardHover,822,482);
+            draw(btn_close_clicked, lobbyInput.btnCloseScoreboard, 822, 482);
+
+            // SCOREBOARD TOP 20 USERS //
+            drawScoreboard(20);
         }
 
         // chiusura batch -> prima chiudere poi passare alla nuova schermata in caso di transizione

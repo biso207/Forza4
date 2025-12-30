@@ -40,7 +40,7 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
     private boolean cursorVisible = true;
 
     // immagini
-    private Texture img1, img2, img3, showPS, coverPS, btnRed,
+    private Texture img1, img2, img3, showPS, coverPS,
         btnRedHover, btnRedClicked, noInternet, btnBack, btnBackClicked, btnLogin, btnLoginClicked,
         btnSignup, btnSignupClicked, btnResetPSW, btnResetPSWClicked;
 
@@ -86,7 +86,6 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         btnLoginClicked    = new Texture("ui/buttons/auth/btn_login_clicked.png");
         btnSignup          = new Texture("ui/buttons/auth/btn_signup.png");
         btnSignupClicked   = new Texture("ui/buttons/auth/btn_signup_clicked.png");
-        btnRed             = new Texture("ui/buttons/auth/red_btn.png");
         btnRedHover        = new Texture("ui/buttons/auth/red_btn_hover.png");
         btnRedClicked      = new Texture("ui/buttons/auth/red_btn_clicked.png");
         btnResetPSW        = new Texture("ui/buttons/auth/btn_reset_password.png");
@@ -371,7 +370,6 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         showPS.dispose();
         coverPS.dispose();
         btnRedClicked.dispose();
-        btnRed.dispose();
         btnRedHover.dispose();
         noInternet.dispose();
         btnBack.dispose();
