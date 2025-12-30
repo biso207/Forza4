@@ -281,32 +281,33 @@ public class LobbyInput implements InputProcessor {
 
         // sets hover states for open window buttons
         if(isWindowOpenInfo || isWindowOpenSettings || isWindowOpenExit || isWindowOpenScoreboard || isWindowOpenMarket) {
-
+            // close game credits
             if(btnCloseInfoArea.contains(screenX,screenY)) {
                 isBtnCloseInfoHover = true;
                 return true;
             }
 
+            // close settings
             if(btnCloseSettingsArea.contains(screenX,screenY)) {
                 isBtnCloseSettingsHover = true;
                 return true;
             }
-
+            // no logout
             if(btn_no.contains(screenX,screenY)) {
                 isBtnNoExitHover=true;
                 return  true;
             }
-
+            // yes logout
             if(btn_yes.contains(screenX,screenY)) {
                 isBtnYesExitHover=true;
                 return  true;
             }
-
-            if(btnCloseMarketArea.contains(screenX,screenY)) {
+            // close market -> l'ulteriore controllo con market server per evitare l'overlay della scoreboard
+            if(btnCloseMarketArea.contains(screenX,screenY) && isWindowOpenMarket) {
                 isBtnCloseMarketHover=true;
                 return true;
             }
-
+            // close scoreboard
             if (btnCloseScoreboardArea.contains(screenX,screenY)) {
                 isBtnCloseScoreboardHover=true;
                 return true;
@@ -417,10 +418,11 @@ public class LobbyInput implements InputProcessor {
                 scheduleScreenChange(ACT_CLOSE_INFO, 0.20f);
                 return clicked();
             }
+
             // chiusura impostazioni
             if (isWindowOpenSettings && btnCloseSettingsArea.contains(x, y)) {
-                // salvataggio modifiche audio
-                UserProgressService.setProgress("sound_volume", effectsPercent); // salvataggio volume audio
+                // salvataggio modifiche volumi
+                UserProgressService.setProgress("effects_volume", effectsPercent); // salvataggio volume audio
                 UserProgressService.setProgress("music_volume", musicPercent); // salvataggio volume musica
 
                 btnCloseSettings = true;
@@ -687,11 +689,11 @@ public class LobbyInput implements InputProcessor {
 
             // pagina impostazioni di gioco
             if (isWindowOpenSettings) {
-                isWindowOpenSettings = false;
-                btnCloseSettings = false;
-                isBtnCloseSettingsHover = false;
-                draggingMusic = false;
-                draggingEffects = false;
+                // salvataggio modifiche volumi
+                UserProgressService.setProgress("effects_volume", effectsPercent); // salvataggio volume audio
+                UserProgressService.setProgress("music_volume", musicPercent); // salvataggio volume musica
+
+                scheduleScreenChange(ACT_CLOSE_SETTINGS, 0);
                 return true;
             }
 

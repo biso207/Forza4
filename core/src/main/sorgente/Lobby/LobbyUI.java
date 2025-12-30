@@ -381,7 +381,7 @@ public class LobbyUI implements ResourceLoader {
         draw(scoreboard,     lobbyInput.isWindowOpenScoreboard,93,142);
         draw(market,         lobbyInput.isWindowOpenMarket,    93,155);
 
-        //--- SCHERMATE IN SOVRA IMPRESSIONE ---
+        //--- INSIDE SECONDARY WINDOWS ---
         // marketPlace
         if (lobbyInput.isWindowOpenMarket) {
             draw(btn_close,lobbyInput.isBtnCloseMarketHover,822,470);
