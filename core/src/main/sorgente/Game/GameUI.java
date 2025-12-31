@@ -14,7 +14,8 @@ import sorgente.Lobby.LobbyManager;
 import sorgente.Main;
 import sorgente.ResourceLoader;
 
-public class GameUI extends ScreenAdapter implements ResourceLoader {
+public class GameUI extends ScreenAdapter implements ResourceLoader
+{
     private static final Log log = LogFactory.getLog(GameUI.class);
     private final Main game;
     private final SpriteBatch screen;
@@ -24,7 +25,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
     private boolean cursorVisible = true;
     private boolean goToAuth = false;
 
-    private final GameInput gameInput = new GameInput();
+    private final GameInput gameInput;
+    private final ModeInputManager modeInputManager;
+
     private ShapeRenderer shapeRenderer;
 
     private boolean darkMode;
@@ -54,17 +57,23 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
     // Stato della griglia: 0 = vuoto, 1 = rosso
     private int[][] boardState = new int[6][7];
 
-    public GameUI(Main game, boolean dark) {
+    public GameUI(Main game, boolean dark, int d)
+    {
         this.game = game;
         this.screen = game.screen;
         Fonts.load();
         shapeRenderer = new ShapeRenderer();
         darkMode = dark;
+        modeInputManager = new ModeInputManager(d, 2);
         this.loadImages();
 
+        gameInput=new GameInput();
+
         // Inizializza boardState
-        for (int r = 0; r < 6; r++) {
-            for (int c = 0; c < 7; c++) {
+        for (int r = 0; r < 6; r++)
+        {
+            for (int c = 0; c < 7; c++)
+            {
                 boardState[r][c] = 0;
             }
         }
@@ -137,6 +146,11 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
                     draw(red, true, drawX, drawY);
                 }
 
+                if(boardState[row][col]==2)
+                {
+                    draw(yellow,true,drawX,drawY);
+                }
+
                 drawX += 71;
             }
         }
@@ -144,21 +158,43 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
 
         screen.end();
 
-        if (gameInput.isHole) {
+        if (gameInput.isHole)
+        {
             int col = gameInput.getColumnFromClick(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+            int row = gameInput.getLowestFreeRow(col, boardStateAsBoolean());
 
-            if (col != -1) {
-                int row = gameInput.getLowestFreeRow(col, boardStateAsBoolean());
+            if (col != -1 && row != -1)
+            {
+                boardState[row][col] = 1; // rosso
 
-                if (row != -1) {
-                    boardState[row][col] = 1; // 1 = rosso
-                } else {
-                    log.warn("Colonna " + col + " piena, impossibile inserire pedina.");
+                if (modeInputManager.checkWin(boardState, row, col, 1))
+                {
+                    log.info("Giocatore rosso ha vinto!"); // mostra messaggio, blocca input, cambia schermata, ecc.
                 }
-
-                gameInput.isHole = false; // resetta sempre il flag
             }
+
+            gameInput.isHole = false;
+
+            // 🔁 Mossa del bot
+            int botCol = modeInputManager.chooseMove(boardState);
+            int botRow = gameInput.getLowestFreeRow(botCol, boardStateAsBoolean());
+
+            if (botRow != -1)
+            {
+                boardState[botRow][botCol] = 2; // giallo
+
+                if (modeInputManager.checkWin(boardState, botRow, botCol, 2))
+                {
+                    log.info("Giocatore giallo ha vinto!"); // mostra messaggio, blocca input, cambia schermata, ecc.
+                }
+            }
+
+            boolean vinto=false;
+
+
+
         }
+
 
 
         if (gameInput.isBtnExitClicked) {

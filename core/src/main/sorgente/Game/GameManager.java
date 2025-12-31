@@ -23,7 +23,7 @@ public class GameManager extends ScreenAdapter
     {
         this.game = game;
         input = new GameInput();
-        ui = new GameUI(game, dark);
+        ui = new GameUI(game, dark,d);
         difficult=d;
         log.info(difficult);
     }

@@ -483,18 +483,24 @@ public class LobbyUI implements ResourceLoader {
 
                 disposeUI();
 
-                switch (pendingMode) {
+                switch (pendingMode)
+                {
                     case 0:
                         game.setScreen(new GameManager(game, LobbyInput.difficolta[0], darkMode));
+                        LobbyManager.soundtrack.stop();
+
                         return;
                     case 1:
                         game.setScreen(new GameManager(game, LobbyInput.difficolta[1], darkMode));
+                        LobbyManager.soundtrack.stop();
                         return;
                     case 2:
                         game.setScreen(new GameManager(game, LobbyInput.difficolta[2], darkMode));
+                        LobbyManager.soundtrack.stop();
                         return;
                     case 3:
                         game.setScreen(new GameManager(game, LobbyInput.difficolta[3], darkMode));
+                        LobbyManager.soundtrack.stop();
                         return;
                     case 4:
                         // interruzione musica
