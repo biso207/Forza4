@@ -486,20 +486,20 @@ public class LobbyUI implements ResourceLoader {
                 switch (pendingMode)
                 {
                     case 0:
-                        game.setScreen(new GameManager(game, LobbyInput.difficolta[0], darkMode));
+                        game.setScreen(new GameManager(game, LobbyInput.difficolta[0], darkMode, pendingMode));
                         LobbyManager.soundtrack.stop();
 
                         return;
                     case 1:
-                        game.setScreen(new GameManager(game, LobbyInput.difficolta[1], darkMode));
+                        game.setScreen(new GameManager(game, LobbyInput.difficolta[1], darkMode,pendingMode));
                         LobbyManager.soundtrack.stop();
                         return;
                     case 2:
-                        game.setScreen(new GameManager(game, LobbyInput.difficolta[2], darkMode));
+                        game.setScreen(new GameManager(game, LobbyInput.difficolta[2], darkMode,pendingMode));
                         LobbyManager.soundtrack.stop();
                         return;
                     case 3:
-                        game.setScreen(new GameManager(game, LobbyInput.difficolta[3], darkMode));
+                        game.setScreen(new GameManager(game, LobbyInput.difficolta[3], darkMode,pendingMode));
                         LobbyManager.soundtrack.stop();
                         return;
                     case 4:

@@ -17,7 +17,12 @@ public class SoundManager
     private final HashMap<String, Long> lastPlayedTimeMap;
 
     private static Music soundtrack;
-    private final Sound shotSound, hitSound, creditSound, completedSound, winSound, defeatSound;
+    private final Sound shotSound;
+    private final Sound hitSound;
+    private final Sound creditSound;
+    private final Sound completedSound;
+    private static final Sound winSound=Gdx.audio.newSound(Gdx.files.internal("sounds/victory.wav"));
+    private static final Sound defeatSound=Gdx.audio.newSound(Gdx.files.internal("sounds/game_over.wav"));
     private static final Sound clickButtonSound = Gdx.audio.newSound(Gdx.files.internal("sounds/click_button.wav"));
     private static final Sound digitSound = Gdx.audio.newSound(Gdx.files.internal("sounds/digit.wav"));
 
@@ -37,8 +42,8 @@ public class SoundManager
         creditSound = Gdx.audio.newSound(Gdx.files.internal("sounds/credit_sound.wav"));
 
         completedSound = Gdx.audio.newSound(Gdx.files.internal("sounds/completed_Missions.mp3"));
-        winSound = Gdx.audio.newSound(Gdx.files.internal("sounds/victory.wav"));
-        defeatSound = Gdx.audio.newSound(Gdx.files.internal("sounds/game_over.wav"));
+
+
 
         soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.ogg"));
     }
@@ -70,13 +75,13 @@ public class SoundManager
     }
 
     // metodo per il suono di vittoria di una partita
-    public void playWin()
+    public static void playWin(float volume)
     {
         winSound.play(volume);
     }
 
     // metodo per il suono della sconfitta di una partita
-    public void playDefeat()
+    public static void  playDefeat(float volume)
     {
         defeatSound.play(volume);
     }

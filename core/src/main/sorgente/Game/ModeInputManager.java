@@ -18,19 +18,25 @@ public class ModeInputManager
     // 1 = rosso, 2 = giallo (deve corrispondere a boardState)
 
     private final int botToken;
+    private final int modalita;
 
     // 🧱 Costruttore: inizializza il bot con difficoltà e colore
 
-    public ModeInputManager(int difficulty, int botToken)
+    public ModeInputManager(int difficulty, int botToken, int mod)
     {
         this.difficulty = difficulty;
         this.botToken = botToken;
+
+        modalita=mod;
+
     }
 
     // 🧠 Metodo principale: decide in quale colonna giocare
     // Riceve lo stato attuale della griglia (6x7) e restituisce l’indice della colonna scelta
-    public int chooseMove(int[][] board) {
-        switch (difficulty) {
+    public int chooseMove(int[][] board)
+    {
+        switch (difficulty)
+        {
             case 0:
                 return randomMove(board); // livello facile: mossa casuale
             case 1:

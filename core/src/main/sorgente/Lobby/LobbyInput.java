@@ -24,7 +24,8 @@ public class LobbyInput implements InputProcessor {
     private int numero=0;
 
     // percentuale audio
-    protected static float effectsPercent, musicPercent;
+    public static float effectsPercent;
+    public static float musicPercent;
 
     // clicked
     protected static int[] difficolta=new int[8];
@@ -134,7 +135,8 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_YES_EXIT = 33;
 
     // costruttore
-    public LobbyInput() {
+    public LobbyInput()
+    {
         isWindowOpenInfo =false;
         isWindowOpenExit =false;
         isWindowOpenSettings=false;
@@ -163,7 +165,8 @@ public class LobbyInput implements InputProcessor {
     }
 
     // metodo per la creazione dei rectangle
-    private void createHitboxes() {
+    private void createHitboxes()
+    {
         // Hitbox principali
         switchDL=new Rectangle(449,302,85,36);
 

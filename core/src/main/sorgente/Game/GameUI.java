@@ -10,9 +10,11 @@ import com.badlogic.gdx.math.Rectangle;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.Fonts;
+import sorgente.Lobby.LobbyInput;
 import sorgente.Lobby.LobbyManager;
 import sorgente.Main;
 import sorgente.ResourceLoader;
+import sorgente.SoundManager;
 
 public class GameUI extends ScreenAdapter implements ResourceLoader
 {
@@ -31,6 +33,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private ShapeRenderer shapeRenderer;
 
     private boolean darkMode;
+
 
     private float modeTransitionTimer = 0f;
     private boolean modeTransition = false;
@@ -57,17 +60,18 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // Stato della griglia: 0 = vuoto, 1 = rosso
     private int[][] boardState = new int[6][7];
 
-    public GameUI(Main game, boolean dark, int d)
+    public GameUI(Main game, GameInput in, boolean dark, int d, int mod)
     {
         this.game = game;
         this.screen = game.screen;
         Fonts.load();
         shapeRenderer = new ShapeRenderer();
         darkMode = dark;
-        modeInputManager = new ModeInputManager(d, 2);
+        gameInput=in;
+        modeInputManager = new ModeInputManager(d, 2, mod);
         this.loadImages();
 
-        gameInput=new GameInput();
+
 
         // Inizializza boardState
         for (int r = 0; r < 6; r++)
@@ -85,13 +89,15 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         }
     }
 
-    private void loadDarkMode() {
+    private void loadDarkMode()
+    {
         lightForza = new Texture("game_mods_screens/base_light.png");
         lightExit = new Texture("ui/buttons/lobby/light/btn_close.png");
         lightExitHover = new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
     }
 
-    private void loadLightMode() {
+    private void loadLightMode()
+    {
         darkForza = new Texture("game_mods_screens/base_dark.png");
         darkExit = new Texture("ui/buttons/lobby/dark/btn_close.png");
         darkExitHover = new Texture("ui/buttons/lobby/dark/btn_close_clicked.png");
@@ -167,9 +173,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             {
                 boardState[row][col] = 1; // rosso
 
+                SoundManager.playDigitSound(LobbyInput.effectsPercent);
+
                 if (modeInputManager.checkWin(boardState, row, col, 1))
                 {
-                    log.info("Giocatore rosso ha vinto!"); // mostra messaggio, blocca input, cambia schermata, ecc.
+                    log.info("Giocatore rosso ha vinto!");
+                    SoundManager.playWin(LobbyInput.effectsPercent);// mostra messaggio, blocca input, cambia schermata, ecc.
                 }
             }
 
@@ -183,9 +192,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             {
                 boardState[botRow][botCol] = 2; // giallo
 
+                SoundManager.playDigitSound(LobbyInput.effectsPercent);
+
                 if (modeInputManager.checkWin(boardState, botRow, botCol, 2))
                 {
-                    log.info("Giocatore giallo ha vinto!"); // mostra messaggio, blocca input, cambia schermata, ecc.
+                    log.info("Giocatore giallo ha vinto!");
+                    SoundManager.playDefeat(LobbyInput.effectsPercent);// mostra messaggio, blocca input, cambia schermata, ecc.
                 }
             }
 
@@ -205,7 +217,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         if (modeTransition) {
             modeTransitionTimer += delta;
             if (modeTransitionTimer >= 0.14f) {
-                if (pendingMode == 0) {
+                if (pendingMode == 0)
+                {
+                    GameManager.soundGame.stop();
                     game.setScreen(new LobbyManager(game));
                     return;
                 }

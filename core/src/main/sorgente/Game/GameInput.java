@@ -8,14 +8,18 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import sorgente.SoundManager;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+
 
 public class GameInput implements InputProcessor
 {
 
     private static final Log log = LogFactory.getLog(GameInput.class);
+
 
     // 🔽 Cursor personalizzato
     private final Pixmap mouse;
@@ -44,6 +48,7 @@ public class GameInput implements InputProcessor
     // 🔽 Costruttore
     public GameInput()
     {
+
         // Carica e imposta il cursore personalizzato
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
         cursor = Gdx.graphics.newCursor(mouse, 0, 0);
@@ -71,7 +76,8 @@ public class GameInput implements InputProcessor
 
     // 🔽 Gestione click del mouse
     @Override
-    public boolean touchDown(int x, int y, int pointer, int button) {
+    public boolean touchDown(int x, int y, int pointer, int button)
+    {
         log.info("Touch at: " + x + ", " + y);
 
         // Controlla se è stato cliccato il bottone di uscita
@@ -81,6 +87,7 @@ public class GameInput implements InputProcessor
         int col = getColumnFromClick(x, y);
         if (col != -1) {
             log.info("Hai cliccato la colonna " + col);
+
             isHole = true;
         }
 
@@ -92,6 +99,7 @@ public class GameInput implements InputProcessor
         if (exit.contains(x, y)) {
             log.info("Hai cliccato il bottone di uscita");
             isBtnExitClicked = true;
+
 
             // Reset del flag dopo 100ms per effetto visivo
             new Timer().schedule(new TimerTask() {
