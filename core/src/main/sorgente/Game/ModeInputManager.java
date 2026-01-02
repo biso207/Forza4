@@ -167,6 +167,12 @@ public class ModeInputManager
     // ✅ Controlla se una mossa ha generato una vittoria
     public boolean checkWin(int[][] board, int row, int col, int token)
     {
+
+        if(GameUI.mod == 2)
+        {
+           return checkDirection(board, row, col, token, 0, 1);
+        }
+
         // Controlla tutte le direzioni: verticale, orizzontale, diagonale /
         return checkDirection(board, row, col, token, 1, 0)   // verticale ↓↑
             || checkDirection(board, row, col, token, 0, 1)   // orizzontale ←→

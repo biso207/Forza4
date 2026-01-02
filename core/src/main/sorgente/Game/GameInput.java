@@ -46,7 +46,7 @@ public class GameInput implements InputProcessor
     private final float gridOffsetX = (1000f - (cellWidth * 7)) / 2f; // centratura orizzontale dell’intera griglia
 
     // 🔽 Costruttore
-    public GameInput()
+    public GameInput(int mod)
     {
 
         // Carica e imposta il cursore personalizzato
@@ -132,9 +132,12 @@ public class GameInput implements InputProcessor
     }
 
     // 🔽 Ritorna la prima riga libera in una colonna (dal basso verso l’alto)
-    public int getLowestFreeRow(int col, boolean[][] board) {
-        for (int row = 5; row >= 0; row--) {
-            if (!board[row][col]) {
+    public int getLowestFreeRow(int col, boolean[][] board)
+    {
+        for (int row = 5; row >= 0; row--)
+        {
+            if (!board[row][col])
+            {
                 return row;
             }
         }

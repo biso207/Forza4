@@ -33,6 +33,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private ShapeRenderer shapeRenderer;
 
     private boolean darkMode;
+    static int mod;
 
 
     private float modeTransitionTimer = 0f;
@@ -64,6 +65,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     {
         this.game = game;
         this.screen = game.screen;
+        this.mod=mod;
+
         Fonts.load();
         shapeRenderer = new ShapeRenderer();
         darkMode = dark;
@@ -241,7 +244,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     }
 
     @Override
-    public void dispose() {
+    public void dispose()
+    {
         forza.dispose();
     }
 }

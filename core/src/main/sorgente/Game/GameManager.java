@@ -26,7 +26,7 @@ public class GameManager extends ScreenAdapter
     public GameManager(Main game, int d, boolean dark, int mod)
     {
         this.game = game;
-        input = new GameInput();
+        input = new GameInput(mod);
         ui = new GameUI(game,input, dark,d,mod);
 
 
