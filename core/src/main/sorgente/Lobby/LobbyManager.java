@@ -62,6 +62,8 @@ public class LobbyManager extends ScreenAdapter {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+
+
         /*
         setting del volume di sottofondo
         fondamentale che sia qui perché in caso di cambiamento durante una sessione di gioco

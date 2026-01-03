@@ -17,7 +17,7 @@ public class GameManager extends ScreenAdapter
     private final GameUI ui;
     private final GameInput input;
     private final Main game;
-    private int difficult;
+
     protected static Music soundGame;
 
 
@@ -30,10 +30,7 @@ public class GameManager extends ScreenAdapter
         ui = new GameUI(game,input, dark,d,mod);
 
 
-
-        difficult=d;
-
-        log.info(difficult);
+        log.info(d);
 
         soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game.mp3")); // file audio
         soundGame.setLooping(true); // true=loop music; false=no loop

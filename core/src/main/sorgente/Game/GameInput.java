@@ -30,12 +30,20 @@ public class GameInput implements InputProcessor
     protected boolean isBtnExitHover;
     protected boolean isHole;
 
+    protected boolean btnNoExit;
+    protected boolean btnYesExit;
+
+    protected boolean isBtnNoExitHover;
+    protected boolean isBtnYesExitHover;
+
     // 🔽 Rettangolo del bottone di uscita
     protected final Rectangle exit;
 
     // 🔽 Griglia dei buchi (6 righe x 7 colonne)
     public Rectangle[][] holes = new Rectangle[6][7];
     public Array<Rectangle> allHoles = new Array<>();
+    private Rectangle btn_no;
+    private Rectangle btn_yes;
 
     // 🔽 Dimensioni e posizionamento della griglia
     private final float cellWidth = 80f;                     // larghezza di ogni cella
@@ -71,6 +79,9 @@ public class GameInput implements InputProcessor
             }
         }
 
+        btn_no= new Rectangle(503,408,150,50);
+        btn_yes= new Rectangle(341,408,150,50);
+
 
     }
 
@@ -95,8 +106,10 @@ public class GameInput implements InputProcessor
     }
 
     // 🔽 Controlla se il click è avvenuto sul bottone di uscita
-    private void checkHitBox(int x, int y) {
-        if (exit.contains(x, y)) {
+    private void checkHitBox(int x, int y)
+    {
+        if (exit.contains(x, y))
+        {
             log.info("Hai cliccato il bottone di uscita");
             isBtnExitClicked = true;
 
@@ -108,26 +121,57 @@ public class GameInput implements InputProcessor
                 }
             }, 100);
         }
+
+        if(GameUI.rigioca)
+        {
+
+            if(btn_no.contains(x,y))
+            {
+              btnNoExit=true;
+            }
+
+            // yes logout
+            if(btn_yes.contains(x,y))
+            {
+                btnYesExit=true;
+            }
+
+        }
+
     }
 
     // 🔽 Gestione hover del mouse sul bottone di uscita
     @Override
-    public boolean mouseMoved(int x, int y) {
+    public boolean mouseMoved(int x, int y)
+    {
         isBtnExitHover = exit.contains(x, y);
+
+        if (GameUI.rigioca)
+        {
+            isBtnNoExitHover=btn_no.contains(x,y);
+            isBtnYesExitHover=btn_yes.contains(x,y);
+        }
+
+
         return false;
     }
 
     // 🔽 Rileva la colonna cliccata in base alla posizione X
-    public int getColumnFromClick(int x, int y) {
-        for (int col = 0; col < 7; col++) {
+    public int getColumnFromClick(int x, int y)
+    {
+
+        for (int col = 0; col < 7; col++)
+        {
             Rectangle topCell = holes[0][col]; // tutte le celle della colonna hanno la stessa X
             float colX = topCell.x;
             float colWidth = topCell.width;
 
-            if (x >= colX && x <= colX + colWidth) {
+            if (x >= colX && x <= colX + colWidth)
+            {
                 return col;
             }
         }
+
         return -1; // nessuna colonna cliccata
     }
 
@@ -154,7 +198,9 @@ public class GameInput implements InputProcessor
     @Override public boolean scrolled(float v, float v1) { return false; }
 
     // 🔽 Libera le risorse del cursore
-    public void dispose() {
+    public void dispose()
+    {
         mouse.dispose();
+
     }
 }
