@@ -8,24 +8,19 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import sorgente.SoundManager;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-
-
-public class GameInput implements InputProcessor
-{
+public class GameInput implements InputProcessor {
 
     private static final Log log = LogFactory.getLog(GameInput.class);
 
-
-    // 🔽 Cursor personalizzato
+    // Cursor
     private final Pixmap mouse;
     private final Cursor cursor;
 
-    // 🔽 Flag di stato per input
+    // Flag generali
     protected boolean isBtnExitClicked;
     protected boolean isBtnExitHover;
     protected boolean isHole;
@@ -36,40 +31,51 @@ public class GameInput implements InputProcessor
     protected boolean isBtnNoExitHover;
     protected boolean isBtnYesExitHover;
 
-    // 🔽 Rettangolo del bottone di uscita
-    protected final Rectangle exit;
+    // Power-up flags
+    public boolean powerExplosive = false;
+    public boolean powerSwap = false;
+    public boolean powerFreeze = false;
+    public boolean powerWild = false;
 
-    // 🔽 Griglia dei buchi (6 righe x 7 colonne)
-    public Rectangle[][] holes = new Rectangle[6][7];
-    public Array<Rectangle> allHoles = new Array<>();
+    // Swap: prima colonna selezionata
+    public int selectedSwapColumn = -1;
+
+    // Rettangoli UI
+    protected final Rectangle exit;
     private Rectangle btn_no;
     private Rectangle btn_yes;
 
-    // 🔽 Dimensioni e posizionamento della griglia
-    private final float cellWidth = 80f;                     // larghezza di ogni cella
-    private final float cellHeight = 700f / 6f;              // altezza di ogni cella (≈116.66)
-    private final float holeSize = 52f;                      // dimensione del buco (diametro)
-    private final float offsetX = (cellWidth - holeSize) / 2f; // centratura orizzontale del buco nella cella
-    private final float offsetY = (cellHeight - holeSize) / 2f; // centratura verticale del buco nella cella
-    private final float gridOffsetX = (1000f - (cellWidth * 7)) / 2f; // centratura orizzontale dell’intera griglia
+    // Power-up buttons
+    public Rectangle btnExplosive;
+    public Rectangle btnSwap;
+    public Rectangle btnFreeze;
+    public Rectangle btnWild;
 
-    // 🔽 Costruttore
-    public GameInput(int mod)
-    {
+    // Griglia
+    public Rectangle[][] holes = new Rectangle[6][7];
+    public Array<Rectangle> allHoles = new Array<>();
 
-        // Carica e imposta il cursore personalizzato
+    // Dimensioni
+    private final float cellWidth = 80f;
+    private final float cellHeight = 700f / 6f;
+    private final float holeSize = 52f;
+    private final float offsetX = (cellWidth - holeSize) / 2f;
+    private final float offsetY = (cellHeight - holeSize) / 2f;
+    private final float gridOffsetX = (1000f - (cellWidth * 7)) / 2f;
+
+    public GameInput(int mod) {
+
+        // Cursor
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
         cursor = Gdx.graphics.newCursor(mouse, 0, 0);
         Gdx.graphics.setCursor(cursor);
 
-        // Definisce l’area cliccabile del bottone di uscita
+        // Exit
         exit = new Rectangle(840, 93, 52, 52);
 
-        // Genera la griglia dei buchi con posizionamento centrato
-        for (int row = 0; row < 6; row++)
-        {
-            for (int col = 0; col < 7; col++)
-            {
+        // Griglia
+        for (int row = 0; row < 6; row++) {
+            for (int col = 0; col < 7; col++) {
                 float x = gridOffsetX + col * cellWidth + offsetX;
                 float y = 700f - ((row + 1) * cellHeight) + offsetY;
 
@@ -79,42 +85,91 @@ public class GameInput implements InputProcessor
             }
         }
 
-        btn_no= new Rectangle(503,408,150,50);
-        btn_yes= new Rectangle(341,408,150,50);
+        // Replay buttons
+        btn_no = new Rectangle(503, 408, 150, 50);
+        btn_yes = new Rectangle(341, 408, 150, 50);
 
-
+        // Power-up buttons (posizioni esempio)
+        btnExplosive = new Rectangle(50, 600, 64, 64);
+        btnSwap      = new Rectangle(130, 600, 64, 64);
+        btnFreeze    = new Rectangle(210, 600, 64, 64);
+        btnWild      = new Rectangle(290, 600, 64, 64);
     }
 
-    // 🔽 Gestione click del mouse
     @Override
-    public boolean touchDown(int x, int y, int pointer, int button)
-    {
+    public boolean touchDown(int x, int y, int pointer, int button) {
+
         log.info("Touch at: " + x + ", " + y);
 
-        // Controlla se è stato cliccato il bottone di uscita
         checkHitBox(x, y);
 
-        // Rileva la colonna cliccata
+        // POWER-UP BUTTONS
+        if (btnExplosive.contains(x, y)) {
+            activatePowerUp("explosive");
+            return true;
+        }
+
+        if (btnSwap.contains(x, y)) {
+            activatePowerUp("swap");
+            return true;
+        }
+
+        if (btnFreeze.contains(x, y)) {
+            activatePowerUp("freeze");
+            return true;
+        }
+
+        if (btnWild.contains(x, y)) {
+            activatePowerUp("wild");
+            return true;
+        }
+
+        // Click sulla griglia
         int col = getColumnFromClick(x, y);
         if (col != -1) {
-            log.info("Hai cliccato la colonna " + col);
-
             isHole = true;
         }
 
         return false;
     }
 
-    // 🔽 Controlla se il click è avvenuto sul bottone di uscita
-    private void checkHitBox(int x, int y)
-    {
-        if (exit.contains(x, y))
-        {
-            log.info("Hai cliccato il bottone di uscita");
+    private void activatePowerUp(String type) {
+
+        powerExplosive = false;
+        powerSwap = false;
+        powerFreeze = false;
+        powerWild = false;
+
+        selectedSwapColumn = -1;
+
+        switch (type) {
+            case "explosive":
+                powerExplosive = true;
+                log.info("Power-up Explosive attivato");
+                break;
+
+            case "swap":
+                powerSwap = true;
+                log.info("Power-up Swap attivato");
+                break;
+
+            case "freeze":
+                powerFreeze = true;
+                log.info("Power-up Freeze attivato");
+                break;
+
+            case "wild":
+                powerWild = true;
+                log.info("Power-up Wild attivato");
+                break;
+        }
+    }
+
+    private void checkHitBox(int x, int y) {
+
+        if (exit.contains(x, y)) {
             isBtnExitClicked = true;
 
-
-            // Reset del flag dopo 100ms per effetto visivo
             new Timer().schedule(new TimerTask() {
                 @Override public void run() {
                     isBtnExitClicked = false;
@@ -122,73 +177,56 @@ public class GameInput implements InputProcessor
             }, 100);
         }
 
-        if(GameUI.rigioca)
-        {
+        if (GameUI.rigioca) {
 
-            if(btn_no.contains(x,y))
-            {
-              btnNoExit=true;
+            if (btn_no.contains(x, y)) {
+                btnNoExit = true;
             }
 
-            // yes logout
-            if(btn_yes.contains(x,y))
-            {
-                btnYesExit=true;
+            if (btn_yes.contains(x, y)) {
+                btnYesExit = true;
             }
-
         }
-
     }
 
-    // 🔽 Gestione hover del mouse sul bottone di uscita
     @Override
-    public boolean mouseMoved(int x, int y)
-    {
+    public boolean mouseMoved(int x, int y) {
+
         isBtnExitHover = exit.contains(x, y);
 
-        if (GameUI.rigioca)
-        {
-            isBtnNoExitHover=btn_no.contains(x,y);
-            isBtnYesExitHover=btn_yes.contains(x,y);
+        if (GameUI.rigioca) {
+            isBtnNoExitHover = btn_no.contains(x, y);
+            isBtnYesExitHover = btn_yes.contains(x, y);
         }
-
 
         return false;
     }
 
-    // 🔽 Rileva la colonna cliccata in base alla posizione X
-    public int getColumnFromClick(int x, int y)
-    {
+    public int getColumnFromClick(int x, int y) {
 
-        for (int col = 0; col < 7; col++)
-        {
-            Rectangle topCell = holes[0][col]; // tutte le celle della colonna hanno la stessa X
+        for (int col = 0; col < 7; col++) {
+            Rectangle topCell = holes[0][col];
             float colX = topCell.x;
             float colWidth = topCell.width;
 
-            if (x >= colX && x <= colX + colWidth)
-            {
+            if (x >= colX && x <= colX + colWidth) {
                 return col;
             }
         }
 
-        return -1; // nessuna colonna cliccata
+        return -1;
     }
 
-    // 🔽 Ritorna la prima riga libera in una colonna (dal basso verso l’alto)
-    public int getLowestFreeRow(int col, boolean[][] board)
-    {
-        for (int row = 5; row >= 0; row--)
-        {
-            if (!board[row][col])
-            {
+    public int getLowestFreeRow(int col, boolean[][] board) {
+
+        for (int row = 5; row >= 0; row--) {
+            if (!board[row][col]) {
                 return row;
             }
         }
-        return -1; // colonna piena
+        return -1;
     }
 
-    // 🔽 Metodi inutilizzati ma richiesti da InputProcessor
     @Override public boolean keyDown(int i) { return false; }
     @Override public boolean keyUp(int i) { return false; }
     @Override public boolean keyTyped(char c) { return false; }
@@ -197,10 +235,7 @@ public class GameInput implements InputProcessor
     @Override public boolean touchDragged(int i, int i1, int i2) { return false; }
     @Override public boolean scrolled(float v, float v1) { return false; }
 
-    // 🔽 Libera le risorse del cursore
-    public void dispose()
-    {
+    public void dispose() {
         mouse.dispose();
-
     }
 }

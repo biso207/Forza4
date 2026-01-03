@@ -36,7 +36,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private boolean darkMode;
     static int mod;
 
-
     private float modeTransitionTimer = 0f;
     private boolean modeTransition = false;
     static boolean rigioca;
@@ -70,28 +69,30 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private Texture btn_no_clicked;
     private Texture btn_yes_clicked;
 
-    // Stato della griglia: 0 = vuoto, 1 = rosso
+    // Stato della griglia: 0 = vuoto, 1 = rosso / 2 = giallo
     private int[][] boardState = new int[6][7];
-    private int  punti= (int) UserProgressService.getProgress("points");
-    private int vittorie=0;
+    private int punti = (int) UserProgressService.getProgress("points");
+    private int vittorie = 0;
 
+    // Freeze power-up
+    private int freezeColumn = -1;
+    private int freezeTurns = 0;
 
     public GameUI(Main game, GameInput in, boolean dark, int d, int mod)
     {
         this.game = game;
         this.screen = game.screen;
-        this.mod=mod;
+        this.mod = mod;
 
-        difficolta=d;
-        rigioca=false;
+        difficolta = d;
+        rigioca = false;
 
         Fonts.load();
         shapeRenderer = new ShapeRenderer();
         darkMode = dark;
-        gameInput=in;
+        gameInput = in;
         modeInputManager = new ModeInputManager(d, 2, mod);
         loadImages();
-
 
         log.info(punti);
 
@@ -117,7 +118,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         lightForza = new Texture("game_mods_screens/base_light.png");
         lightExit = new Texture("ui/buttons/lobby/light/btn_close.png");
         lightExitHover = new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
-        lightReplay =new Texture("lobby_screens/light/logout_light.png");
+        lightReplay = new Texture("lobby_screens/light/logout_light.png");
     }
 
     private void loadLightMode()
@@ -125,22 +126,19 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         darkForza = new Texture("game_mods_screens/base_dark.png");
         darkExit = new Texture("ui/buttons/lobby/dark/btn_close.png");
         darkExitHover = new Texture("ui/buttons/lobby/dark/btn_close_clicked.png");
-        darkReplay =new Texture("lobby_screens/dark/logout_dark.png");
+        darkReplay = new Texture("lobby_screens/dark/logout_dark.png");
     }
 
     private void aggiornaPunteggio(int delta)
     {
         punti += delta;
 
-        // Evita punteggi negativi
         if (punti < 0) {
             punti = 0;
         }
 
-        // Salva il punteggio aggiornato
         UserProgressService.setProgress("points", punti);
     }
-
 
     private void isDark(boolean dark)
     {
@@ -149,14 +147,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             forza = darkForza;
             exit = darkExit;
             exitHover = darkExitHover;
-            replay=darkReplay;
+            replay = darkReplay;
         }
         else
         {
             forza = lightForza;
             exit = lightExit;
             exitHover = lightExitHover;
-            replay=lightReplay;
+            replay = lightReplay;
         }
     }
 
@@ -175,7 +173,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     private void resetGame()
     {
-
         // Reset griglia
         for (int r = 0; r < 6; r++)
         {
@@ -185,10 +182,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             }
         }
 
-        // Reset vittorie
         vittorie = 0;
 
-        // Reset input
         gameInput.isHole = false;
         gameInput.isBtnExitClicked = false;
         gameInput.isBtnExitHover = false;
@@ -198,7 +193,15 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         gameInput.isBtnYesExitHover = false;
         gameInput.isBtnNoExitHover = false;
 
-        // Reset transizioni
+        // reset power-up state
+        gameInput.powerExplosive = false;
+        gameInput.powerSwap = false;
+        gameInput.powerFreeze = false;
+        gameInput.powerWild = false;
+        gameInput.selectedSwapColumn = -1;
+        freezeColumn = -1;
+        freezeTurns = 0;
+
         modeTransition = false;
         pendingMode = -1;
         modeTransitionTimer = 0f;
@@ -206,6 +209,57 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         log.info("Gioco resettato correttamente");
     }
 
+    // ---------------- POWER-UP METHODS ----------------
+
+    // 🔥 Explosive → distrugge pedine vicine (3x3)
+    private void applicaExplosive(int row, int col)
+    {
+        for (int r = row - 1; r <= row + 1; r++)
+        {
+            for (int c = col - 1; c <= col + 1; c++)
+            {
+                if (r >= 0 && r < 6 && c >= 0 && c < 7)
+                {
+                    boardState[r][c] = 0;
+                }
+            }
+        }
+        log.info("Power-up Explosive attivato su (" + row + "," + col + ")");
+    }
+
+    // 🔄 Swap → scambia due colonne
+    private void applicaSwap(int col1, int col2)
+    {
+        if (col1 < 0 || col1 > 6 || col2 < 0 || col2 > 6 || col1 == col2) return;
+
+        for (int r = 0; r < 6; r++)
+        {
+            int temp = boardState[r][col1];
+            boardState[r][col1] = boardState[r][col2];
+            boardState[r][col2] = temp;
+        }
+
+        log.info("Power-up Swap attivato tra colonne " + col1 + " e " + col2);
+    }
+
+    // 🧊 Freeze → blocca una colonna per 2 turni
+    private void applicaFreeze(int col)
+    {
+        if (col < 0 || col > 6) return;
+
+        freezeColumn = col;
+        freezeTurns = 2;
+        log.info("Power-up Freeze attivato sulla colonna " + col);
+    }
+
+    // ✨ Wild → piazza una pedina jolly (per ora rossa)
+    private void applicaWild(int row, int col)
+    {
+        if (row < 0 || row > 5 || col < 0 || col > 6) return;
+
+        boardState[row][col] = 1;
+        log.info("Power-up Wild attivato su (" + row + "," + col + ")");
+    }
 
     @Override
     public void render(float delta)
@@ -216,30 +270,25 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         isDark(darkMode);
         screen.draw(forza, 0, 0);
 
+        // finestra rigioca
+        draw(replay, rigioca, 294, 204);
 
-        draw(replay,rigioca,294,204);
-
-        // logout
         if (rigioca)
         {
+            draw(btn_yes, gameInput.isBtnYesExitHover, 342, 244);
+            draw(btn_yes_clicked, gameInput.btnYesExit, 342, 244);
 
-            draw(btn_yes,gameInput.isBtnYesExitHover,342,244);
-            draw(btn_yes_clicked,gameInput.btnYesExit,342,244);
+            draw(btn_no_clicked, gameInput.btnNoExit, 506, 244);
+            draw(btn_no, gameInput.isBtnNoExitHover, 506, 244);
 
-            draw(btn_no_clicked,gameInput.btnNoExit,506,244);
-            draw(btn_no,gameInput.isBtnNoExitHover,506,244);
-
-            if(gameInput.btnYesExit)
+            if (gameInput.btnYesExit)
             {
                 resetGame();
-                rigioca=false;
+                rigioca = false;
             }
-
-
         }
         else
         {
-
             draw(exit, gameInput.isBtnExitClicked, 840, 600);
             draw(exitHover, gameInput.isBtnExitHover, 840, 600);
 
@@ -251,12 +300,15 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 float drawY = baseY + (5 - row) * 64;
                 float drawX = baseX;
 
-                for (int col = 0; col < 7; col++) {
-                    if (boardState[row][col] == 1) {
+                for (int col = 0; col < 7; col++)
+                {
+                    if (boardState[row][col] == 1)
+                    {
                         draw(red, true, drawX, drawY);
                     }
 
-                    if (boardState[row][col] == 2) {
+                    if (boardState[row][col] == 2)
+                    {
                         draw(yellow, true, drawX, drawY);
                     }
 
@@ -267,28 +319,81 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         screen.end();
 
-        if (gameInput.isHole)
+        // LOGICA DI GIOCO (solo se non è aperta la finestra rigioca)
+        if (!rigioca && gameInput.isHole)
         {
-            int col = gameInput.getColumnFromClick(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
-            int row = gameInput.getLowestFreeRow(col, boardStateAsBoolean());
+            int col = gameInput.getColumnFromClick(
+                Gdx.input.getX(),
+                Gdx.graphics.getHeight() - Gdx.input.getY()
+            );
+            int row = (col != -1) ? gameInput.getLowestFreeRow(col, boardStateAsBoolean()) : -1;
 
             if (col != -1 && row != -1)
             {
-                boardState[row][col] = 1; // rosso
+                // controlla colonna congelata
+                if (freezeColumn == col && freezeTurns > 0)
+                {
+                    log.info("Colonna " + col + " congelata per ancora " + freezeTurns + " turni");
+                    gameInput.isHole = false;
+                    return;
+                }
+
+                // POWER-UP USO SUL PROSSIMO CLICK
+                if (gameInput.powerExplosive)
+                {
+                    applicaExplosive(row, col);
+                    gameInput.powerExplosive = false;
+                }
+                else if (gameInput.powerSwap)
+                {
+                    if (gameInput.selectedSwapColumn == -1)
+                    {
+                        // primo click: seleziona colonna
+                        gameInput.selectedSwapColumn = col;
+                        log.info("Prima colonna per Swap selezionata: " + col);
+                    }
+                    else
+                    {
+                        // secondo click: esegue swap
+                        applicaSwap(gameInput.selectedSwapColumn, col);
+                        gameInput.selectedSwapColumn = -1;
+                        gameInput.powerSwap = false;
+                    }
+                }
+                else if (gameInput.powerFreeze)
+                {
+                    applicaFreeze(col);
+                    gameInput.powerFreeze = false;
+                }
+                else if (gameInput.powerWild)
+                {
+                    applicaWild(row, col);
+                    gameInput.powerWild = false;
+                }
+                else
+                {
+                    // normale pedina rossa
+                    boardState[row][col] = 1;
+                }
 
                 SoundManager.playDigitSound(LobbyInput.effectsPercent);
 
+                // decrementa freeze se attivo
+                if (freezeTurns > 0)
+                {
+                    freezeTurns--;
+                    if (freezeTurns == 0) freezeColumn = -1;
+                }
+
+                // check vittoria giocatore
                 if (modeInputManager.checkWin(boardState, row, col, 1))
                 {
-
-                    // Aggiunge punti in base alla difficoltà
                     if (difficolta == 0) aggiornaPunteggio(20);
                     if (difficolta == 1) aggiornaPunteggio(100);
                     if (difficolta == 2) aggiornaPunteggio(200);
 
                     vittorie++;
 
-                    // Bonus ogni 3 vittorie
                     if (vittorie == 3) {
                         aggiornaPunteggio(100);
                         vittorie = 0;
@@ -297,48 +402,40 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                     log.info("Giocatore rosso ha vinto!");
                     log.info(punti);
 
-                    rigioca=true;
+                    rigioca = true;
 
                     SoundManager.playWin(LobbyInput.effectsPercent);
                 }
+                else
+                {
+                    // se non ha vinto, turno del bot
+                    int botCol = modeInputManager.chooseMove(boardState);
+                    int botRow = gameInput.getLowestFreeRow(botCol, boardStateAsBoolean());
 
+                    if (botRow != -1)
+                    {
+                        boardState[botRow][botCol] = 2;
+
+                        SoundManager.playDigitSound(LobbyInput.effectsPercent);
+
+                        if (modeInputManager.checkWin(boardState, botRow, botCol, 2))
+                        {
+                            if (difficolta == 0) aggiornaPunteggio(-20);
+                            if (difficolta == 1) aggiornaPunteggio(-100);
+                            if (difficolta == 2) aggiornaPunteggio(-200);
+
+                            log.info("Giocatore giallo ha vinto!");
+
+                            rigioca = true;
+
+                            SoundManager.playDefeat(LobbyInput.effectsPercent);
+                        }
+                    }
+                }
             }
 
             gameInput.isHole = false;
-
-            // 🔁 Mossa del bot
-            int botCol = modeInputManager.chooseMove(boardState);
-            int botRow = gameInput.getLowestFreeRow(botCol, boardStateAsBoolean());
-
-            if (botRow != -1)
-            {
-                boardState[botRow][botCol] = 2; // giallo
-
-                SoundManager.playDigitSound(LobbyInput.effectsPercent);
-
-                if (modeInputManager.checkWin(boardState, botRow, botCol, 2)) {
-
-                    // Toglie punti in base alla difficoltà
-                    if (difficolta == 0) aggiornaPunteggio(-20);
-                    if (difficolta == 1) aggiornaPunteggio(-100);
-                    if (difficolta == 2) aggiornaPunteggio(-200);
-
-                    log.info("Giocatore giallo ha vinto!");
-
-                    rigioca=true;
-
-                    SoundManager.playDefeat(LobbyInput.effectsPercent);
-                }
-
-            }
-
-
-
-
-
         }
-
-
 
         if (gameInput.isBtnExitClicked || gameInput.btnNoExit) {
             modeTransition = true;
@@ -356,8 +453,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 }
             }
         }
-
-
     }
 
     @Override
@@ -372,11 +467,11 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         red = new Texture("ui/icons/red.png");
         yellow = new Texture("ui/icons/yellow.png");
 
-        btn_no=new Texture("ui/buttons/lobby/btn_no.png");
-        btn_no_clicked=new Texture("ui/buttons/lobby/btn_no_clicked.png");
+        btn_no = new Texture("ui/buttons/lobby/btn_no.png");
+        btn_no_clicked = new Texture("ui/buttons/lobby/btn_no_clicked.png");
 
-        btn_yes=new Texture("ui/buttons/lobby/btn_yes.png");
-        btn_yes_clicked=new Texture("ui/buttons/lobby/btn_yes_clicked.png");
+        btn_yes = new Texture("ui/buttons/lobby/btn_yes.png");
+        btn_yes_clicked = new Texture("ui/buttons/lobby/btn_yes_clicked.png");
     }
 
     @Override
