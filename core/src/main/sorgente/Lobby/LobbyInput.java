@@ -27,50 +27,52 @@ public class LobbyInput implements InputProcessor {
     public static float effectsPercent;
     public static float musicPercent;
 
-    // clicked
+    // FALGS BUTTONS CLICKED //
+    // difficoltà game mods
     protected static int[] difficolta=new int[8];
-    protected boolean[] starHover=new boolean[8];
     protected boolean[] starClicked=new boolean[8];
-
+    // volume audio
     protected boolean draggingMusic = false;
     protected boolean draggingEffects = false;
-
+    // yes/no logout
     protected boolean btnNoExit;
-    protected boolean btnYesExit;
+    protected boolean btnYesExit; // 1 controllo in più in LobbyUI per la transition della chiusura
+    // apertura schermate in sovra impressione
+    protected boolean isBtnMarketClicked;
+    protected boolean isBtnScoreboardClicked;
+    protected boolean isBtnLogoutClicked; // 2 usages in LobbyUI & 2 in LobbyInput
+    protected boolean isBtnSettingsClicked; // 2 usages in LobbyUI & 2 in LobbyInput
+    protected boolean isBtnInfoClicked; // 2 usages in LobbyUI & 2 in LobbyInput
+    // X chiusura schermate in sovra impressione
     protected boolean btnCloseSettings;
     protected boolean btnCloseInfo;
     protected boolean btnCloseMarket;
     protected boolean btnCloseScoreboard;
+    // game mods
+    protected boolean classic, gravity4, horizontal, speedy;
 
-    protected boolean classic;
-    protected boolean gravity4;
-    protected boolean horizontal;
-    protected boolean speedy;
-    protected boolean scoreboard;
-    protected boolean market;
 
-    protected boolean settings;
-    protected boolean information;
-    protected boolean exit;
-
-    // hover
-    protected boolean isBtnMarketClicked;
+    // FLAGS BUTTONS HOVER //
+    // difficoltà game mods
+    protected boolean[] starHover=new boolean[8];
+    // apertura schermate in sovra impressione
+    protected boolean isBtnScoreboardHover;
+    protected boolean isBtnMarketHover;
+    // yes/no logout
     protected boolean isBtnNoExitHover;
     protected boolean isBtnYesExitHover;
+    // X chiusura schermate in sovra impressione
     protected boolean isBtnCloseInfoHover;
     protected boolean isBtnCloseSettingsHover;
     protected boolean isBtnCloseMarketHover;
     protected boolean isBtnCloseScoreboardHover;
-    protected boolean classicHover;
-    protected boolean gravity4Hover;
-    protected boolean horizontalHover;
-    protected boolean speedyHover;
-    protected boolean marketHover;
-    protected boolean scoreboardHover;
+    // game mods
+    protected boolean classicHover, gravity4Hover, horizontalHover, speedyHover;
 
+    // FLAGS CONTROLLO SCHERMATE APERTE //
     // per aprire le finestre in sovra impressione
-    protected boolean isWindowOpenInfo, isWindowOpenExit, isWindowOpenSettings, isWindowOpenScoreboard,
-        isWindowOpenMarket;
+    protected boolean isInfoOpen, isLogoutOpen, isSettingsOpen, isScoreboardOpen,
+        isMarketOpen; // isMarketOpen è usata una volta in più in un controllo
 
     private final Pixmap mouse;
     private final Cursor cursor;
@@ -84,7 +86,7 @@ public class LobbyInput implements InputProcessor {
     // azione pronta da eseguire fuori (solo per cambio screen / exit)
     private boolean inputEnabled = true;
 
-    // hitbox
+    // HITBOX //
     protected Rectangle musicBarArea;
     protected Rectangle effectsBarArea;
     protected Rectangle switchDL;
@@ -116,7 +118,7 @@ public class LobbyInput implements InputProcessor {
     private Rectangle exitArea;
     private Rectangle marketButton;
 
-    // azioni click sulle schermate
+    // AZIONI CLICK //
     public static final int ACT_CLOSE_INFO = 1;
     public static final int ACT_CLOSE_SETTINGS = 2;
     public static final int ACT_CLOSE_MARKET = 3;
@@ -135,16 +137,7 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_YES_EXIT = 33;
 
     // costruttore
-    public LobbyInput()
-    {
-        isWindowOpenInfo =false;
-        isWindowOpenExit =false;
-        isWindowOpenSettings=false;
-
-
-        classic = gravity4 = horizontal = speedy = scoreboard = market = false;
-        settings = information = exit = false;
-
+    public LobbyInput() {
         // creazione hit boxes
         createHitboxes();
 
@@ -165,8 +158,7 @@ public class LobbyInput implements InputProcessor {
     }
 
     // metodo per la creazione dei rectangle
-    private void createHitboxes()
-    {
+    private void createHitboxes() {
         // Hitbox principali
         switchDL=new Rectangle(449,302,85,36);
 
@@ -215,206 +207,66 @@ public class LobbyInput implements InputProcessor {
         marketButton= new Rectangle(831,64,50,50);
     }
 
-    private void resetClickedFlags() {
-        btnCloseInfo = false;
-        btnCloseSettings = false;
-        btnNoExit = false;
-        btnYesExit = false;
-        isBtnMarketClicked = false;
-        btnCloseMarket=false;
-        btnCloseScoreboard=false;
-        classic = false;
-        gravity4 = false;
-        horizontal = false;
-        speedy = false;
-        scoreboard = false;
-        exit = false;
-        settings = false;
-        information = false;
-        market = false;
-    }
-
     // genera il suono al click
     private boolean clicked() {
         SoundManager.playClickButton(effectsPercent);
         return true;
     }
 
+    // rilascio unica risorsa grafica
     public void dispose() {
         mouse.dispose();
     }
 
+    // controllo click
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         System.out.println(screenX + " " + screenY);
         return checkHitboxes(screenX, screenY);
     }
 
+    // metodo per resettare i click
+    private void resetClickedFlags() {
+        // game mods
+        classic = gravity4 = horizontal = speedy = false;
+
+        // apertura schermate in sovra impressione
+        isBtnScoreboardClicked = isBtnMarketClicked = isBtnSettingsClicked = isBtnInfoClicked = false;
+
+        // chiusura schermate in sovra impressione
+        btnCloseScoreboard = btnCloseMarket = btnCloseSettings = btnCloseInfo = false;
+
+        // yes/no logout
+        isBtnLogoutClicked = btnNoExit = btnYesExit = false;
+    }
 
     // resetta lo stato di Hover dei pulsanti
     private void resetHover() {
+        // game mods
         classicHover = gravity4Hover = horizontalHover = speedyHover = false;
-        marketHover = scoreboardHover = false;
-        isBtnCloseInfoHover = false;
-        isBtnCloseSettingsHover = false;
-        isBtnCloseMarketHover=false;
-        isBtnYesExitHover=false;
-        isBtnNoExitHover=false;
-        isBtnCloseScoreboardHover=false;
 
-        market=false;
+        // apertura schermate in sovra impressione
+        isBtnScoreboardHover = isBtnMarketHover = false;
 
-        starHover[0]=false;
-        starHover[1]=false;
-        starHover[2]=false;
-        starHover[3]=false;
-        starHover[4]=false;
-        starHover[5]=false;
-        starHover[6]=false;
-        starHover[7]=false;
-    }
+        // chiusura schermate in sovra impressione
+        isBtnCloseInfoHover       = false;
+        isBtnCloseSettingsHover   = false;
+        isBtnCloseMarketHover     = false;
+        isBtnCloseScoreboardHover = false;
 
-    // "ascolta" il movimento del mouse
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
+        // yes/no logout
+        isBtnYesExitHover = isBtnNoExitHover = false;
 
-        if (!inputEnabled) return false;
-        resetHover();
-
-
-        // sets hover states for open window buttons
-        if(isWindowOpenInfo || isWindowOpenSettings || isWindowOpenExit || isWindowOpenScoreboard || isWindowOpenMarket) {
-            // close game credits
-            if(btnCloseInfoArea.contains(screenX,screenY)) {
-                isBtnCloseInfoHover = true;
-                return true;
-            }
-
-            // close settings
-            if(btnCloseSettingsArea.contains(screenX,screenY)) {
-                isBtnCloseSettingsHover = true;
-                return true;
-            }
-            // no logout
-            if(btn_no.contains(screenX,screenY)) {
-                isBtnNoExitHover=true;
-                return  true;
-            }
-            // yes logout
-            if(btn_yes.contains(screenX,screenY)) {
-                isBtnYesExitHover=true;
-                return  true;
-            }
-            // close market -> l'ulteriore controllo con market server per evitare l'overlay della scoreboard
-            if(btnCloseMarketArea.contains(screenX,screenY) && isWindowOpenMarket) {
-                isBtnCloseMarketHover=true;
-                return true;
-            }
-            // close scoreboard
-            if (btnCloseScoreboardArea.contains(screenX,screenY)) {
-                isBtnCloseScoreboardHover=true;
-                return true;
-            }
-
-            return false;
-        }
-
-
-        // hover per le stelle difficoltà modalità "classic"
-        if (classicStars[0].contains(screenX, screenY)) {
-            if (!starClicked[0]) starHover[0] = true;
-            return true;
-        }
-        else if (classicStars[1].contains(screenX, screenY)) {
-            if (!starClicked[1]) { starHover[1] = true; starHover[0] = true; }
-            return true;
-        }
-
-        // hover per le stelle difficoltà modalità "4 gravità"
-        if (gravityStars[0].contains(screenX, screenY)) {
-            if (!starClicked[2]) starHover[2] = true;
-            return true;
-        }
-        else if (gravityStars[1].contains(screenX, screenY)) {
-            if (!starClicked[3]) { starHover[3] = true; starHover[2] = true; }
-            return true;
-        }
-
-        // hover per le stelle difficoltà modalità "orizzontale"
-        if (horizontalStars[0].contains(screenX, screenY)) {
-            if (!starClicked[4]) starHover[4] = true;
-            return true;
-        }
-        else if (horizontalStars[1].contains(screenX, screenY)) {
-            if (!starClicked[5]) { starHover[5] = true; starHover[4] = true; }
-            return true;
-        }
-
-        // hover per le stelle difficoltà modalità "speedy"
-        if (speedyStars[0].contains(screenX, screenY)) {
-            if (!starClicked[6]) starHover[6] = true;
-            return true;
-        }
-        else if (speedyStars[1].contains(screenX, screenY)) {
-            if (!starClicked[7]) { starHover[7] = true; starHover[6] = true; }
-            return true;
-        }
-
-        // hover per i pulsanti delle schermate secondarie
-        if(marketButton.contains(screenX,screenY)) { // mercato
-            market=true;
-            return true;
-        }
-
-        if (classicArea.contains(screenX, screenY)) { // game "classic"
-            classicHover = true;
-
-            return true;
-        }
-
-        if (gravity4Area.contains(screenX, screenY)) { // game "gravity4"
-            gravity4Hover = true;
-            return true;
-        }
-
-        if (horizontalArea.contains(screenX, screenY)) { // game "horizontal"
-
-            horizontalHover= true;
-            return true;
-        }
-
-        if (speedyArea.contains(screenX, screenY)) { // game "speedy"
-            speedyHover= true;
-            return true;
-        }
-
-        if (scoreboardArea.contains(screenX, screenY)) { // schermata classifica
-            scoreboardHover = true;
-            return true;
-        }
-
-        return false;
-    }
-
-    private void setFalse() {
-        classic = gravity4 = horizontal = speedy = scoreboard = market = false;
-        settings = information = exit = false;
-        btnCloseInfo=false;
-        btnCloseSettings=false;
-        btnYesExit=false;
-        btnNoExit=false;
-        btnCloseMarket=false;
-        btnCloseScoreboard=false;
+        // stelle difficoltà
+        for ( int i=0; i<8; i++) starHover[i] = false;
     }
 
     // metodo per il controllo dei click
     private boolean checkHitboxes(int x, int y) {
-
-        setFalse();
-
-        if(isWindowOpenInfo || isWindowOpenSettings || isWindowOpenExit || isWindowOpenScoreboard || isWindowOpenMarket) {
-            // chiusura credits
-            if (isWindowOpenInfo && btnCloseInfoArea.contains(x, y)) {
+        // pagine in sovra impressione
+        if(isInfoOpen || isSettingsOpen || isLogoutOpen || isScoreboardOpen || isMarketOpen) {
+            // chiusura crediti di gioco
+            if (isInfoOpen && btnCloseInfoArea.contains(x, y)) {
                 btnCloseInfo = true;
                 clickedTimer = 0.15f;
                 setInputEnabled(false);
@@ -423,7 +275,7 @@ public class LobbyInput implements InputProcessor {
             }
 
             // chiusura impostazioni
-            if (isWindowOpenSettings && btnCloseSettingsArea.contains(x, y)) {
+            if (isSettingsOpen && btnCloseSettingsArea.contains(x, y)) {
                 // salvataggio modifiche volumi
                 UserProgressService.setProgress("effects_volume", effectsPercent); // salvataggio volume audio
                 UserProgressService.setProgress("music_volume", musicPercent); // salvataggio volume musica
@@ -436,7 +288,7 @@ public class LobbyInput implements InputProcessor {
             }
 
             // logout
-            if (isWindowOpenExit) {
+            if (isLogoutOpen) {
                 // click sul NO
                 if (btn_no.contains(x, y)) {
                     btnNoExit = true;
@@ -456,7 +308,7 @@ public class LobbyInput implements InputProcessor {
             }
 
             // impostazioni
-            if (isWindowOpenSettings) {
+            if (isSettingsOpen) {
 
                 // CLICK SULLA BARRA MUSICA
                 if (musicBarArea.contains(x, y)) {
@@ -482,9 +334,9 @@ public class LobbyInput implements InputProcessor {
             }
 
             // chiusura mercato
-            if(isWindowOpenMarket && btnCloseMarketArea.contains(x,y)) {
+            if(isMarketOpen && btnCloseMarketArea.contains(x,y)) {
                 btnCloseMarket=true;
-                clickedTimer = 0.15f;
+                //clickedTimer = 0.15f;
                 setInputEnabled(false);
 
                 scheduleScreenChange(ACT_CLOSE_MARKET, 0.20f);
@@ -493,7 +345,7 @@ public class LobbyInput implements InputProcessor {
             }
 
             // chiusura scoreboard
-            if(isWindowOpenScoreboard && btnCloseScoreboardArea.contains(x, y)) {
+            if(isScoreboardOpen && btnCloseScoreboardArea.contains(x, y)) {
                 btnCloseScoreboard = true;
                 clickedTimer = 0.15f;
                 setInputEnabled(false);
@@ -614,7 +466,7 @@ public class LobbyInput implements InputProcessor {
 
         // click pulsante classifica
         if (scoreboardArea.contains(x, y)) {
-            scoreboard = true;
+            isBtnScoreboardClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_SCOREBOARD, 0.20f);
@@ -623,7 +475,7 @@ public class LobbyInput implements InputProcessor {
 
         // -- COMMAND BAR --
         if (exitArea.contains(x, y)) {
-            exit = true;
+            isBtnLogoutClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_EXIT, 0.20f);
@@ -631,7 +483,7 @@ public class LobbyInput implements InputProcessor {
         }
 
         if (informationArea.contains(x, y)) {
-            information = true;
+            isBtnInfoClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_INFO, 0.20f);
@@ -639,11 +491,136 @@ public class LobbyInput implements InputProcessor {
         }
 
         if (settingsArea.contains(x, y)) {
-            settings = true;
+            isBtnSettingsClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_SETTINGS, 0.20f);
             return clicked();
+        }
+
+        return false;
+    }
+
+    // METODI DI InputProcessor //
+    // "ascolta" il movimento del mouse
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+
+        if (!inputEnabled) return false;
+
+        // reset hover
+        resetHover();
+
+
+        // sets hover states for open window buttons
+        if(isInfoOpen || isSettingsOpen || isLogoutOpen || isScoreboardOpen || isMarketOpen) {
+            // close game credits
+            if(btnCloseInfoArea.contains(screenX,screenY)) {
+                isBtnCloseInfoHover = true;
+                return true;
+            }
+
+            // close settings
+            if(btnCloseSettingsArea.contains(screenX,screenY)) {
+                isBtnCloseSettingsHover = true;
+                return true;
+            }
+            // no logout
+            if(btn_no.contains(screenX,screenY)) {
+                isBtnNoExitHover=true;
+                return  true;
+            }
+            // yes logout
+            if(btn_yes.contains(screenX,screenY)) {
+                isBtnYesExitHover=true;
+                return  true;
+            }
+            // close market -> l'ulteriore controllo con market server per evitare l'overlay della scoreboard
+            if(btnCloseMarketArea.contains(screenX,screenY) && isMarketOpen) {
+                isBtnCloseMarketHover=true;
+                return true;
+            }
+            // close scoreboard
+            if (btnCloseScoreboardArea.contains(screenX,screenY)) {
+                isBtnCloseScoreboardHover=true;
+                return true;
+            }
+
+            return false;
+        }
+
+
+        // hover per le stelle difficoltà modalità "classic"
+        if (classicStars[0].contains(screenX, screenY)) {
+            if (!starClicked[0]) starHover[0] = true;
+            return true;
+        }
+        else if (classicStars[1].contains(screenX, screenY)) {
+            if (!starClicked[1]) { starHover[1] = true; starHover[0] = true; }
+            return true;
+        }
+
+        // hover per le stelle difficoltà modalità "4 gravità"
+        if (gravityStars[0].contains(screenX, screenY)) {
+            if (!starClicked[2]) starHover[2] = true;
+            return true;
+        }
+        else if (gravityStars[1].contains(screenX, screenY)) {
+            if (!starClicked[3]) { starHover[3] = true; starHover[2] = true; }
+            return true;
+        }
+
+        // hover per le stelle difficoltà modalità "orizzontale"
+        if (horizontalStars[0].contains(screenX, screenY)) {
+            if (!starClicked[4]) starHover[4] = true;
+            return true;
+        }
+        else if (horizontalStars[1].contains(screenX, screenY)) {
+            if (!starClicked[5]) { starHover[5] = true; starHover[4] = true; }
+            return true;
+        }
+
+        // hover per le stelle difficoltà modalità "speedy"
+        if (speedyStars[0].contains(screenX, screenY)) {
+            if (!starClicked[6]) starHover[6] = true;
+            return true;
+        }
+        else if (speedyStars[1].contains(screenX, screenY)) {
+            if (!starClicked[7]) { starHover[7] = true; starHover[6] = true; }
+            return true;
+        }
+
+        // hover per i pulsanti delle schermate secondarie
+        if(marketButton.contains(screenX,screenY)) { // mercato
+            isBtnMarketHover=true;
+            return true;
+        }
+
+        if (classicArea.contains(screenX, screenY)) { // game "classic"
+            classicHover = true;
+
+            return true;
+        }
+
+        if (gravity4Area.contains(screenX, screenY)) { // game "gravity4"
+            gravity4Hover = true;
+            return true;
+        }
+
+        if (horizontalArea.contains(screenX, screenY)) { // game "horizontal"
+
+            horizontalHover= true;
+            return true;
+        }
+
+        if (speedyArea.contains(screenX, screenY)) { // game "speedy"
+            speedyHover= true;
+            return true;
+        }
+
+        if (scoreboardArea.contains(screenX, screenY)) { // schermata classifica
+            isBtnScoreboardHover = true;
+            return true;
         }
 
         return false;
@@ -658,7 +635,6 @@ public class LobbyInput implements InputProcessor {
         draggingEffects = false;
         return false;
     }
-
 
     // controllo drag del mouse
     @Override
@@ -675,23 +651,20 @@ public class LobbyInput implements InputProcessor {
     }
 
     // controllo click tasto tastiera
-    @Override public boolean keyDown(int keycode)
-    {
+    @Override public boolean keyDown(int keycode) {
         if (!inputEnabled) return false;
 
         // ESC chiude le finestre aperte (come click sulla X)
         if (keycode == Input.Keys.ESCAPE)
         {
             // pagina crediti di gioco
-            if (isWindowOpenInfo) {
-                isWindowOpenInfo = false;
-                btnCloseInfo = false;
-                isBtnCloseInfoHover = false;
+            if (isInfoOpen) {
+                isInfoOpen = false;
                 return true;
             }
 
             // pagina impostazioni di gioco
-            if (isWindowOpenSettings) {
+            if (isSettingsOpen) {
                 // salvataggio modifiche volumi
                 UserProgressService.setProgress("effects_volume", effectsPercent); // salvataggio volume audio
                 UserProgressService.setProgress("music_volume", musicPercent); // salvataggio volume musica
@@ -701,64 +674,49 @@ public class LobbyInput implements InputProcessor {
             }
 
             // pagina per il logout
-            if (isWindowOpenExit) {
-                isWindowOpenExit = false;
-                btnYesExit = false;
-                btnNoExit = false;
-                isBtnYesExitHover = false;
-                isBtnNoExitHover = false;
+            if (isLogoutOpen) {
+                isLogoutOpen = false;
                 return true;
             }
-            else if (!isWindowOpenMarket && !isWindowOpenScoreboard) isWindowOpenExit = true;
+            else if (!isMarketOpen && !isScoreboardOpen) isLogoutOpen = true;
 
-            if (isWindowOpenMarket) {
-                isWindowOpenMarket = false;
-                isBtnMarketClicked = false;
+            // mercato
+            if (isMarketOpen) {
+                isMarketOpen = false;
                 return true;
             }
 
-            if (isWindowOpenScoreboard) {
-                isWindowOpenScoreboard = false;
+            // scoreboard
+            if (isScoreboardOpen) {
+                isScoreboardOpen = false;
                 return true;
             }
         }
 
         return false;
     }
-    @Override public boolean keyUp(int i) { return false; }
-    @Override public boolean keyTyped(char c) { return false; }
-    @Override public boolean touchCancelled(int i, int i1, int i2, int i3) {
-        if (!inputEnabled) return false;
-        return false;
-    }
 
-    @Override public boolean scrolled(float v, float v1) {
-        if (!inputEnabled) return false;
-        return false;
-    }
-
+    // setter stato input
     public void setInputEnabled(boolean enabled) {
         this.inputEnabled = enabled;
-        if (!enabled) resetHover();
     }
-
+    // getter stato input
     public boolean isInputEnabled() { return inputEnabled; }
 
-
+    // metodo per impostare lo stato al click e il tempo di passaggio alla nuova schermata
     public void scheduleScreenChange(int nextState, float delaySeconds) {
         pendingScreenChange = true;
         pendingNextState = nextState;
         screenChangeDelay = delaySeconds;
     }
 
+    // metodo per aggiornare i tempi di delay dopo i click
     public void update(float delta) {
 
         // timer per spegnere "clicked"
         if (clickedTimer > 0f) {
             clickedTimer -= delta;
-            if (clickedTimer <= 0f) {
-                resetClickedFlags();
-            }
+            if (clickedTimer <= 0f) resetClickedFlags();
         }
 
         // timer per azione ritardata
@@ -772,66 +730,67 @@ public class LobbyInput implements InputProcessor {
         }
     }
 
+    // azioni al click
     private void executePendingAction(int act) {
         // qui stai ancora nella lobby -> riaccendi input
         setInputEnabled(true);
 
         switch (act) {
             case ACT_OPEN_MARKET:
-                isWindowOpenMarket = true;
+                isMarketOpen = true;
                 break;
 
             case ACT_OPEN_SCOREBOARD:
-                isWindowOpenScoreboard = true;
+                isScoreboardOpen = true;
                 break;
 
             case ACT_OPEN_INFO:
-                isWindowOpenInfo = true;
+                isInfoOpen = true;
                 break;
 
             case ACT_OPEN_SETTINGS:
-                isWindowOpenSettings = true;
+                isSettingsOpen = true;
                 break;
 
             case ACT_OPEN_EXIT:
-                isWindowOpenExit = true;
+                isLogoutOpen = true;
                 break;
 
             case ACT_CLOSE_INFO:
-                isWindowOpenInfo = false;
-                btnCloseInfo = false;
-                isBtnCloseInfoHover = false;
+                isInfoOpen = false;
                 break;
 
             case ACT_CLOSE_SETTINGS:
-                isWindowOpenSettings = false;
-                btnCloseSettings = false;
-                isBtnCloseSettingsHover = false;
+                isSettingsOpen = false;
                 draggingMusic = false;
                 draggingEffects = false;
                 break;
 
             case ACT_CLOSE_EXIT:
-                isWindowOpenExit = false;
-                btnNoExit = false;
-                isBtnNoExitHover = false;
+                isLogoutOpen = false;
                 break;
 
             case ACT_YES_EXIT:
-                isWindowOpenExit = false;
-                btnYesExit = false;
-                isBtnYesExitHover = false;
+                isLogoutOpen = false;
                 break;
 
             case ACT_CLOSE_MARKET:
-                isWindowOpenMarket=false;
-                isBtnMarketClicked=false;
-                market=false;
+                isMarketOpen=false;
                 break;
 
             case ACT_CLOSE_SCOREBOARD:
-                isWindowOpenScoreboard=false;
+                isScoreboardOpen=false;
                 break;
         }
+    }
+
+    // ALTRI METODI DI InputProcessor //
+    @Override public boolean keyUp(int i) { return false; }
+    @Override public boolean keyTyped(char c) { return false; }
+    @Override public boolean touchCancelled(int i, int i1, int i2, int i3) {
+        return false;
+    }
+    @Override public boolean scrolled(float v, float v1) {
+        return false;
     }
 }

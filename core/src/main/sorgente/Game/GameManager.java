@@ -30,7 +30,7 @@ public class GameManager extends ScreenAdapter
         ui = new GameUI(game,input, dark,d,mod);
 
 
-        log.info(d);
+        //log.info(d);
 
         soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game.mp3")); // file audio
         soundGame.setLooping(true); // true=loop music; false=no loop

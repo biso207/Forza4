@@ -357,45 +357,45 @@ public class LobbyUI implements ResourceLoader {
         draw(gameMode_clicked, lobbyInput.horizontal,512, 334);
         draw(gameMode_clicked, lobbyInput.speedy,752, 334);
 
-        draw(market_hover,   lobbyInput.market,833,588);
+        draw(market_hover,   lobbyInput.isBtnMarketHover,833,588);
         draw(market_clicked, lobbyInput.isBtnMarketClicked,833,588);
 
 
         // --- SECONDARY BUTTONS ---
-        draw(center_hover, lobbyInput.scoreboardHover,369,91);
-        draw(center_clicked, lobbyInput.scoreboard,369,91);
+        draw(center_hover, lobbyInput.isBtnScoreboardHover,369,91);
+        draw(center_clicked, lobbyInput.isBtnScoreboardClicked,369,91);
 
         // --- COMMAND BAR ICONS ---
-        draw(btn_logout,   !lobbyInput.exit,429,41);
-        draw(btn_infos,    !lobbyInput.information,481,41);
-        draw(btn_settings, !lobbyInput.settings,541,41);
+        draw(btn_logout,   !lobbyInput.isBtnLogoutClicked,429,41);
+        draw(btn_infos,    !lobbyInput.isBtnInfoClicked,481,41);
+        draw(btn_settings, !lobbyInput.isBtnSettingsClicked,541,41);
 
-        draw(btn_logout_clicked,   lobbyInput.exit,429,41);
-        draw(btn_infos_clicked,    lobbyInput.information,481,41);
-        draw(btn_settings_clicked, lobbyInput.settings,541,41);
+        draw(btn_logout_clicked,   lobbyInput.isBtnLogoutClicked,429,41);
+        draw(btn_infos_clicked,    lobbyInput.isBtnInfoClicked,481,41);
+        draw(btn_settings_clicked, lobbyInput.isBtnSettingsClicked,541,41);
 
         // --- SECONDARY WINDOWS ---
-        draw(software_infos, lobbyInput.isWindowOpenInfo,      244,194);
-        draw(logout,         lobbyInput.isWindowOpenExit,      294,204);
-        draw(settings,       lobbyInput.isWindowOpenSettings,  244,223);
-        draw(scoreboard,     lobbyInput.isWindowOpenScoreboard,93,142);
-        draw(market,         lobbyInput.isWindowOpenMarket,    93,155);
+        draw(software_infos, lobbyInput.isInfoOpen,      244,194);
+        draw(logout,         lobbyInput.isLogoutOpen,      294,204);
+        draw(settings,       lobbyInput.isSettingsOpen,  244,223);
+        draw(scoreboard,     lobbyInput.isScoreboardOpen,93,142);
+        draw(market,         lobbyInput.isMarketOpen,    93,155);
 
         //--- INSIDE SECONDARY WINDOWS ---
         // marketPlace
-        if (lobbyInput.isWindowOpenMarket) {
+        if (lobbyInput.isMarketOpen) {
             draw(btn_close,lobbyInput.isBtnCloseMarketHover,822,470);
             draw(btn_close_clicked, lobbyInput.btnCloseMarket, 822, 470);
         }
 
         // crediti sviluppo gioco
-        if (lobbyInput.isWindowOpenInfo) {
+        if (lobbyInput.isInfoOpen) {
             draw(btn_close,lobbyInput.isBtnCloseInfoHover,694,440);
             draw(btn_close_clicked, lobbyInput.btnCloseInfo, 694, 440);
         }
 
         // impostazioni
-        if (lobbyInput.isWindowOpenSettings) {
+        if (lobbyInput.isSettingsOpen) {
             // finestra impostazioni
             screen.draw(settings, 244, 223);
 
@@ -422,7 +422,7 @@ public class LobbyUI implements ResourceLoader {
         }
 
         // logout
-        if (lobbyInput.isWindowOpenExit) {
+        if (lobbyInput.isLogoutOpen) {
             draw(btn_yes,lobbyInput.isBtnYesExitHover,342,244);
             draw(btn_yes_clicked,lobbyInput.btnYesExit,342,244);
 
@@ -431,7 +431,7 @@ public class LobbyUI implements ResourceLoader {
         }
 
         // scoreboard
-        if (lobbyInput.isWindowOpenScoreboard) {
+        if (lobbyInput.isScoreboardOpen) {
             draw(btn_close, lobbyInput.isBtnCloseScoreboardHover,822,482);
             draw(btn_close_clicked, lobbyInput.btnCloseScoreboard, 822, 482);
 
@@ -483,12 +483,10 @@ public class LobbyUI implements ResourceLoader {
 
                 disposeUI();
 
-                switch (pendingMode)
-                {
+                switch (pendingMode) {
                     case 0:
                         game.setScreen(new GameManager(game, LobbyInput.difficolta[0], darkMode, pendingMode));
                         LobbyManager.soundtrack.stop();
-
                         return;
                     case 1:
                         game.setScreen(new GameManager(game, LobbyInput.difficolta[1], darkMode,pendingMode));

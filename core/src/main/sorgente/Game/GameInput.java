@@ -55,14 +55,6 @@ public class GameInput implements InputProcessor {
     public Rectangle[][] holes = new Rectangle[6][7];
     public Array<Rectangle> allHoles = new Array<>();
 
-    // Dimensioni
-    private final float cellWidth = 80f;
-    private final float cellHeight = 700f / 6f;
-    private final float holeSize = 52f;
-    private final float offsetX = (cellWidth - holeSize) / 2f;
-    private final float offsetY = (cellHeight - holeSize) / 2f;
-    private final float gridOffsetX = (1000f - (cellWidth * 7)) / 2f;
-
     public GameInput(int mod) {
 
         // Cursor
@@ -71,13 +63,19 @@ public class GameInput implements InputProcessor {
         Gdx.graphics.setCursor(cursor);
 
         // Exit
-        exit = new Rectangle(840, 93, 52, 52);
+        exit = new Rectangle(825, 58, 50, 50);
 
-        // Griglia
+        // griglia
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 7; col++) {
+                // dimensioni griglia
+                float cellWidth = 42;
+                float holeSize = 40;
+                float offsetX = (cellWidth - holeSize) / 2f;
+                float gridOffsetX = (1000f - (cellWidth * 7)) / 2f;
                 float x = gridOffsetX + col * cellWidth + offsetX;
-                float y = 700f - ((row + 1) * cellHeight) + offsetY;
+                float offsetY = (cellWidth - holeSize) / 2f;
+                float y = 700f - ((row + 1) * cellWidth) + offsetY;
 
                 Rectangle rect = new Rectangle(x, y, holeSize, holeSize);
                 holes[row][col] = rect;
@@ -96,10 +94,11 @@ public class GameInput implements InputProcessor {
         btnWild      = new Rectangle(290, 600, 64, 64);
     }
 
+    // handles touch input; activates boosts; detects grid clicks
     @Override
     public boolean touchDown(int x, int y, int pointer, int button) {
 
-        log.info("Touch at: " + x + ", " + y);
+        System.out.println(x + " " + y);
 
         checkHitBox(x, y);
 
@@ -177,7 +176,7 @@ public class GameInput implements InputProcessor {
             }, 100);
         }
 
-        if (GameUI.rigioca) {
+        if (GameUI.isMatchOver) {
 
             if (btn_no.contains(x, y)) {
                 btnNoExit = true;
@@ -194,7 +193,7 @@ public class GameInput implements InputProcessor {
 
         isBtnExitHover = exit.contains(x, y);
 
-        if (GameUI.rigioca) {
+        if (GameUI.isMatchOver) {
             isBtnNoExitHover = btn_no.contains(x, y);
             isBtnYesExitHover = btn_yes.contains(x, y);
         }

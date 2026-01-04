@@ -1,11 +1,17 @@
+/*
+Forza4 • class CPUBrain •
+Questa classe è il cervello della CPU. Diventa più 'smart' in base alla difficoltà e viene controllato anche se
+una mossa utente o CPU provoca la vittoria di una partita
+Developed by Drop Logic©. All rights reserved.
+*/
+
 package sorgente.Game;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class ModeInputManager
-{
+public class CPUBrain {
 
     // 🔢 Livello di difficoltà del bot:
     // 0 = facile (mossa casuale)
@@ -21,9 +27,7 @@ public class ModeInputManager
     private final int modalita;
 
     // 🧱 Costruttore: inizializza il bot con difficoltà e colore
-
-    public ModeInputManager(int difficulty, int botToken, int mod)
-    {
+    public CPUBrain(int difficulty, int botToken, int mod) {
         this.difficulty = difficulty;
         this.botToken = botToken;
 
@@ -35,22 +39,16 @@ public class ModeInputManager
     // Riceve lo stato attuale della griglia (6x7) e restituisce l’indice della colonna scelta
     public int chooseMove(int[][] board)
     {
-        switch (difficulty)
-        {
-            case 0:
-                return randomMove(board); // livello facile: mossa casuale
-            case 1:
-                return smartMove(board);  // livello medio: cerca di vincere o bloccare
-            case 2:
-                return bestMove(board);   // livello difficile: da implementare
-            default:
-                return randomMove(board); // fallback: se il livello è sconosciuto, gioca a caso
-        }
+        return switch (difficulty) {
+            case 0 -> randomMove(board); // livello facile: mossa casuale
+            case 1 -> smartMove(board);  // livello medio: cerca di vincere o bloccare
+            case 2 -> bestMove(board);   // livello difficile: da implementare
+            default -> randomMove(board); // fallback: se il livello è sconosciuto, gioca a caso
+        };
     }
 
     // 🎲 Mossa casuale: sceglie una colonna libera a caso
-    private int randomMove(int[][] board)
-    {
+    private int randomMove(int[][] board) {
         List<Integer> validCols = new ArrayList<>();
 
         // Scansiona tutte le colonne
@@ -68,8 +66,7 @@ public class ModeInputManager
     }
 
     // 🧠 Mossa intelligente: prova a vincere o bloccare l’avversario
-    private int smartMove(int[][] board)
-    {
+    private int smartMove(int[][] board) {
         // 1️⃣ Prova a vincere: simula ogni colonna e verifica se può chiudere la partita
         for (int col = 0; col < 7; col++)
         {
@@ -154,8 +151,7 @@ public class ModeInputManager
 
 
     // 🔽 Trova la prima riga libera in una colonna (dal basso verso l’alto)
-    private int getLowestFreeRow(int[][] board, int col)
-    {
+    private int getLowestFreeRow(int[][] board, int col) {
         for (int row = 5; row >= 0; row--) {
             if (board[row][col] == 0) {
                 return row;
@@ -165,8 +161,7 @@ public class ModeInputManager
     }
 
     // ✅ Controlla se una mossa ha generato una vittoria
-    public boolean checkWin(int[][] board, int row, int col, int token)
-    {
+    public boolean checkWin(int[][] board, int row, int col, int token) {
 
         if(GameUI.mod == 2)
         {
