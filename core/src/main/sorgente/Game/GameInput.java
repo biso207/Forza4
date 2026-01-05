@@ -54,6 +54,8 @@ public class GameInput implements InputProcessor {
     // Griglia
     public Rectangle[][] holes = new Rectangle[6][7];
     public Array<Rectangle> allHoles = new Array<>();
+    // abilita/disabilita click sulla griglia (serve per bloccare le mosse durante drop/bot)
+    private boolean gridEnabled = true;
 
     public GameInput(int mod) {
 
@@ -65,17 +67,19 @@ public class GameInput implements InputProcessor {
         // Exit
         exit = new Rectangle(825, 58, 50, 50);
 
-        // griglia
+        // griglia (bottom-left = 261,605; dx=71; dy=61; hole=40)
+        final float baseX = 261f; // x1
+        final float baseY = 605f; // y1
+        final float dx = 69f; // distanza tra colonne
+        final float dy = 61f; // distanza tra righe
+        final float holeSize = 40f; // dimensione cella
+
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 7; col++) {
-                // dimensioni griglia
-                float cellWidth = 42;
-                float holeSize = 40;
-                float offsetX = (cellWidth - holeSize) / 2f;
-                float gridOffsetX = (1000f - (cellWidth * 7)) / 2f;
-                float x = gridOffsetX + col * cellWidth + offsetX;
-                float offsetY = (cellWidth - holeSize) / 2f;
-                float y = 700f - ((row + 1) * cellWidth) + offsetY;
+
+                // row 0 = in basso, row 5 = in alto
+                float x = baseX + col * dx;
+                float y = baseY + row * dy;
 
                 Rectangle rect = new Rectangle(x, y, holeSize, holeSize);
                 holes[row][col] = rect;
@@ -123,11 +127,9 @@ public class GameInput implements InputProcessor {
             return true;
         }
 
-        // Click sulla griglia
+        // click sulla griglia
         int col = getColumnFromClick(x, y);
-        if (col != -1) {
-            isHole = true;
-        }
+        if (gridEnabled && col != -1) isHole = true;
 
         return false;
     }
@@ -166,9 +168,11 @@ public class GameInput implements InputProcessor {
 
     private void checkHitBox(int x, int y) {
 
+        // todo: al click della X chiedere se chiudere o meno, non interrompere immediatamente
         if (exit.contains(x, y)) {
             isBtnExitClicked = true;
 
+            // todo: rimuovere il thread e ricreare il sistema della lobby
             new Timer().schedule(new TimerTask() {
                 @Override public void run() {
                     isBtnExitClicked = false;
@@ -177,15 +181,18 @@ public class GameInput implements InputProcessor {
         }
 
         if (GameUI.isMatchOver) {
-
-            if (btn_no.contains(x, y)) {
-                btnNoExit = true;
-            }
-
-            if (btn_yes.contains(x, y)) {
-                btnYesExit = true;
-            }
+            if (btn_no.contains(x, y)) btnNoExit = true;
+            if (btn_yes.contains(x, y)) btnYesExit = true;
         }
+    }
+
+    // setter e getter stato click sulla griglia
+    public void setGridEnabled(boolean enabled) {
+        gridEnabled = enabled;
+        if (!enabled) isHole = false; // pulizia: cancella click pendenti
+    }
+    public boolean isGridEnabled() {
+        return gridEnabled;
     }
 
     @Override

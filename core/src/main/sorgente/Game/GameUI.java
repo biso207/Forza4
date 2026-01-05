@@ -7,12 +7,9 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import sorgente.Fonts;
+import sorgente.*;
 import sorgente.Lobby.LobbyInput;
 import sorgente.Lobby.LobbyManager;
-import sorgente.Main;
-import sorgente.ResourceLoader;
-import sorgente.SoundManager;
 import sorgente.UserData.UserProgressService;
 
 public class GameUI extends ScreenAdapter implements ResourceLoader
@@ -80,7 +77,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private float dropTargetX = 0f, dropTargetY = 0f;
 
     // velocità animazione (px/sec) -> regola se troppo lenta/veloce
-    private static final float DROP_SPEED = 1800f;
+    private static final float DROP_SPEED = 800f;
 
     // --- GRAVITY4: ordine direzioni per OGNI mossa ---
     private int gravityStep = 0; // 0 TOP, 1 BOTTOM, 2 RIGHT, 3 LEFT
@@ -89,7 +86,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private boolean botPending = false;
     private float botDelayTimer = 0f;
     private int botPlannedRow = -1, botPlannedCol = -1;
-    private static final float BOT_THINK_DELAY = 0.65f;
+    private static final float BOT_THINK_DELAY = 0.65f; // delay tra mossa utente e mossa bot CPU
 
     // Stato della griglia: 0 = vuoto, 1 = rosso / 2 = giallo
     private final int[][] boardState = new int[6][7];
@@ -333,10 +330,18 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         // start position fuori schermo in base alla direzione
         switch (dropDir) {
-            case TOP -> { dropX = dropTargetX; dropY = Gdx.graphics.getHeight() + 120f; }
-            case BOTTOM -> { dropX = dropTargetX; dropY = -120f; }
-            case RIGHT -> { dropX = Gdx.graphics.getWidth() + 120f; dropY = dropTargetY; }
-            case LEFT -> { dropX = -120f; dropY = dropTargetY; }
+            case TOP -> {
+                dropX = dropTargetX;
+                dropY = 460f; }
+            case BOTTOM -> {
+                dropX = dropTargetX;
+                dropY = -120f; }
+            case RIGHT -> {
+                dropX = Gdx.graphics.getWidth() + 120f;
+                dropY = dropTargetY; }
+            case LEFT -> {
+                dropX = -120f;
+                dropY = dropTargetY; }
         }
     }
 
@@ -414,14 +419,21 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             int botCol = CPUBrain.chooseMove(boardState);
             int botRow = gameInput.getLowestFreeRow(botCol, boardStateAsBoolean());
 
-            if (botRow != -1)
-            {
+            if (botRow != -1) {
                 botPlannedCol = botCol;
                 botPlannedRow = botRow;
 
                 botPending = true;
                 botDelayTimer = BOT_THINK_DELAY;
+
+                // griglia bloccata per l'utente
+                gameInput.setGridEnabled(false);
             }
+        }
+
+        // sblocco griglia per l'utente
+        if (!isMatchOver && player == 2) {
+            gameInput.setGridEnabled(true);
         }
     }
 
@@ -437,12 +449,17 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         // aggiorna animazione caduta
         updateDrop(delta);
+        // evita che l'utente annulli la mossa del bot
+        gameInput.setGridEnabled(!dropActive && !botPending && !isMatchOver);
 
         // delay bot (solo se non sta già cadendo una pedina)
         if (botPending && !dropActive) {
             botDelayTimer -= delta;
             if (botDelayTimer <= 0f) {
                 botPending = false;
+
+                // griglia bloccata per l'utente
+                gameInput.setGridEnabled(false);
 
                 // avvia caduta del bot (player 2)
                 if (botPlannedRow != -1 && botPlannedCol != -1) startDrop(2, botPlannedRow, botPlannedCol);
@@ -459,11 +476,21 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // disegno tabella
         screen.draw(table, 248, 71);
 
+        // NOME AZIENDA //
+        Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
+        // VERSIONE DI GIOCO //
+        String text = "Beta " + VersionInfo.getVersion();
+        // calcolo larghezza del testo
+        GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
+        // stampa testo
+        Fonts.medium20.draw(screen, layout, (955 - layout.width), 63);
+
         // finestra riavvio/chiusura gioco => mostrata solo alla fine di una partita
         draw(replay, isMatchOver, 294, 204);
 
         // partita conclusa
         if (isMatchOver) {
+            // todo: correggere le posizioni dei testi VICTORY/DEFEAT
             // testo vittoria/sconfitta
             if (victory) Fonts.draw(screen, "VICTORY", 49, 63, Fonts.bold40); // vittoria
             else Fonts.draw(screen, "DEFEAT", 49, 63, Fonts.bold40); // sconfitta
@@ -483,6 +510,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             // durante animazione o “pensiero bot” ignora input del player
             if (dropActive || botPending) gameInput.isHole = false;
 
+            // todo: capire perché non funzionano mai e risolvere il bug
             // pulsante in alto a dx per chiudere la partita
             draw(exit, gameInput.isBtnExitClicked, 825, 591);
             draw(exitHover, gameInput.isBtnExitHover, 825, 591);
