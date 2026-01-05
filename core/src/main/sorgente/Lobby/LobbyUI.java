@@ -9,6 +9,7 @@ package sorgente.Lobby;
 
 // import classi e librerie
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import sorgente.Authentication.AuthManager;
@@ -233,21 +234,50 @@ public class LobbyUI implements ResourceLoader {
 
         sortedMap.putAll(map);
 
-        int y = 207;
+        // posizioni iniziali e incrementi
+        int startY, nameStartX, pointsStartX, changeY;
+        BitmapFont font;
+
+        if (numUsers==5) { // scoreboard con 5 utenti
+            nameStartX = 410;
+            pointsStartX = 555;
+            startY = 207;
+            changeY = 22;
+            font = Fonts.bold15;
+        }
+        else { // scoreboard con 20 utenti
+            nameStartX = 195;
+            pointsStartX = 380;
+            startY = 460;
+            changeY = 30;
+            font = Fonts.bold20;
+        }
+
+        // posizioni variabili della scoreboard
+        int nameX = nameStartX, y = startY;
+        int pointsX = pointsStartX;
+        // contatore utenti mostrati
         int count = 0;
 
         for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+
             String name = entry.getKey();
             int points = entry.getValue();
 
             // stampa nome e punti
-            Fonts.draw(screen, name, 410, y, Fonts.bold15);
-            Fonts.draw(screen, formatter.format(points), 555, y, Fonts.bold15);
+            Fonts.draw(screen, name, nameX, y, font);
+            Fonts.draw(screen, formatter.format(points), pointsX, y, font);
 
-            y -= 22;
+            y -= changeY;
             count++;
 
             if (count == numUsers) break;
+            // metà classifica per la scoreboard da 20 utenti
+            if (count == 10) {
+                nameX = 570;
+                pointsX = 760;
+                y = startY;
+            }
         }
     }
 
@@ -485,30 +515,24 @@ public class LobbyUI implements ResourceLoader {
 
                 switch (pendingMode) {
                     case 0:
-                        game.setScreen(new GameManager(game, LobbyInput.difficolta[0], darkMode, pendingMode));
+                        game.setScreen(new GameManager(game, darkMode, pendingMode));
                         LobbyManager.soundtrack.stop();
                         return;
                     case 1:
-                        game.setScreen(new GameManager(game, LobbyInput.difficolta[1], darkMode,pendingMode));
+                        game.setScreen(new GameManager(game, darkMode,pendingMode));
                         LobbyManager.soundtrack.stop();
                         return;
                     case 2:
-                        game.setScreen(new GameManager(game, LobbyInput.difficolta[2], darkMode,pendingMode));
+                        game.setScreen(new GameManager(game, darkMode,pendingMode));
                         LobbyManager.soundtrack.stop();
                         return;
                     case 3:
-                        game.setScreen(new GameManager(game, LobbyInput.difficolta[3], darkMode,pendingMode));
+                        game.setScreen(new GameManager(game, darkMode,pendingMode));
                         LobbyManager.soundtrack.stop();
                         return;
                     case 4:
                         // interruzione musica
                         LobbyManager.soundtrack.stop();
-
-                        // salvataggio difficoltà modalità di gioco
-                        UserProgressService.setProgress("diff_classic", LobbyInput.difficolta[0]);
-                        UserProgressService.setProgress("diff_gravity4", LobbyInput.difficolta[1]);
-                        UserProgressService.setProgress("diff_horizontal", LobbyInput.difficolta[2]);
-                        UserProgressService.setProgress("diff_speedy", LobbyInput.difficolta[3]);
 
                         // passaggio schermata di autenticazione
                         game.setScreen(new AuthManager(game));

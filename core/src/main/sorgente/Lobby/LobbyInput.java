@@ -357,10 +357,30 @@ public class LobbyInput implements InputProcessor {
         }
 
         // controllo click stelle difficoltà 1 per disattivare le altre
-        if (classicStar1.contains(x, y))    { difficolta[0]=0; return clicked(); }
-        if (gravityStar1.contains(x, y))    { difficolta[1]=0; return clicked(); }
-        if (horizontalStar1.contains(x, y)) { difficolta[2]=0; return clicked(); }
-        if (speedyStar1.contains(x, y))     { difficolta[3]=0; return clicked(); }
+        if (classicStar1.contains(x, y))    {
+            difficolta[0]=0;
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_classic", LobbyInput.difficolta[0]);
+            return clicked();
+        }
+        if (gravityStar1.contains(x, y))    {
+            difficolta[1]=0;
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_gravity4", LobbyInput.difficolta[1]);
+            return clicked();
+        }
+        if (horizontalStar1.contains(x, y)) {
+            difficolta[2]=0;
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_horizontal", LobbyInput.difficolta[2]);
+            return clicked();
+        }
+        if (speedyStar1.contains(x, y))     {
+            difficolta[3]=0;
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_speedy", LobbyInput.difficolta[3]);
+            return clicked();
+        }
 
         // -- Difficoltà Game Mode "Classic" --
         // stella difficoltà 2
@@ -368,12 +388,18 @@ public class LobbyInput implements InputProcessor {
             if (difficolta[0] == 1 || difficolta[0] == 2) difficolta[0] = 0;   // se era 1 o 2 -> torna 0
             else difficolta[0] = 1;   // se era 0 -> diventa 1
 
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_classic", LobbyInput.difficolta[0]);
+
             return clicked();
         }
         // stella difficoltà 3
         if (classicStars[1].contains(x, y)) {
             if (difficolta[0] == 2) difficolta[0] = 1;   // se era 2 -> torna 1
             else difficolta[0] = 2;   // se era 0 o 1 -> diventa 2
+
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_classic", LobbyInput.difficolta[0]);
 
             return clicked();
         }
@@ -383,12 +409,20 @@ public class LobbyInput implements InputProcessor {
         if (gravityStars[0].contains(x, y)) {
             if (difficolta[1] == 1 || difficolta[1] == 2) difficolta[1] = 0;
             else difficolta[1] = 1;
+
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_gravity4", LobbyInput.difficolta[1]);
+
             return clicked();
         }
         // stella difficoltà 3
         if (gravityStars[1].contains(x, y)) {
             if (difficolta[1] == 2) difficolta[1] = 1;
             else difficolta[1] = 2;
+
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_gravity4", LobbyInput.difficolta[1]);
+
             return clicked();
         }
 
@@ -397,12 +431,20 @@ public class LobbyInput implements InputProcessor {
         if (horizontalStars[0].contains(x, y)) {
             if (difficolta[2] == 1 || difficolta[2] == 2) difficolta[2] = 0;
             else difficolta[2] = 1;
+
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_horizontal", LobbyInput.difficolta[2]);
+
             return clicked();
         }
         // stella difficoltà 2
         if (horizontalStars[1].contains(x, y)) {
             if (difficolta[2] == 2) difficolta[2] = 1;
             else difficolta[2] = 2;
+
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_horizontal", LobbyInput.difficolta[2]);
+
             return clicked();
         }
 
@@ -411,12 +453,20 @@ public class LobbyInput implements InputProcessor {
         if (speedyStars[0].contains(x, y)) {
             if (difficolta[3] == 1 || difficolta[3] == 2) difficolta[3] = 0;
             else difficolta[3] = 1;
+
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_speedy", LobbyInput.difficolta[3]);
+
             return clicked();
         }
         // stella difficoltà 2
         if (speedyStars[1].contains(x, y)) {
             if (difficolta[3] == 2) difficolta[3] = 1;
             else difficolta[3] = 2;
+
+            // salvataggio in remoto
+            UserProgressService.setProgress("diff_speedy", LobbyInput.difficolta[3]);
+
             return clicked();
         }
 

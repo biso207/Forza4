@@ -8,9 +8,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.*;
+import sorgente.Authentication.AuthAlgorithms;
 import sorgente.Lobby.LobbyInput;
 import sorgente.Lobby.LobbyManager;
+import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.UserProgressService;
+
+import java.io.IOException;
 
 public class GameUI extends ScreenAdapter implements ResourceLoader
 {
@@ -19,7 +23,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private final SpriteBatch screen;
 
     private final GlyphLayout layout = new GlyphLayout();
-    private final int difficolta;
     private float cursorTimer = 0f;
     private boolean cursorVisible = true;
     private boolean goToAuth = false;
@@ -28,7 +31,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private final CPUBrain CPUBrain;
 
     private boolean darkMode;
-    static int mod;
+    protected static int mod; // modalità di gioco
 
     private float modeTransitionTimer = 0f;
     private boolean modeTransition = false;
@@ -53,18 +56,20 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // Editable Texture
     private Texture gameBG;
     private Texture table;
+    // X quit partita
     private Texture exit;
     private Texture exitHover;
     private Texture replay;
-
+    // pedine
     private Texture red;
     private Texture yellow;
-
+    // yes/no riavvio partita
     private Texture btn_no;
     private Texture btn_yes;
-
     private Texture btn_no_clicked;
     private Texture btn_yes_clicked;
+    // stella difficoltà
+    private Texture starDifficulty;
 
     // --- DROP ANIMATION ---
     private enum DropDir { TOP, BOTTOM, RIGHT, LEFT }
@@ -90,32 +95,83 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     // Stato della griglia: 0 = vuoto, 1 = rosso / 2 = giallo
     private final int[][] boardState = new int[6][7];
-    private int punti = (int) UserProgressService.getProgress("points");
-    private int vittorie = 0;
 
     // Freeze power-up
     private int freezeColumn = -1;
     private int freezeTurns = 0;
 
-    public GameUI (Main game, GameInput in, boolean dark, int d, int mod) {
+    // pedine utente e bot giocate
+    private int numTokensUser=0, numTokensBot=0;
+    // difficoltà di gioco, punti e crediti per partita
+    private int gameDifficulty, points, credits;
+    // nome modalità di gioco
+    private String modName;
+    // lettura punti e crediti utente
+    private final int punti = (int) UserProgressService.getProgress("points");
+    private final int crediti = (int) UserProgressService.getProgress("credits");
+
+    public GameUI (Main game, GameInput in, boolean dark, int mod) {
         this.game = game;
         this.screen = game.screen;
-        this.mod = mod;
+        GameUI.mod = mod;
 
-        difficolta = d;
         isMatchOver=victory=false;
 
         Fonts.load();
         darkMode = dark;
         gameInput = in;
-        CPUBrain = new CPUBrain(d, 2, mod);
         loadImages();
 
-        //log.info(punti);
 
         // inizializza boardState
         for (int r = 0; r < 6; r++) {
             for (int c = 0; c < 7; c++) boardState[r][c] = 0;
+        }
+
+        // variabili basate sulla modalità di gioco
+        switch(mod) {
+            case 0 -> {
+                // nome modalità
+                modName = "CLASSIC";
+                // difficoltà
+                gameDifficulty = (int) UserProgressService.getProgress("diff_classic");
+            }
+            case 1 -> {
+                // nome modalità
+                modName = "GRAVITY4";
+                // difficoltà
+                gameDifficulty = (int) UserProgressService.getProgress("diff_gravity4");
+            }
+            case 2 -> {
+                // nome modalità
+                modName = "HORIZONTAL";
+                // difficoltà
+                gameDifficulty = (int) UserProgressService.getProgress("diff_horizontal");
+            }
+            case 3 -> {
+                // nome modalità
+                modName = "SPEEDY";
+                // difficoltà
+                gameDifficulty = (int) UserProgressService.getProgress("diff_speedy");
+            }
+        }
+
+        CPUBrain = new CPUBrain(gameDifficulty, 2, mod);
+
+        System.out.println(gameDifficulty);
+        switch(gameDifficulty) {
+            case 0 -> {
+                points = 20;
+                credits = 2;
+            }
+            case 1 -> {
+                points = 60;
+                credits = 6;
+            }
+            case 2 -> {
+                points = 100;
+                credits = 10;
+            }
         }
     }
 
@@ -127,7 +183,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private void loadDarkMode()
     {
         lightGameBG = new Texture("game_mods_screens/light/base_light.png");
-        lightTable = new Texture("game_mods_screens/dark/game_table.png");
+        lightTable = new Texture("game_mods_screens/light/game_table.png");
         lightExit = new Texture("ui/buttons/game/light/quit_light_clicked.png");
         lightExitHover = new Texture("ui/buttons/game/light/quit_light.png");
         lightReplay = new Texture("game_mods_screens/light/play_again_light.png");
@@ -142,15 +198,20 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         darkReplay = new Texture("game_mods_screens/dark/play_again_dark.png");
     }
 
-    private void aggiornaPunteggio(int delta)
-    {
-        punti += delta;
+    private void saveUserProgresses(int delta, int player) throws IOException {
+        int nuovoPunteggio; // punteggio da aggiungere/rimuovere allo storico
+        int nuoviCrediti=0; // crediti da aggiungere allo storico in caso di vittoria
 
-        if (punti < 0) {
-            punti = 0;
+        if (player == 1) { // vittoria
+            nuovoPunteggio = punti + delta;
+            nuoviCrediti = credits;
         }
+        else nuovoPunteggio = Math.max(0, punti - delta); // sconfitta (punteggio minimo utente 0)
 
-        UserProgressService.setProgress("points", punti);
+        UserProgressService.setProgress("credits", crediti+nuoviCrediti); // salvataggio crediti
+        UserProgressService.setProgress("points", nuovoPunteggio); // salvataggio nei progressi utente
+        FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, nuovoPunteggio); // salvataggio nel campo "points"
+
     }
 
     private void isDark(boolean dark)
@@ -189,7 +250,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     {
         isMatchOver = false;
         victory = false;
-        vittorie = 0;
 
         // reset griglia
         for (int r = 0; r < 6; r++)
@@ -222,7 +282,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         pendingMode = -1;
         modeTransitionTimer = 0f;
 
-        log.info("Gioco resettato correttamente");
+        numTokensBot=numTokensUser=0;
     }
 
     // ---------------- POWER-UP METHODS ----------------
@@ -346,7 +406,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     }
 
     // metodo per aggiornare l'animazione
-    private void updateDrop(float delta) {
+    private void updateDrop(float delta) throws IOException {
         if (!dropActive) return;
 
         float dx = dropTargetX - dropX;
@@ -365,7 +425,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             // Gravity4: avanza direzione SOLO dopo una mossa completata
             if (mod == 1) gravityStep = (gravityStep + 1) % 4;
 
-            // ora che la pedina è davvero piazzata, fai logica (win/bot/etc.)
+            if (dropPlayer==1) numTokensUser++;
+            else numTokensBot++;
+
+            // pedina piazzata => logica di vittoria/sconfitta
             onTokenLanded(dropPlayer, dropRow, dropCol);
             return;
         }
@@ -384,33 +447,17 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     // metodo per i controlli chiamato appena la pedina 'atterra' sulla tabella
     // viene chiamato quando la pedina "atterra" sulla tabella (dopo l'animazione)
-    private void onTokenLanded(int player, int row, int col) {
+    private void onTokenLanded(int player, int row, int col) throws IOException {
         // --- check vittoria del giocatore che ha appena piazzato ---
         if (CPUBrain.checkWin(boardState, row, col, player)) {
             isMatchOver = true;
             victory = (player == 1);
 
-            if (player == 1)
-            {
-                // punti vittoria player
-                if (difficolta == 0) aggiornaPunteggio(20);
-                else if (difficolta == 1) aggiornaPunteggio(100);
-                else if (difficolta == 2) aggiornaPunteggio(200);
+            if (player == 1) SoundManager.playWin(LobbyInput.effectsPercent);
+            else SoundManager.playDefeat(LobbyInput.effectsPercent);
 
-                vittorie++;
-                if (vittorie == 3) aggiornaPunteggio(100);
-
-                SoundManager.playWin(LobbyInput.effectsPercent);
-            }
-            else
-            {
-                // punti sconfitta vs bot
-                if (difficolta == 0) aggiornaPunteggio(-20);
-                else if (difficolta == 1) aggiornaPunteggio(-100);
-                else if (difficolta == 2) aggiornaPunteggio(-200);
-
-                SoundManager.playDefeat(LobbyInput.effectsPercent);
-            }
+            // aggiornamento punteggio utente
+            saveUserProgresses(points, player);
             return;
         }
 
@@ -432,9 +479,53 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         }
 
         // sblocco griglia per l'utente
-        if (!isMatchOver && player == 2) {
-            gameInput.setGridEnabled(true);
+        if (!isMatchOver && player == 2) gameInput.setGridEnabled(true);
+    }
+
+    // metodo per scrivere i testi in gioco
+    public void drawTexts() {
+        // modalità di gioco
+        Fonts.bold70.draw(screen, modName, 55, 642);
+
+        // stelle difficoltà
+        for (int i = 0; i < 4; i++) {
+            if (gameDifficulty == 1) {
+                // prima stella
+                draw(starDifficulty, true,860, 354);
+            }
+            if (gameDifficulty == 2) {
+                // seconda stella e prima stella
+                draw(starDifficulty, true, 860, 354);
+                draw(starDifficulty, true, 889, 354);
+            }
         }
+
+        // punti e crediti vittoria/sconfitta
+        Fonts.draw(screen, "+" + points, 860, 296, Fonts.bold25); // punti vinti alla vittoria
+        Fonts.draw(screen, "+" + credits, 860, 264, Fonts.bold25); // crediti vinti alla vittoria
+
+        // punti persi alla sconfitta
+        int puntiPersi = Math.min(punti, points);
+        Fonts.draw(screen, "-" + puntiPersi, 860, 183, Fonts.bold25);
+
+        // NOME AZIENDA //
+        Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
+        // VERSIONE DI GIOCO //
+        String text = "Beta " + VersionInfo.getVersion();
+        // calcolo larghezza del testo
+        GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
+        // stampa testo
+        Fonts.medium20.draw(screen, layout, (955 - layout.width), 63);
+
+        // nome utente
+        Fonts.bold20.draw(screen, AuthAlgorithms.nickname, 78, 413);
+
+        // played tokens
+        Fonts.bold25.draw(screen, numTokensUser + "/21", 83, 331);
+        Fonts.bold25.draw(screen, numTokensBot + "/21", 83, 135);
+
+        // numero boosts
+
     }
 
 
@@ -448,7 +539,11 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         isDark(darkMode);
 
         // aggiorna animazione caduta
-        updateDrop(delta);
+        try {
+            updateDrop(delta);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         // evita che l'utente annulli la mossa del bot
         gameInput.setGridEnabled(!dropActive && !botPending && !isMatchOver);
 
@@ -476,24 +571,17 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // disegno tabella
         screen.draw(table, 248, 71);
 
-        // NOME AZIENDA //
-        Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
-        // VERSIONE DI GIOCO //
-        String text = "Beta " + VersionInfo.getVersion();
-        // calcolo larghezza del testo
-        GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
-        // stampa testo
-        Fonts.medium20.draw(screen, layout, (955 - layout.width), 63);
+        // testi
+        drawTexts();
 
         // finestra riavvio/chiusura gioco => mostrata solo alla fine di una partita
         draw(replay, isMatchOver, 294, 204);
 
         // partita conclusa
         if (isMatchOver) {
-            // todo: correggere le posizioni dei testi VICTORY/DEFEAT
             // testo vittoria/sconfitta
-            if (victory) Fonts.draw(screen, "VICTORY", 49, 63, Fonts.bold40); // vittoria
-            else Fonts.draw(screen, "DEFEAT", 49, 63, Fonts.bold40); // sconfitta
+            if (victory) Fonts.draw(screen, "VICTORY", 415, 459, Fonts.bold40); // vittoria
+            else Fonts.draw(screen, "DEFEAT", 425, 459, Fonts.bold40); // sconfitta
 
             draw(btn_yes, gameInput.isBtnYesExitHover, 342, 244);
             draw(btn_yes_clicked, gameInput.btnYesExit, 342, 244);
@@ -594,6 +682,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         btn_yes = new Texture("ui/buttons/lobby/btn_yes.png");
         btn_yes_clicked = new Texture("ui/buttons/lobby/btn_yes_clicked.png");
+
+        // stella difficoltà
+        starDifficulty=new Texture("ui/icons/star_selected.png");
     }
 
     @Override

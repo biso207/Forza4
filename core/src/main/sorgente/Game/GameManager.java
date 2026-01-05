@@ -23,11 +23,11 @@ public class GameManager extends ScreenAdapter
 
 
     // costruttore
-    public GameManager(Main game, int d, boolean dark, int mod)
+    public GameManager(Main game, boolean dark, int mod)
     {
         this.game = game;
         input = new GameInput(mod);
-        ui = new GameUI(game,input, dark,d,mod);
+        ui = new GameUI(game,input, dark, mod);
 
 
         //log.info(d);
