@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.*;
 import sorgente.Authentication.AuthAlgorithms;
+import sorgente.Lobby.DailyChallenges;
 import sorgente.Lobby.LobbyInput;
 import sorgente.Lobby.LobbyManager;
 import sorgente.UserData.FirestoreUserRepository;

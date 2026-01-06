@@ -12,6 +12,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.utils.Align;
 
 public class Fonts {
 
@@ -113,12 +114,19 @@ public class Fonts {
     //                  DRAW MULTILINGUA
     // ============================================================
 
+    // draw classico
     public static void draw(SpriteBatch batch, String text, float x, float y, BitmapFont font) {
 
         if (text == null || font == null) return;
 
         // Altrimenti usa il font latino passato
         font.draw(batch, text, x, y);
+    }
+
+    // draw multi linea
+    public static void drawWrapped(SpriteBatch batch, String text, float x, float y, float width, BitmapFont font) {
+        if (text == null || font == null) return;
+        font.draw(batch, text, x, y, width, Align.left, true);
     }
 
 

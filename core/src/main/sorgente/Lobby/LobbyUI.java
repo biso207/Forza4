@@ -80,6 +80,9 @@ public class LobbyUI implements ResourceLoader {
     // formatter per la virgola delle migliaia !in automatico converte l'intero in stringa
     private final NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
 
+    // istanza di DailyChallenges
+    private DailyChallenges dailyChallenges;
+
     // costruttore
     public LobbyUI(Main game, LobbyInput lobbyInput) {
         modeTransition = false;
@@ -88,6 +91,9 @@ public class LobbyUI implements ResourceLoader {
         this.game = game;
         this.screen = game.screen;
         this.lobbyInput = lobbyInput;
+
+        // creazione istanza di DailyChallenges
+        dailyChallenges = new DailyChallenges();
 
         // caricamento font
         Fonts.load();
@@ -316,6 +322,11 @@ public class LobbyUI implements ResourceLoader {
         // SCOREBOARD TOP 5 USERS //
         drawScoreboard(5);
 
+        // DAILY CHALLENGE
+        Fonts.bold25.draw(screen, "N."+UserProgressService.getProgress("num_mission").toString(), 865, 242); // numero missione
+        Fonts.drawWrapped(screen, dailyChallenges.getMission(), 678, 207, 260, Fonts.bold25); // missione
+        Fonts.bold25.draw(screen, dailyChallenges.getCredits(), 720, 143); // premio
+
         // star selected
         int[][] posX = {
             {131, 161}, // blocco 0 -> diff 1, diff 2
@@ -375,7 +386,7 @@ public class LobbyUI implements ResourceLoader {
             }
         }
 
-        // --- GAME MODES ---
+        // --- GAME MODES --- //
         draw(gameMode_hover, lobbyInput.classicHover,35, 334);
         draw(gameMode_hover, lobbyInput.gravity4Hover,275, 334);
         draw(gameMode_hover, lobbyInput.horizontalHover,513, 334);
@@ -390,11 +401,11 @@ public class LobbyUI implements ResourceLoader {
         draw(market_clicked, lobbyInput.isBtnMarketClicked,833,588);
 
 
-        // --- SECONDARY BUTTONS ---
+        // --- SECONDARY BUTTONS --- //
         draw(center_hover, lobbyInput.isBtnScoreboardHover,369,91);
         draw(center_clicked, lobbyInput.isBtnScoreboardClicked,369,91);
 
-        // --- COMMAND BAR ICONS ---
+        // --- COMMAND BAR ICONS --- //
         draw(btn_logout,   !lobbyInput.isBtnLogoutClicked,429,41);
         draw(btn_infos,    !lobbyInput.isBtnInfoClicked,481,41);
         draw(btn_settings, !lobbyInput.isBtnSettingsClicked,541,41);
@@ -403,14 +414,14 @@ public class LobbyUI implements ResourceLoader {
         draw(btn_infos_clicked,    lobbyInput.isBtnInfoClicked,481,41);
         draw(btn_settings_clicked, lobbyInput.isBtnSettingsClicked,541,41);
 
-        // --- SECONDARY WINDOWS ---
+        // --- SECONDARY WINDOWS --- //
         draw(software_infos, lobbyInput.isInfoOpen,      244,194);
         draw(logout,         lobbyInput.isLogoutOpen,      294,204);
         draw(settings,       lobbyInput.isSettingsOpen,  244,223);
         draw(scoreboard,     lobbyInput.isScoreboardOpen,93,142);
         draw(market,         lobbyInput.isMarketOpen,    93,155);
 
-        //--- INSIDE SECONDARY WINDOWS ---
+        //--- INSIDE SECONDARY WINDOWS --- //
         // marketPlace
         if (lobbyInput.isMarketOpen) {
             draw(btn_close,lobbyInput.isBtnCloseMarketHover,822,470);

@@ -1,5 +1,13 @@
+/*
+Forza4 • class AuthAlgorithms •
+Contiene la logica e gli algoritmi per l'autenticazione in gioco (login & signup)
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente.Authentication;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Input;
@@ -385,23 +393,28 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("password", password); // password
         UserProgressService.setProgress("date", date); // data di registrazione
 
-        // init progressi del nuovo utente
-        UserProgressService.setProgress("avatar", 0);
-        UserProgressService.setProgress("credits", 0);
+        // INIT PROGRESSI NUOVO UTENTE //
+        //UserProgressService.setProgress("avatar", 0);
+        // difficoltà modalità di gioco
         UserProgressService.setProgress("diff_classic", 1);
         UserProgressService.setProgress("diff_gravity4", 1);
         UserProgressService.setProgress("diff_horizontal", 1);
         UserProgressService.setProgress("diff_speedy", 1);
+        // numero missione raggiunta
         UserProgressService.setProgress("num_mission", 1);
+        // numero partite per ogni modalità di gioco
         UserProgressService.setProgress("matches_classic", 0);
         UserProgressService.setProgress("matches_gravity4", 0);
         UserProgressService.setProgress("matches_horizontal", 0);
         UserProgressService.setProgress("matches_speedy", 0);
+        // punti e crediti
+        UserProgressService.setProgress("credits", 0);
         UserProgressService.setProgress("points", 0);
+        // volumi di gioco
         UserProgressService.setProgress("effects_volume", 0.5);
         UserProgressService.setProgress("music_volume", 0.5);
+        // flag boolean dark mode
         UserProgressService.setProgress("darkMode", true);
-        UserProgressService.setProgress("animations", true);
 
         // salvataggio punti di base in remoto nel loro apposito campo
         try { FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, 0); }
