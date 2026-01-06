@@ -324,7 +324,7 @@ public class LobbyUI implements ResourceLoader {
 
         // DAILY CHALLENGE
         Fonts.bold25.draw(screen, "N."+UserProgressService.getProgress("num_mission").toString(), 865, 242); // numero missione
-        Fonts.drawWrapped(screen, dailyChallenges.getMission(), 678, 207, 260, Fonts.bold25); // missione
+        Fonts.drawWrapped(screen, dailyChallenges.getMission(), 678, 207, 280, Fonts.bold25); // missione
         Fonts.bold25.draw(screen, dailyChallenges.getCredits(), 720, 143); // premio
 
         // star selected
