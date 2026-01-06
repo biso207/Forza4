@@ -1,13 +1,17 @@
+/*
+Forza4 • class SoundManager •
+Gestisce i suoni in gioco
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-
 import java.util.HashMap;
-
-
-
 
 public class SoundManager
 {

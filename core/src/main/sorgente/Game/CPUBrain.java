@@ -5,8 +5,10 @@ una mossa utente o CPU provoca la vittoria di una partita
 Developed by Drop Logic©. All rights reserved.
 */
 
+// package di appartenenza
 package sorgente.Game;
 
+// import classi e librerie
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;

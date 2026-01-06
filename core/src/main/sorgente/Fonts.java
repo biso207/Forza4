@@ -1,5 +1,13 @@
+/*
+Forza4 • class Fonts •
+Crea i font e permette di riusarli in tutto il sistema di gioco
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;

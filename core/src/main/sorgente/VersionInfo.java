@@ -1,3 +1,9 @@
+/*
+Forza4 • class VersionInfo •
+Restituisce la versione del gioco
+Developed by Drop Logic©. All rights reserved.
+*/
+
 package sorgente;
 
 import com.badlogic.gdx.Gdx;

@@ -1,5 +1,13 @@
+/*
+Forza4 • class LoadingScreen •
+Crea le schermate di caricamento
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
@@ -8,15 +16,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import sorgente.Authentication.AuthAlgorithms;
 import sorgente.Authentication.AuthManager;
 import sorgente.Lobby.LobbyManager;
-import sorgente.UserData.FirestoreUserRepository;
 import sorgente.dbManagement.GlobalProgressManager;
 import sorgente.dbManagement.ProgressListener;
-//import sorgente.Lobby.LobbyManager;
-//import sorgente.LogInSignUp.*;
-//import sorgente.LogInSignUp.LoadingData.GlobalProgressManager;
 
 import java.util.Random;
 

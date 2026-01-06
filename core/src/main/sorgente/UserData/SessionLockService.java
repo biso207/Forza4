@@ -6,14 +6,15 @@ sessione attiva
 Developed by Drop Logic©. All rights reserved.
 */
 
+// package di appartenenza
 package sorgente.UserData;
 
+// import classi e librerie
 import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
 import static sorgente.Authentication.AuthAlgorithms.checkInternetConnection;
 
 public final class SessionLockService {

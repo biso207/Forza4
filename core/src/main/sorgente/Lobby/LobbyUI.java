@@ -17,10 +17,8 @@ import sorgente.Fonts;
 import sorgente.Game.GameManager;
 import sorgente.Main;
 import sorgente.ResourceLoader;
-import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.UserProgressService;
 import sorgente.VersionInfo;
-
 import java.awt.*;
 import java.io.IOException;
 import java.text.NumberFormat;

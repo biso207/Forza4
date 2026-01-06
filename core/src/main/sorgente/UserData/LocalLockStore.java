@@ -5,11 +5,12 @@ metodi per verificare, attivare e rimuovere il lock della sessione
 Developed by Drop Logic©. All rights reserved.
 */
 
+// package di appartenenza
 package sorgente.UserData;
 
+// import classi e librerie
 import com.google.gson.Gson;
 import okhttp3.*;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

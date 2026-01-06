@@ -1,5 +1,13 @@
+/*
+Forza4 • class GameUI •
+Gestisce la grafica delle schermate di gioco
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente.Game;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;

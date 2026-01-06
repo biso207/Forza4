@@ -4,15 +4,16 @@ Gestisce la lettura/scrittura dei dati utente sul Firestore Database
 Developed by Drop Logic©. All rights reserved.
 */
 
+// package di appartenenza
 package sorgente.UserData;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.gson.Gson;
 import okhttp3.*;
 import org.mindrot.jbcrypt.BCrypt;
 import sorgente.dbManagement.LoadCallback;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;

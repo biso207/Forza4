@@ -1,3 +1,10 @@
+/*
+Forza4 • class GlobalProgressManager •
+Controlla lo stato di caricamento globale, usato nelle schermate di caricamento
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente.dbManagement;
 
 public class GlobalProgressManager {

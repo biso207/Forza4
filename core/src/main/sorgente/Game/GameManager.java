@@ -1,5 +1,13 @@
+/*
+Forza4 • class GameManager •
+Gestisce la grafica e gli input delle schermate di gioco
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente.Game;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.audio.Music;
@@ -7,8 +15,6 @@ import com.badlogic.gdx.graphics.GL20;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.Lobby.LobbyInput;
-import sorgente.Lobby.LobbyManager;
-import sorgente.Lobby.LobbyUI;
 import sorgente.Main;
 
 public class GameManager extends ScreenAdapter

@@ -16,13 +16,14 @@ sono le value della HashMap. Così facendo non occupiamo memoria per salvare i p
 e viene effettuata una scrittura ogni tanto leggendo una sola volta numerosi dati di progressi utente.
 */
 
+// package di appartenenza
 package sorgente.UserData;
 
+// import classi e librerie
 import org.json.JSONObject;
 import sorgente.Authentication.AuthAlgorithms;
 import sorgente.dbManagement.GlobalProgressManager;
 import sorgente.dbManagement.LoadCallback;
-
 import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;

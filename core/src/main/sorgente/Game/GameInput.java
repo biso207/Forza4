@@ -1,5 +1,13 @@
+/*
+Forza4 • class GameInput •
+Gestisce gli input della schermata di gioco
+Developed by Drop Logic©. All rights reserved.
+*/
+
+// package di appartenenza
 package sorgente.Game;
 
+// import classi e librerie
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Cursor;
@@ -10,7 +18,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.*;
 import sorgente.Lobby.LobbyInput;
-
 import java.util.Timer;
 import java.util.TimerTask;
 

@@ -5,8 +5,10 @@ L'entrata del programma è in "lwjgl3/src/main/java/com/droplogic/lwjgl3/Lwjgl3L
 Developed by Drop Logic©. All rights reserved.
 */
 
+// package di appartenenza
 package sorgente;
 
+// import classi e librerie
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
