@@ -17,7 +17,12 @@ import com.badlogic.gdx.math.Rectangle;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.SoundManager;
+import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.UserProgressService;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LobbyInput implements InputProcessor {
     private static final Log log = LogFactory.getLog(LobbyInput.class);
@@ -51,7 +56,6 @@ public class LobbyInput implements InputProcessor {
     // game mods
     protected boolean classic, gravity4, horizontal, speedy;
 
-
     // FLAGS BUTTONS HOVER //
     // difficoltà game mods
     protected boolean[] starHover=new boolean[8];
@@ -74,14 +78,15 @@ public class LobbyInput implements InputProcessor {
     protected boolean isInfoOpen, isLogoutOpen, isSettingsOpen, isScoreboardOpen,
         isMarketOpen; // isMarketOpen è usata una volta in più in un controllo
 
-    private final Pixmap mouse;
+    private static Pixmap mouse;
     private final Cursor cursor;
 
-    // variabili per i delay tra le schermate
+    // variabili per i delay
     protected float clickedTimer = 0f; // durata dell'icona "clicked"
     protected float screenChangeDelay = 0f;
     protected boolean pendingScreenChange = false;
     protected int pendingNextState = -1;
+    private float timerUpdateUsersPointsMap; // tempo per aggiornare la mappa dei punti degli utenti
 
     // azione pronta da eseguire fuori (solo per cambio screen / exit)
     private boolean inputEnabled = true;
@@ -138,6 +143,9 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_CLOSE_EXIT = 32;
     public static final int ACT_YES_EXIT = 33;
 
+    // mappa con i punti degli utenti (utile per la scoreboard)
+    protected static Map<String, Integer> usersPointsMap = new HashMap<>();
+
     // costruttore
     public LobbyInput() {
         // creazione hit boxes
@@ -157,6 +165,9 @@ public class LobbyInput implements InputProcessor {
         difficolta[1] = (int) UserProgressService.getProgress("diff_gravity4");
         difficolta[2] = (int) UserProgressService.getProgress("diff_horizontal");
         difficolta[3] = (int) UserProgressService.getProgress("diff_speedy");
+
+        // aggiornamento punti utente ogni 60 secondi
+        timerUpdateUsersPointsMap = 0.2f;
     }
 
     // metodo per la creazione dei rectangle
@@ -212,6 +223,12 @@ public class LobbyInput implements InputProcessor {
         btnEffects = new Rectangle(260, 415, 30, 30);
     }
 
+    // metodo per aggiornare la mappa con i punti utente
+    public void loadUsersPoints() throws IOException {
+        // lettura e caricamento di tutti i punti degli utenti dal db
+        usersPointsMap = FirestoreUserRepository.loadAllUserPoints();
+    }
+
     // genera il suono al click
     private boolean clicked() {
         SoundManager.playClickButton(effectsPercent);
@@ -219,7 +236,7 @@ public class LobbyInput implements InputProcessor {
     }
 
     // rilascio unica risorsa grafica
-    public void dispose() {
+    public static void dispose() {
         mouse.dispose();
     }
 
@@ -227,7 +244,11 @@ public class LobbyInput implements InputProcessor {
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         System.out.println(screenX + " " + screenY);
-        return checkHitboxes(screenX, screenY);
+        try {
+            return checkHitboxes(screenX, screenY);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // metodo per resettare i click
@@ -267,7 +288,7 @@ public class LobbyInput implements InputProcessor {
     }
 
     // metodo per il controllo dei click
-    private boolean checkHitboxes(int x, int y) {
+    private boolean checkHitboxes(int x, int y) throws IOException {
         // pagine in sovra impressione
         if(isInfoOpen || isSettingsOpen || isLogoutOpen || isScoreboardOpen || isMarketOpen) {
             // chiusura crediti di gioco
@@ -536,6 +557,7 @@ public class LobbyInput implements InputProcessor {
 
         // click pulsante classifica
         if (scoreboardArea.contains(x, y)) {
+            loadUsersPoints();
             isBtnScoreboardClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
@@ -781,7 +803,7 @@ public class LobbyInput implements InputProcessor {
     }
 
     // metodo per aggiornare i tempi di delay dopo i click
-    public void update(float delta) {
+    public void update(float delta) throws IOException {
 
         // timer per spegnere "clicked"
         if (clickedTimer > 0f) {
@@ -796,6 +818,15 @@ public class LobbyInput implements InputProcessor {
                 pendingScreenChange = false;
                 executePendingAction(pendingNextState);
                 pendingNextState = -1;
+            }
+        }
+
+        // timer per aggiornare la mappa con i punti utente
+        if (timerUpdateUsersPointsMap > 0f) {
+            timerUpdateUsersPointsMap -= delta;
+            if (timerUpdateUsersPointsMap <= 0f) {
+                loadUsersPoints();
+                timerUpdateUsersPointsMap += 60f; // di nuovo 60 secondi
             }
         }
     }

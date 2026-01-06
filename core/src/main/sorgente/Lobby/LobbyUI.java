@@ -22,6 +22,7 @@ import sorgente.UserData.UserProgressService;
 import sorgente.VersionInfo;
 
 import java.awt.*;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Map;
@@ -222,7 +223,8 @@ public class LobbyUI implements ResourceLoader {
 
     // metodo per stampare la top 5 nella lobby
     public void drawScoreboard(int numUsers) {
-        Map<String, Integer> map = FirestoreUserRepository.userPointsMap;
+        // lettura e caricamento di tutti i punti degli utenti dal db
+        Map<String, Integer> map = LobbyInput.usersPointsMap;
 
         // ordinamento: prima per punti (desc), a parità per nome (asc)
         TreeMap<String, Integer> sortedMap = new TreeMap<>(
@@ -231,7 +233,6 @@ public class LobbyUI implements ResourceLoader {
                 return (cmp != 0) ? cmp : s1.compareTo(s2);
             }
         );
-
         sortedMap.putAll(map);
 
         // posizioni iniziali e incrementi
@@ -287,7 +288,7 @@ public class LobbyUI implements ResourceLoader {
     }
 
     // metodo per creare la grafica e renderizzare lo schermo
-    public void lobbyRender(float delta) {
+    public void lobbyRender(float delta) throws IOException {
         // init screen
         screen.begin();
 
@@ -510,33 +511,21 @@ public class LobbyUI implements ResourceLoader {
             modeTransitionTimer += delta;
 
             if (modeTransitionTimer >= MODE_CLICK_DELAY) {
+                // interruzione musica
+                LobbyManager.soundtrack.stop();
 
-                disposeUI();
-
+                // cambio schermata
                 switch (pendingMode) {
-                    case 0:
+                    case 0, 1, 2, 3: // avvio gioco
                         game.setScreen(new GameManager(game, darkMode, pendingMode));
-                        LobbyManager.soundtrack.stop();
                         return;
-                    case 1:
-                        game.setScreen(new GameManager(game, darkMode,pendingMode));
-                        LobbyManager.soundtrack.stop();
-                        return;
-                    case 2:
-                        game.setScreen(new GameManager(game, darkMode,pendingMode));
-                        LobbyManager.soundtrack.stop();
-                        return;
-                    case 3:
-                        game.setScreen(new GameManager(game, darkMode,pendingMode));
-                        LobbyManager.soundtrack.stop();
-                        return;
-                    case 4:
-                        // interruzione musica
-                        LobbyManager.soundtrack.stop();
-
-                        // passaggio schermata di autenticazione
+                    case 4: // ritorno all'autenticazione
                         game.setScreen(new AuthManager(game));
                 }
+
+                // rilascio risorse
+                LobbyInput.dispose(); // icona mouse
+                disposeUI();
             }
         }
     }

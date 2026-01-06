@@ -18,10 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FirestoreUserRepository
-{
-    // mappa per i punti degli utenti
-    public static Map<String, Integer> userPointsMap = new HashMap<>();
+public class FirestoreUserRepository {
 
     // dati del database per la connessione
     private static final String PROJECT_ID = "forza4-adf22"; // nome database
@@ -85,9 +82,8 @@ public class FirestoreUserRepository
         response.close();
     }
 
-    public static void loadAllUserPoints() throws IOException {
-        userPointsMap.clear(); // pulizia iniziale
-
+    public static Map<String, Integer> loadAllUserPoints() throws IOException {
+        Map<String, Integer> map = new HashMap<>();
         String nextPageToken = null;
         OkHttpClient client = new OkHttpClient();
 
@@ -113,9 +109,7 @@ public class FirestoreUserRepository
             Map<String, Object> responseMap = new Gson().fromJson(body, Map.class);
 
             // se non ci sono documenti, finiamo
-            if (!responseMap.containsKey("documents")) {
-                break;
-            }
+            if (!responseMap.containsKey("documents")) break;
 
             List<Map<String, Object>> documents = (List<Map<String, Object>>) responseMap.get("documents");
 
@@ -133,7 +127,7 @@ public class FirestoreUserRepository
                     if (valueObj != null) {
                         try {
                             int points = Integer.parseInt(valueObj.toString());
-                            userPointsMap.put(username, points);
+                            map.put(username, points);
                         } catch (NumberFormatException ignore) {
                             System.err.println("Valore non valido per l'utente: " + username);
                         }
@@ -146,7 +140,8 @@ public class FirestoreUserRepository
 
         } while (nextPageToken != null);
 
-        System.out.println("Caricati " + userPointsMap.size() + " utenti da Firestore.");
+        System.out.println("Caricati " + map.size() + " utenti da Firestore.");
+        return map;
     }
 
 

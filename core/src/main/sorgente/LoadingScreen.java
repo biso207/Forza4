@@ -105,11 +105,6 @@ public class LoadingScreen implements Screen, ProgressListener {
             }
             else {
                 GlobalProgressManager.isInitialLoading = false; // stato di caricamento iniziale dei dati
-
-                // recupero dal cloud dei primi 1000 utente
-                try { FirestoreUserRepository.loadAllUserPoints(); }
-                catch (Exception e) { System.out.println(e.getMessage()); }
-
                 game.setScreen(new LobbyManager(game));
             }
         }

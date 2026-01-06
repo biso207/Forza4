@@ -18,6 +18,8 @@ import sorgente.Game.GameManager;
 import sorgente.Main;
 import sorgente.UserData.UserProgressService;
 
+import java.io.IOException;
+
 public class LobbyManager extends ScreenAdapter {
     // istanze grafica e input
     private final LobbyUI ui;
@@ -45,24 +47,22 @@ public class LobbyManager extends ScreenAdapter {
         soundtrack.play(); // avvio musica
     }
 
-    // "interruttore" per l'input
-    private void setLobbyInputEnabled(boolean enabled) {
-        input.setInputEnabled(enabled);
-        Gdx.input.setInputProcessor(enabled ? input : null);
-    }
-
     // ====================== //
     //   METODI DELLO SCREEN  //
     // ====================== //
 
     @Override
     public void render(float delta) {
-        input.update(delta);
+        Gdx.input.setInputProcessor(input);
+
+        try {
+            input.update(delta);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-
 
         /*
         setting del volume di sottofondo
@@ -71,7 +71,11 @@ public class LobbyManager extends ScreenAdapter {
         */
         soundtrack.setVolume(LobbyInput.musicPercent); // volume musica
 
-        ui.lobbyRender(delta);
+        try {
+            ui.lobbyRender(delta);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -79,18 +83,13 @@ public class LobbyManager extends ScreenAdapter {
     public void resize(int width, int height) {}
 
     @Override
-    public void show() {
-        Gdx.input.setInputProcessor(input);
-        input.setInputEnabled(true);
-    }
+    public void show() {}
 
     @Override
-    public void hide() { setLobbyInputEnabled(false); }
+    public void hide() { Gdx.input.setInputProcessor(null); }
 
     @Override
     public void dispose() {
-        setLobbyInputEnabled(false);
         ui.disposeUI();
-        input.dispose();
     }
 }
