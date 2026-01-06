@@ -118,6 +118,8 @@ public class LobbyInput implements InputProcessor {
     private Rectangle exitArea;
     private Rectangle marketButton;
 
+    private Rectangle btnMusic, btnEffects; // pulsanti dei volumi nelle impostazioni
+
     // AZIONI CLICK //
     public static final int ACT_CLOSE_INFO = 1;
     public static final int ACT_CLOSE_SETTINGS = 2;
@@ -205,6 +207,9 @@ public class LobbyInput implements InputProcessor {
         btn_yes= new Rectangle(341,408,150,50);
 
         marketButton= new Rectangle(831,64,50,50);
+
+        btnMusic = new Rectangle(260, 363, 30, 30);
+        btnEffects = new Rectangle(260, 415, 30, 30);
     }
 
     // genera il suono al click
@@ -329,6 +334,21 @@ public class LobbyInput implements InputProcessor {
                     else UserProgressService.setProgress("darkMode", true);
 
                     System.out.println((boolean)UserProgressService.getProgress("darkMode") ? "on" : "off");
+                    return clicked();
+                }
+
+                // CLICK ICONE VOLUMI (il volume è in range tra 0 e 1 => 40% = 0.4f)
+                // musica
+                if (btnEffects.contains(x, y)) {
+                    if (effectsPercent == 0f) effectsPercent = 0.5f;
+                    else effectsPercent = 0f;
+                    return clicked();
+                }
+
+                // effetti sonori
+                if (btnMusic.contains(x, y)) {
+                    if (musicPercent == 0) musicPercent = 0.5f;
+                    else musicPercent = 0;
                     return clicked();
                 }
             }

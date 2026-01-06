@@ -37,8 +37,7 @@ public class CPUBrain {
 
     // 🧠 Metodo principale: decide in quale colonna giocare
     // Riceve lo stato attuale della griglia (6x7) e restituisce l’indice della colonna scelta
-    public int chooseMove(int[][] board)
-    {
+    public int chooseMove(int[][] board) {
         return switch (difficulty) {
             case 0 -> randomMove(board); // livello facile: mossa casuale
             case 1 -> smartMove(board);  // livello medio: cerca di vincere o bloccare

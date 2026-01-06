@@ -8,6 +8,8 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import sorgente.*;
+import sorgente.Lobby.LobbyInput;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -98,6 +100,12 @@ public class GameInput implements InputProcessor {
         btnWild      = new Rectangle(290, 600, 64, 64);
     }
 
+    // genera il suono al click
+    private boolean clicked() {
+        SoundManager.playClickButton(LobbyInput.effectsPercent);
+        return true;
+    }
+
     // handles touch input; activates boosts; detects grid clicks
     @Override
     public boolean touchDown(int x, int y, int pointer, int button) {
@@ -107,6 +115,7 @@ public class GameInput implements InputProcessor {
         checkHitBox(x, y);
 
         // POWER-UP BUTTONS
+        /*
         if (btnExplosive.contains(x, y)) {
             activatePowerUp("explosive");
             return true;
@@ -126,6 +135,8 @@ public class GameInput implements InputProcessor {
             activatePowerUp("wild");
             return true;
         }
+
+         */
 
         // click sulla griglia
         int col = getColumnFromClick(x, y);
@@ -170,6 +181,7 @@ public class GameInput implements InputProcessor {
 
         // todo: al click della X chiedere se chiudere o meno, non interrompere immediatamente
         if (exit.contains(x, y)) {
+            clicked(); // genera suono
             isBtnExitClicked = true;
 
             // todo: rimuovere il thread e ricreare il sistema della lobby
@@ -183,6 +195,7 @@ public class GameInput implements InputProcessor {
         if (GameUI.isMatchOver) {
             if (btn_no.contains(x, y)) btnNoExit = true;
             if (btn_yes.contains(x, y)) btnYesExit = true;
+            SoundManager.playClickButton(LobbyInput.effectsPercent);
         }
     }
 

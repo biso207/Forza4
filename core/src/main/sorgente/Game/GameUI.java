@@ -42,6 +42,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // Light Texture
     private Texture lightGameBG;
     private Texture lightTable;
+    private Texture lightCells;
     private Texture lightExit;
     private Texture lightExitHover;
     private Texture lightReplay;
@@ -49,6 +50,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // Dark Texture
     private Texture darkGameBG;
     private Texture darkTable;
+    private Texture darkCells;
     private Texture darkExit;
     private Texture darkExitHover;
     private Texture darkReplay;
@@ -56,6 +58,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // Editable Texture
     private Texture gameBG;
     private Texture table;
+    private Texture cells;
     // X quit partita
     private Texture exit;
     private Texture exitHover;
@@ -74,6 +77,15 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // --- DROP ANIMATION ---
     private enum DropDir { TOP, BOTTOM, RIGHT, LEFT }
 
+    // Nuova fase animazione (caduta -> rimbalzo)
+    private enum DropPhase { FALLING, BOUNCING }
+    private DropPhase dropPhase = DropPhase.FALLING;
+
+    // Parametri rimbalzo (tuning)
+    private static final float BOUNCE_DURATION = 0.18f;   // secondi totali del rimbalzo
+    private static final float BOUNCE_AMPLITUDE = 10f;    // pixel di rimbalzo (piccolo)
+    private float bounceTimer = 0f;
+
     private boolean dropActive = false;
     private DropDir dropDir = DropDir.TOP;
     private int dropPlayer = 0;     // 1 = rosso, 2 = giallo
@@ -82,7 +94,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private float dropTargetX = 0f, dropTargetY = 0f;
 
     // velocità animazione (px/sec) -> regola se troppo lenta/veloce
-    private static final float DROP_SPEED = 800f;
+    private static final float DROP_SPEED = 600f;
 
     // --- GRAVITY4: ordine direzioni per OGNI mossa ---
     private int gravityStep = 0; // 0 TOP, 1 BOTTOM, 2 RIGHT, 3 LEFT
@@ -107,7 +119,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // nome modalità di gioco
     private String modName;
     // lettura punti e crediti utente
-    private final int punti = (int) UserProgressService.getProgress("points");
+    private int punti = (int) UserProgressService.getProgress("points");
     private final int crediti = (int) UserProgressService.getProgress("credits");
 
     public GameUI (Main game, GameInput in, boolean dark, int mod) {
@@ -184,6 +196,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     {
         lightGameBG = new Texture("game_mods_screens/light/base_light.png");
         lightTable = new Texture("game_mods_screens/light/game_table.png");
+        lightCells = new Texture("game_mods_screens/light/celle.png");
         lightExit = new Texture("ui/buttons/game/light/quit_light_clicked.png");
         lightExitHover = new Texture("ui/buttons/game/light/quit_light.png");
         lightReplay = new Texture("game_mods_screens/light/play_again_light.png");
@@ -193,6 +206,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     {
         darkGameBG = new Texture("game_mods_screens/dark/base_dark.png");
         darkTable = new Texture("game_mods_screens/dark/game_table.png");
+        darkCells = new Texture("game_mods_screens/dark/celle.png");
         darkExit = new Texture("ui/buttons/game/dark/quit_dark_clicked.png");
         darkExitHover = new Texture("ui/buttons/game/dark/quit_dark.png");
         darkReplay = new Texture("game_mods_screens/dark/play_again_dark.png");
@@ -219,6 +233,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         if (dark) {
             gameBG = darkGameBG;
             table = darkTable;
+            cells = darkCells;
             exit = darkExit;
             exitHover = darkExitHover;
             replay = darkReplay;
@@ -227,6 +242,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         {
             gameBG = lightGameBG;
             table = lightTable;
+            cells = lightCells;
             exit = lightExit;
             exitHover = lightExitHover;
             replay = lightReplay;
@@ -283,6 +299,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         modeTransitionTimer = 0f;
 
         numTokensBot=numTokensUser=0;
+
+        // aggiornamento valore dei punti utente
+        punti = (int) UserProgressService.getProgress("points");
     }
 
     // ---------------- POWER-UP METHODS ----------------
@@ -392,7 +411,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         switch (dropDir) {
             case TOP -> {
                 dropX = dropTargetX;
-                dropY = 460f; }
+                dropY = 430f; }
             case BOTTOM -> {
                 dropX = dropTargetX;
                 dropY = -120f; }
@@ -403,39 +422,82 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 dropX = -120f;
                 dropY = dropTargetY; }
         }
+
+        // parametri per il bounce quando la pedina atterra
+        dropPhase = DropPhase.FALLING;
+        bounceTimer = 0f;
     }
 
     // metodo per aggiornare l'animazione
     private void updateDrop(float delta) throws IOException {
         if (!dropActive) return;
 
-        float dx = dropTargetX - dropX;
-        float dy = dropTargetY - dropY;
-        float dist = (float) Math.sqrt(dx*dx + dy*dy);
+        // 1) FASE: CADUTA
+        if (dropPhase == DropPhase.FALLING) {
+            float dx = dropTargetX - dropX;
+            float dy = dropTargetY - dropY;
+            float dist = (float) Math.sqrt(dx * dx + dy * dy);
 
-        float step = DROP_SPEED * delta;
-        if (dist <= step) {
-            // ARRIVATA: commit in boardState
-            dropX = dropTargetX;
-            dropY = dropTargetY;
-            dropActive = false;
+            float step = DROP_SPEED * delta;
 
-            boardState[dropRow][dropCol] = dropPlayer;
+            if (dist <= step) {
+                // Arrivata al target: passa al rimbalzo (NON committare ancora)
+                dropX = dropTargetX;
+                dropY = dropTargetY;
 
-            // Gravity4: avanza direzione SOLO dopo una mossa completata
-            if (mod == 1) gravityStep = (gravityStep + 1) % 4;
+                dropPhase = DropPhase.BOUNCING;
+                bounceTimer = 0f;
+                return;
+            }
 
-            if (dropPlayer==1) numTokensUser++;
-            else numTokensBot++;
-
-            // pedina piazzata => logica di vittoria/sconfitta
-            onTokenLanded(dropPlayer, dropRow, dropCol);
+            // move verso target
+            dropX += (dx / dist) * step;
+            dropY += (dy / dist) * step;
             return;
         }
 
-        // move verso target
-        dropX += (dx / dist) * step;
-        dropY += (dy / dist) * step;
+        // 2) FASE: RIMBALZO
+        bounceTimer += delta;
+        float t = bounceTimer / BOUNCE_DURATION;
+        if (t > 1f) t = 1f;
+
+        // Oscillazione semplice: 1 “su e giù” che si spegne (0 all’inizio e alla fine)
+        // sin(2πt) fa: 0 -> su -> 0 -> giù -> 0
+        float s = (1f - t) * (float) Math.sin(Math.PI * 2f * t);
+        float disp = BOUNCE_AMPLITUDE * s;
+
+        // Applica il rimbalzo lungo l’asse opposto alla direzione di entrata
+        float axisX = 0f, axisY = 0f;
+        float sign = 1f;
+
+        switch (dropDir) {
+            case TOP -> axisY = 1f; // entra dall'alto (va sotto), rimbalza verso sù
+            case BOTTOM -> { axisY = 1f; sign = -1f; }  // entra dal basso (sale), rimbalza leggermente giù
+            case RIGHT -> axisX = 1f; // entra dalla destra (va a sinistra), rimbalza verso destra
+            case LEFT -> { axisX = 1f; sign = -1f; }    // entra da sinistra (va a destra), rimbalza verso sinistra
+        }
+
+        dropX = dropTargetX + axisX * sign * disp;
+        dropY = dropTargetY + axisY * sign * disp;
+
+        // Fine rimbalzo: “atterra” definitivamente e ora fai commit + logica
+        if (t >= 1f) {
+            dropX = dropTargetX;
+            dropY = dropTargetY;
+
+            dropActive = false;
+            dropPhase = DropPhase.FALLING;
+
+            boardState[dropRow][dropCol] = dropPlayer;
+
+            // Gravity4: avanza direzione SOLO dopo una mossa completata (a fine rimbalzo)
+            if (mod == 1) gravityStep = (gravityStep + 1) % 4;
+
+            if (dropPlayer == 1) numTokensUser++;
+            else numTokensBot++;
+
+            onTokenLanded(dropPlayer, dropRow, dropCol);
+        }
     }
 
     // metodo che disegna la pedina 'in volo'
@@ -453,8 +515,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             isMatchOver = true;
             victory = (player == 1);
 
-            if (player == 1) SoundManager.playWin(LobbyInput.effectsPercent);
-            else SoundManager.playDefeat(LobbyInput.effectsPercent);
+            if (player == 1) SoundManager.playWin(LobbyInput.musicPercent);
+            else SoundManager.playDefeat(LobbyInput.musicPercent);
 
             // aggiornamento punteggio utente
             saveUserProgresses(points, player);
@@ -532,6 +594,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     @Override
     public void render(float delta) {
         Gdx.input.setInputProcessor(gameInput); // si può togliere? todo: controllare se si può gestire nel GameManager
+
         // init schermo
         screen.begin();
 
@@ -564,11 +627,16 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         // disegno background gioco
         screen.draw(gameBG, 0, 0);
-        // disegno griglia con pedine giocate
+
+        // 1) disegno celle
+        screen.draw(cells, 270, 92);
+
+        // 2) disegno griglia con pedine giocate
         drawGame();
-        // disegno animazione caduta pedina
+        // 3) disegno animazione caduta pedina
         drawDrop();
-        // disegno tabella
+
+        // 4) disegno tabella
         screen.draw(table, 248, 71);
 
         // testi
@@ -595,6 +663,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         // LOGICA DI GIOCO (solo se non è aperta la finestra isMatchOver)
         if (!isMatchOver && gameInput.isHole) {
+            // reset in caso di pareggio
+            if (numTokensBot==numTokensUser && numTokensBot==21) resetGame();
+
             // durante animazione o “pensiero bot” ignora input del player
             if (dropActive || botPending) gameInput.isHole = false;
 
@@ -610,39 +681,38 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             int row = (col != -1) ? gameInput.getLowestFreeRow(col, boardStateAsBoolean()) : -1;
 
             if (col != -1 && row != -1) {
-                // controlla colonna congelata
-                if (freezeColumn == col && freezeTurns > 0) {
-                    log.info("Colonna " + col + " congelata per ancora " + freezeTurns + " turni");
-                    gameInput.isHole = false;
-                }
-                else {
-
-                    // POWER-UP USO SUL PROSSIMO CLICK
-                    if (gameInput.powerExplosive) {
-                        applicaExplosive(row, col);
-                        gameInput.powerExplosive = false;
-                    } else if (gameInput.powerSwap) {
-                        if (gameInput.selectedSwapColumn == -1) {
-                            // primo click: seleziona colonna
-                            gameInput.selectedSwapColumn = col;
-                            log.info("Prima colonna per Swap selezionata: " + col);
-                        } else {
-                            // secondo click: esegue swap
-                            applicaSwap(gameInput.selectedSwapColumn, col);
-                            gameInput.selectedSwapColumn = -1;
-                            gameInput.powerSwap = false;
-                        }
-                    } else if (gameInput.powerFreeze) {
-                        applicaFreeze(col);
-                        gameInput.powerFreeze = false;
-                    } else if (gameInput.powerWild) {
-                        applicaWild(row, col);
-                        gameInput.powerWild = false;
+                // POWER-UP USO SUL PROSSIMO CLICK
+                /*
+                if (gameInput.powerExplosive) {
+                    applicaExplosive(row, col);
+                    gameInput.powerExplosive = false;
+                } else if (gameInput.powerSwap) {
+                    if (gameInput.selectedSwapColumn == -1) {
+                        // primo click: seleziona colonna
+                        gameInput.selectedSwapColumn = col;
+                        log.info("Prima colonna per Swap selezionata: " + col);
+                    } else {
+                        // secondo click: esegue swap
+                        applicaSwap(gameInput.selectedSwapColumn, col);
+                        gameInput.selectedSwapColumn = -1;
+                        gameInput.powerSwap = false;
                     }
-                    startDrop(1, row, col);
-                    // chiudi l’input del player fino a fine mossa (animazione + eventuale bot)
-                    gameInput.isHole = false;
+                } else if (gameInput.powerFreeze) {
+                    applicaFreeze(col);
+                    gameInput.powerFreeze = false;
+                } else if (gameInput.powerWild) {
+                    applicaWild(row, col);
+                    gameInput.powerWild = false;
                 }
+
+                 */
+
+                // suono click
+                SoundManager.playClickButton(LobbyInput.effectsPercent);
+                // caduta pedina
+                startDrop(1, row, col);
+                // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
+                gameInput.isHole = false;
             }
         }
 
