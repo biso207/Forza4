@@ -129,7 +129,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private String modName;
     // lettura punti e crediti utente
     private int punti = (int) UserProgressService.getProgress("points");
-    private final int crediti = (int) UserProgressService.getProgress("credits");
+    private int crediti = (int) UserProgressService.getProgress("credits");
 
     public GameUI (Main game, GameInput in, boolean dark, int mod) {
         this.game = game;
@@ -229,7 +229,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             nuovoPunteggio = punti + delta;
             nuoviCrediti = credits;
         }
-        else nuovoPunteggio = Math.max(0, punti - delta); // sconfitta (punteggio minimo utente 0)
+        else nuovoPunteggio = Math.max(0, punti - delta/2); // sconfitta (punteggio minimo utente 0)
 
         UserProgressService.setProgress("credits", crediti+nuoviCrediti); // salvataggio crediti
         UserProgressService.setProgress("points", nuovoPunteggio); // salvataggio nei progressi utente
@@ -279,10 +279,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // reset griglia
         for (int r = 0; r < 6; r++)
         {
-            for (int c = 0; c < 7; c++)
-            {
-                boardState[r][c] = 0;
-            }
+            for (int c = 0; c < 7; c++) boardState[r][c] = 0;
         }
 
         gameInput.isHole = false;
@@ -309,8 +306,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         numTokensBot=numTokensUser=0;
 
-        // aggiornamento valore dei punti utente
+        // aggiornamento valore dei punti e crediti utente
         punti = (int) UserProgressService.getProgress("points");
+        crediti = (int) UserProgressService.getProgress("credits");
     }
 
     // ---------------- POWER-UP METHODS ----------------
@@ -576,7 +574,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         Fonts.draw(screen, "+" + credits, 860, 264, Fonts.bold25); // crediti vinti alla vittoria
 
         // punti persi alla sconfitta
-        int puntiPersi = Math.min(punti, points);
+        int puntiPersi = Math.min(punti, points/2);
         Fonts.draw(screen, "-" + puntiPersi, 860, 183, Fonts.bold25);
 
         // NOME AZIENDA //
@@ -670,11 +668,11 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             if (gameInput.btnYesExit) resetGame();
         }
 
+        // reset in caso di pareggio
+        if (numTokensBot==21) resetGame();
+
         // LOGICA DI GIOCO (solo se non è aperta la finestra isMatchOver)
         if (!isMatchOver && gameInput.isHole) {
-            // reset in caso di pareggio
-            if (numTokensBot==numTokensUser && numTokensBot==21) resetGame();
-
             // durante animazione o “pensiero bot” ignora input del player
             if (dropActive || botPending) gameInput.isHole = false;
 

@@ -322,6 +322,16 @@ public class LobbyUI implements ResourceLoader {
         // SCOREBOARD TOP 5 USERS //
         drawScoreboard(5);
 
+        // NUMERO DI BOOSTS
+        // linea 1
+        Fonts.bold13.draw(screen, UserProgressService.getProgress("num_freezer").toString(), 65, 175); //
+        Fonts.bold13.draw(screen, UserProgressService.getProgress("num_token_cracker").toString(), 170, 175); //
+        Fonts.bold13.draw(screen, UserProgressService.getProgress("num_row_braker").toString(), 275, 175); //
+        // linea 2
+        Fonts.bold13.draw(screen, UserProgressService.getProgress("num_peek").toString(), 65, 110); //
+        Fonts.bold13.draw(screen, UserProgressService.getProgress("num_precision").toString(), 170, 110); //
+        Fonts.bold13.draw(screen, UserProgressService.getProgress("num_undo").toString(), 275, 110); //
+
         // DAILY CHALLENGE
         Fonts.bold25.draw(screen, "N."+UserProgressService.getProgress("num_mission").toString(), 865, 242); // numero missione
         Fonts.drawWrapped(screen, dailyChallenges.getMission(), 678, 207, 280, Fonts.bold25); // missione

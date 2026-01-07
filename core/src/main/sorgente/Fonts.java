@@ -33,7 +33,7 @@ public class Fonts {
     // ---- FONT LATINI ----
     public static BitmapFont light20;
     public static BitmapFont medium20;
-    public static BitmapFont bold15, bold20, bold25, bold32, bold40, bold60, bold70;
+    public static BitmapFont bold13, bold15, bold20, bold25, bold32, bold40, bold60, bold70;
 
     // ---- FONT CIRILLICO ----
     public static BitmapFont cyrillicLight20, cyrillicMedium20, cyrillicBold25, cyrillicBold32, cyrillicBold40,
@@ -62,6 +62,7 @@ public class Fonts {
         p.size = 20; medium20 = genMedium.generateFont(p);
 
         // --- BOLD ---
+        p.size = 13; bold13 = genBold.generateFont(p);
         p.size = 15; bold15 = genBold.generateFont(p);
         p.size = 20; bold20 = genBold.generateFont(p);
         p.size = 25; bold25 = genBold.generateFont(p);

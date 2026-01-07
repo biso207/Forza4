@@ -41,6 +41,7 @@ public class LobbyManager extends ScreenAdapter {
         // init dello screen
         this.screen = game.screen;
 
+        // todo: cambiare il volume già qua
         // musica di sottofondo
         soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.ogg")); // file audio
         soundtrack.setLooping(true); // true=loop music; false=no loop

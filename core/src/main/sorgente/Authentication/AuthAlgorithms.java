@@ -386,7 +386,7 @@ public class AuthAlgorithms implements InputProcessor {
         String date = LocalDate.now().format(formatter); // recupero giorno creazione profilo
 
         // hash della password
-        password = BCrypt.hashpw(password, BCrypt.gensalt());
+        password = BCrypt.hashpw(password, BCrypt.gensalt(12));
 
         // setting dati del nuovo utente
         UserProgressService.setProgress("nickname", nickname); // nickname
@@ -407,6 +407,13 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("matches_gravity4", 0);
         UserProgressService.setProgress("matches_horizontal", 0);
         UserProgressService.setProgress("matches_speedy", 0);
+        // numero boosts
+        UserProgressService.setProgress("num_freezer", 1);
+        UserProgressService.setProgress("num_token_cracker", 1);
+        UserProgressService.setProgress("num_row_braker", 1);
+        UserProgressService.setProgress("num_peek", 1);
+        UserProgressService.setProgress("num_precision", 1);
+        UserProgressService.setProgress("num_undo", 1);
         // punti e crediti
         UserProgressService.setProgress("credits", 0);
         UserProgressService.setProgress("points", 0);

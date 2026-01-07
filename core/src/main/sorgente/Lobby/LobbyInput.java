@@ -557,12 +557,13 @@ public class LobbyInput implements InputProcessor {
 
         // click pulsante classifica
         if (scoreboardArea.contains(x, y)) {
-            loadUsersPoints();
+            clicked(); // messo qui per generare subito il click perché il gioco potrebbe rallentare per caricare gli utenti
+            loadUsersPoints();// caricamento punti utenti
             isBtnScoreboardClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_SCOREBOARD, 0.20f);
-            return clicked();
+            return true;
         }
 
         // -- COMMAND BAR --
