@@ -48,6 +48,7 @@ public class GameInput implements InputProcessor {
 
     // Swap: prima colonna selezionata
     public int selectedSwapColumn = -1;
+    private int mod;
 
     // Rettangoli UI
     protected final Rectangle exit;
@@ -66,12 +67,15 @@ public class GameInput implements InputProcessor {
     // abilita/disabilita click sulla griglia (serve per bloccare le mosse durante drop/bot)
     private boolean gridEnabled = true;
 
+
     public GameInput(int mod) {
 
         // Cursor
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
         cursor = Gdx.graphics.newCursor(mouse, 0, 0);
         Gdx.graphics.setCursor(cursor);
+
+        this.mod=mod;
 
         // Exit
         exit = new Rectangle(825, 58, 50, 50);
@@ -148,6 +152,8 @@ public class GameInput implements InputProcessor {
         // click sulla griglia
         int col = getColumnFromClick(x, y);
         if (gridEnabled && col != -1) isHole = true;
+
+
 
         return false;
     }

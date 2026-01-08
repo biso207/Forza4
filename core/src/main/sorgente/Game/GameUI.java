@@ -82,6 +82,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private Texture btn_yes_clicked;
     // stella difficoltà
     private Texture starDifficulty;
+    private float timer;
 
     // --- DROP ANIMATION ---
     private enum DropDir { TOP, BOTTOM, RIGHT, LEFT }
@@ -599,11 +600,16 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
 
     @Override
-    public void render(float delta) {
+    public void render(float delta)
+    {
+
+
         Gdx.input.setInputProcessor(gameInput); // si può togliere? todo: controllare se si può gestire nel GameManager
 
         // init schermo
         screen.begin();
+
+
 
         // cambio light/dark mode
         isDark(darkMode);
@@ -614,6 +620,42 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+
+        // --- TIMER DI INATTIVITÀ UTENTE (solo in SPEEDY) ---
+        if (mod == 3 && !dropActive && !botPending && !isMatchOver) {
+
+            timer +=  delta;
+
+
+
+            if (timer >= 5f) {
+                // 5 secondi senza input → il bot gioca
+                int botCol = CPUBrain.chooseMove(boardState);
+                int botRow = gameInput.getLowestFreeRow(botCol, boardStateAsBoolean());
+
+                log.info("sono passati 5 secondi");
+
+                if (botRow != -1) {
+                    botPlannedCol = botCol;
+                    botPlannedRow = botRow;
+
+                    botPending = true;
+                    botDelayTimer = 0f; // esegue subito la mossa
+                    gameInput.setGridEnabled(false);
+                }
+
+                timer = 0; // reset timer
+            }
+
+        } else {
+            // se l’utente fa qualcosa → reset timer
+            timer = 0;
+        }
+
+
+
+
         // evita che l'utente annulli la mossa del bot
         gameInput.setGridEnabled(!dropActive && !botPending && !isMatchOver);
 
@@ -681,13 +723,21 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             draw(exit, gameInput.isBtnExitClicked, 825, 591);
             draw(exitHover, gameInput.isBtnExitHover, 825, 591);
 
-            int col = gameInput.getColumnFromClick(
-                Gdx.input.getX(),
-                Gdx.graphics.getHeight() - Gdx.input.getY()
-            );
-            int row = (col != -1) ? gameInput.getLowestFreeRow(col, boardStateAsBoolean()) : -1;
+            int col;
+            int row;
 
-            if (col != -1 && row != -1) {
+
+
+                 col = gameInput.getColumnFromClick(
+                    Gdx.input.getX(),
+                    Gdx.graphics.getHeight() - Gdx.input.getY()
+                );
+                 row = (col != -1) ? gameInput.getLowestFreeRow(col, boardStateAsBoolean()) : -1;
+
+
+
+
+        //    if (col != -1 && row != -1) {
                 // POWER-UP USO SUL PROSSIMO CLICK
                 /*
                 if (gameInput.powerExplosive) {
@@ -714,13 +764,18 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
                  */
 
-                // suono click
+            log.info(mod);
+
+
+
+
+            // suono click
                 SoundManager.playClickButton(LobbyInput.effectsPercent);
                 // caduta pedina
                 startDrop(1, row, col);
                 // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
                 gameInput.isHole = false;
-            }
+           // }
         }
 
         screen.end();

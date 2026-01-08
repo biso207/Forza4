@@ -166,7 +166,7 @@ public class CPUBrain {
 
         if(GameUI.mod == 2)
         {
-           return checkDirection(board, row, col, token, 0, 1);
+            return checkDirection(board, row, col, token, 0, 1);
         }
 
         // Controlla tutte le direzioni: verticale, orizzontale, diagonale /
@@ -205,3 +205,4 @@ public class CPUBrain {
         return count;
     }
 }
+
