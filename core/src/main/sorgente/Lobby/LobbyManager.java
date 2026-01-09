@@ -27,8 +27,6 @@ public class LobbyManager extends ScreenAdapter {
 
     protected static Main game; // variabile di riferimento tipo gioco
 
-    // dichiarazione screen
-    private final SpriteBatch screen;
     protected static Music soundtrack;
 
     // costruttore
@@ -37,9 +35,6 @@ public class LobbyManager extends ScreenAdapter {
 
         input = new LobbyInput();
         ui = new LobbyUI(game, input);
-
-        // init dello screen
-        this.screen = game.screen;
 
         // todo: cambiare il volume già qua
         // musica di sottofondo
@@ -54,8 +49,17 @@ public class LobbyManager extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
+        // setting dell'input
         Gdx.input.setInputProcessor(input);
 
+        /*
+        setting del volume di sottofondo
+        fondamentale che sia qui perché in caso di cambiamento durante una sessione di gioco
+        il volume deve cambiare dinamicamente
+        */
+        soundtrack.setVolume(LobbyInput.musicPercent); // volume musica
+
+        // update per variabili temporanee di input
         try {
             input.update(delta);
         } catch (IOException e) {
@@ -65,13 +69,7 @@ public class LobbyManager extends ScreenAdapter {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        /*
-        setting del volume di sottofondo
-        fondamentale che sia qui perché in caso di cambiamento durante una sessione di gioco
-        il volume deve cambiare dinamicamente
-        */
-        soundtrack.setVolume(LobbyInput.musicPercent); // volume musica
-
+        // render grafico
         try {
             ui.lobbyRender(delta);
         } catch (IOException e) {

@@ -58,11 +58,11 @@ public class LoadingScreen implements Screen, ProgressListener {
 
             targetProgress=finalProgress=200;
         } else {
-            // caricamento pagina dei dati utente
+            // caricamento pagina dei dati utente (passaggio alla lobby)
             finalProgress=100; // tempo caricamento
             new Thread(() -> {
                 for (int i = 0; i <= 100; i++) {
-                    try { Thread.sleep(40); } catch (InterruptedException ignored) {}
+                    try { Thread.sleep(30); } catch (InterruptedException ignored) {}
                     final int progress = i;
                     Gdx.app.postRunnable(() -> setProgress(progress));
                 }

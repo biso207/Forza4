@@ -143,6 +143,32 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_CLOSE_EXIT = 32;
     public static final int ACT_YES_EXIT = 33;
 
+    // prezzi boosters (cambieranno in base al numero selezionato per l'acquisto)
+    protected static int priceFreezer, priceTokenCracker, priceRowBraker, pricePeek, pricePrecision, priceUndo;
+    // numero item da acquistare
+    protected static int numPurchaseItem1, numPurchaseItem2, numPurchaseItem3, numPurchaseItem4, numPurchaseItem5, numPurchaseItem6;
+
+    // --- MARKETPLACE: digitazione quantità (stessa logica stile Auth) ---
+    // prezzi base (unitari) dei booster (usati per calcolare il massimo acquistabile e il totale mostrato)
+    private static final int[] MARKET_UNIT_PRICE = {10, 5, 5, 20, 10, 20};
+
+    // coordinate (in world coords di SpriteBatch, bottom-left) dove disegnare le quantità (tick compreso)
+    // (i range/hitbox possono essere leggermente sballati: l'importante è che sia cliccabile e si veda il tick)
+    protected static final float[] MARKET_QTY_X = {256f, 494f, 732f, 256f, 494f, 732f};
+    protected static final float[] MARKET_QTY_Y = {325f, 325f, 325f, 462f, 462f, 462f};
+
+    // hitbox per click sulle quantità (coordinate input: top-left)
+    private final Rectangle[] marketQtyAreas = new Rectangle[6];
+
+    // campo attivo (0 = nessuno, 1..6 = booster)
+    protected int activeMarketQtyField = 0;
+
+    // testo digitato nel campo attivo
+    protected final StringBuilder marketQtyInput = new StringBuilder();
+
+    // stato selezione (Ctrl+A) del campo attivo
+    protected boolean marketQtySelected = false;
+
     // mappa con i punti degli utenti (utile per la scoreboard)
     protected static Map<String, Integer> usersPointsMap = new HashMap<>();
 
@@ -166,8 +192,8 @@ public class LobbyInput implements InputProcessor {
         difficolta[2] = (int) UserProgressService.getProgress("diff_horizontal");
         difficolta[3] = (int) UserProgressService.getProgress("diff_speedy");
 
-        // aggiornamento punti utente ogni 60 secondi
-        timerUpdateUsersPointsMap = 0.2f;
+        // aggiornamento punti subito all'apertura e poi ogni 60 secondi
+        timerUpdateUsersPointsMap = 0.1f;
     }
 
     // metodo per la creazione dei rectangle
@@ -214,6 +240,18 @@ public class LobbyInput implements InputProcessor {
         btnCloseMarketArea= new Rectangle(814,187,40,40);
         btnCloseScoreboardArea= new Rectangle(814,174,40,40);
 
+        // --- MARKET: aree click quantità (calcolate dalle coordinate di disegno) ---
+        // In LibGDX touchDown usa coordinate top-left, mentre il rendering usa bottom-left.
+        // Convertiamo: y_input = H - (y_draw + h_box)
+        final int H = Gdx.graphics.getHeight();
+        final float boxW = 60f; // larghezza box
+        final float boxH = 20f; // altezza box
+        for (int i = 0; i < 6; i++) {
+            float xBox = MARKET_QTY_X[i] - 20f; // un po' più largo del testo
+            float yBox = MARKET_QTY_Y[i];
+            marketQtyAreas[i] = new Rectangle(xBox, yBox, boxW, boxH);
+        }
+
         btn_no= new Rectangle(503,408,150,50);
         btn_yes= new Rectangle(341,408,150,50);
 
@@ -225,6 +263,8 @@ public class LobbyInput implements InputProcessor {
 
     // metodo per aggiornare la mappa con i punti utente
     public void loadUsersPoints() throws IOException {
+        // svuotamento mappa
+        usersPointsMap.clear();
         // lettura e caricamento di tutti i punti degli utenti dal db
         usersPointsMap = FirestoreUserRepository.loadAllUserPoints();
     }
@@ -234,6 +274,63 @@ public class LobbyInput implements InputProcessor {
         SoundManager.playClickButton(effectsPercent);
         return true;
     }
+    // genera il suono di digitazione
+    private boolean typed() {
+        // suono digitazione
+        SoundManager.playDigitSound(50);
+        return true;
+    }
+
+    // --- MARKET: helpers quantità/prezzi ---
+    private int getNumPurchaseForIndex(int idx1to6) {
+        return switch (idx1to6) {
+            case 1 -> numPurchaseItem1;
+            case 2 -> numPurchaseItem2;
+            case 3 -> numPurchaseItem3;
+            case 4 -> numPurchaseItem4;
+            case 5 -> numPurchaseItem5;
+            case 6 -> numPurchaseItem6;
+            default -> 1;
+        };
+    }
+
+    private void setNumPurchaseForIndex(int idx1to6, int num) {
+        switch (idx1to6) {
+            case 1: numPurchaseItem1 = num; break;
+            case 2: numPurchaseItem2 = num; break;
+            case 3: numPurchaseItem3 = num; break;
+            case 4: numPurchaseItem4 = num; break;
+            case 5: numPurchaseItem5 = num; break;
+            case 6: numPurchaseItem6 = num; break;
+        }
+        updateMarketPrices();
+    }
+
+    private int getMarketUnitPrice(int idx1to6) {
+        if (idx1to6 < 1 || idx1to6 > 6) return 0;
+        return MARKET_UNIT_PRICE[idx1to6 - 1];
+    }
+
+    // max acquistabile rispettando: credits - (num * priceUnit) > 0
+    private int getMaxPurchasable(int idx1to6) {
+        int credits = ((Number) UserProgressService.getProgress("credits")).intValue();
+        int unit = getMarketUnitPrice(idx1to6);
+        if (unit <= 0) return 0;
+        // condizione richiesta: credits - num*unit > 0  <=>  num <= (credits-1)/unit
+        int max = (credits - 1) / unit;
+        return Math.max(0, max);
+    }
+
+    // aggiorna i prezzi totali mostrati in market (prezzo unitario * quantità selezionata)
+    private void updateMarketPrices() {
+        priceFreezer       = MARKET_UNIT_PRICE[0] * Math.max(1, numPurchaseItem1);
+        priceTokenCracker  = MARKET_UNIT_PRICE[1] * Math.max(1, numPurchaseItem2);
+        priceRowBraker     = MARKET_UNIT_PRICE[2] * Math.max(1, numPurchaseItem3);
+        pricePeek          = MARKET_UNIT_PRICE[3] * Math.max(1, numPurchaseItem4);
+        pricePrecision     = MARKET_UNIT_PRICE[4] * Math.max(1, numPurchaseItem5);
+        priceUndo          = MARKET_UNIT_PRICE[5] * Math.max(1, numPurchaseItem6);
+    }
+
 
     // rilascio unica risorsa grafica
     public static void dispose() {
@@ -371,6 +468,19 @@ public class LobbyInput implements InputProcessor {
                     if (musicPercent == 0) musicPercent = 0.5f;
                     else musicPercent = 0;
                     return clicked();
+                }
+            }
+            // --- MARKET: click su quantità (attiva la digitazione e mostra il tick lampeggiante) ---
+            if (isMarketOpen) {
+                // iterazione sulle aree cliccabili per la digitazione delle quantità
+                for (int i = 0; i < 6; i++) {
+                    if (marketQtyAreas[i] != null && marketQtyAreas[i].contains(x, y)) {
+                        activeMarketQtyField = i + 1;
+                        marketQtySelected = false;
+                        marketQtyInput.setLength(0);
+                        marketQtyInput.append(getNumPurchaseForIndex(activeMarketQtyField));
+                        return clicked();
+                    }
                 }
             }
 
@@ -557,13 +667,11 @@ public class LobbyInput implements InputProcessor {
 
         // click pulsante classifica
         if (scoreboardArea.contains(x, y)) {
-            clicked(); // messo qui per generare subito il click perché il gioco potrebbe rallentare per caricare gli utenti
-            loadUsersPoints();// caricamento punti utenti
             isBtnScoreboardClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_SCOREBOARD, 0.20f);
-            return true;
+            return clicked();
         }
 
         // -- COMMAND BAR --
@@ -747,6 +855,15 @@ public class LobbyInput implements InputProcessor {
     @Override public boolean keyDown(int keycode) {
         if (!inputEnabled) return false;
 
+        // Ctrl + A: seleziona tutto il testo del campo quantità attivo nel market
+        if (isMarketOpen && activeMarketQtyField != 0 &&
+            keycode == Input.Keys.A &&
+            (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT))) {
+
+            if (!marketQtyInput.isEmpty()) marketQtySelected = true;
+            return true;
+        }
+
         // ESC chiude le finestre aperte (come click sulla X)
         if (keycode == Input.Keys.ESCAPE)
         {
@@ -833,16 +950,28 @@ public class LobbyInput implements InputProcessor {
     }
 
     // azioni al click
-    private void executePendingAction(int act) {
+    private void executePendingAction(int act) throws IOException {
         // qui stai ancora nella lobby -> riaccendi input
         setInputEnabled(true);
 
         switch (act) {
             case ACT_OPEN_MARKET:
+                // init numero di item da acquistare (minimo 1)
+                numPurchaseItem1 = numPurchaseItem2 = numPurchaseItem3 = numPurchaseItem4 = numPurchaseItem5 = numPurchaseItem6 = 1;
+
+                // reset stato digitazione
+                activeMarketQtyField = 0;
+                marketQtySelected = false;
+                marketQtyInput.setLength(0);
+
+                // init prezzi (totali mostrati = unitario * quantità)
+                updateMarketPrices();
+
                 isMarketOpen = true;
                 break;
 
             case ACT_OPEN_SCOREBOARD:
+                loadUsersPoints();// caricamento punti utenti
                 isScoreboardOpen = true;
                 break;
 
@@ -868,11 +997,7 @@ public class LobbyInput implements InputProcessor {
                 draggingEffects = false;
                 break;
 
-            case ACT_CLOSE_EXIT:
-                isLogoutOpen = false;
-                break;
-
-            case ACT_YES_EXIT:
+            case ACT_CLOSE_EXIT, ACT_YES_EXIT:
                 isLogoutOpen = false;
                 break;
 
@@ -888,7 +1013,75 @@ public class LobbyInput implements InputProcessor {
 
     // ALTRI METODI DI InputProcessor //
     @Override public boolean keyUp(int i) { return false; }
-    @Override public boolean keyTyped(char c) { return false; }
+    @Override
+    public boolean keyTyped(char c) {
+        if (!inputEnabled) return false;
+
+        // digitazione solo nel MARKET e solo se un campo è attivo
+        if (!isMarketOpen || activeMarketQtyField == 0) return false;
+
+        // ENTER: chiude la digitazione del campo
+        if (c == '\n' || c == '\r') {
+            activeMarketQtyField = 0;
+            marketQtySelected = false;
+            marketQtyInput.setLength(0);
+            return typed();
+        }
+
+        // BACKSPACE: cancella (tutto se selezionato, altrimenti un carattere)
+        if (c == '\b') {
+            if (marketQtySelected) {
+                marketQtyInput.setLength(0);
+                marketQtySelected = false;
+            } else if (!marketQtyInput.isEmpty()) marketQtyInput.deleteCharAt(marketQtyInput.length() - 1);
+
+            // se vuoto, lasciamo minimo 1 come valore logico
+            if (marketQtyInput.isEmpty()) setNumPurchaseForIndex(activeMarketQtyField, 1);
+            else applyMarketQtyCandidate(marketQtyInput.toString());
+            return typed();
+        }
+
+        // se selezionato e arriva un carattere "normale", sostituiamo tutto
+        if (marketQtySelected) {
+            marketQtyInput.setLength(0);
+            marketQtySelected = false;
+        }
+
+        // accetta solo cifre (0..9) -> ma valore finale deve rimanere >= 1
+        if (c < '0' || c > '9') return typed();
+
+        // evita zeri iniziali (es: "0", "01")
+        if (marketQtyInput.isEmpty() && c == '0') return typed();
+
+        // limita lunghezza per evitare numeri enormi
+        if (marketQtyInput.length() >= 4) return typed();
+
+        String candidate = marketQtyInput.toString() + c;
+        applyMarketQtyCandidate(candidate);
+        return true;
+    }
+
+    // prova ad applicare il valore digitato rispettando il massimo acquistabile
+    private void applyMarketQtyCandidate(String candidate) {
+        int value;
+        try {
+            value = Integer.parseInt(candidate);
+        } catch (NumberFormatException ex) {
+            return;
+        }
+
+        if (value < 1) return;
+
+        int max = getMaxPurchasable(activeMarketQtyField);
+        // se max == 0 significa che non puoi comprare neanche 1 (con la condizione credits - cost > 0)
+        if (max > 0 && value <= max) {
+            marketQtyInput.setLength(0);
+            marketQtyInput.append(value);
+            setNumPurchaseForIndex(activeMarketQtyField, value);
+        }
+        // se value eccede max, ignoriamo la digitazione (non aggiorniamo nulla)
+    }
+
     @Override public boolean touchCancelled(int i, int i1, int i2, int i3) {
         return false;
     }

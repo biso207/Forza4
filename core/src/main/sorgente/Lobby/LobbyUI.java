@@ -8,6 +8,7 @@ Developed by Drop Logic©. All rights reserved.
 package sorgente.Lobby;
 
 // import classi e librerie
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -296,6 +297,13 @@ public class LobbyUI implements ResourceLoader {
         // init screen
         screen.begin();
 
+        // aggiornamento lampeggio cursore (tick) per i campi editabili del market
+        cursorTimer += delta;
+        if (cursorTimer >= 0.5f) {
+            cursorVisible = !cursorVisible;
+            cursorTimer = 0f;
+        }
+
         // stampa light o dark mode
         darkMode((boolean)UserProgressService.getProgress("darkMode")); // lettura da progressi utente
 
@@ -436,6 +444,51 @@ public class LobbyUI implements ResourceLoader {
         if (lobbyInput.isMarketOpen) {
             draw(btn_close,lobbyInput.isBtnCloseMarketHover,822,470);
             draw(btn_close_clicked, lobbyInput.btnCloseMarket, 822, 470);
+
+            // prezzi boosters
+            Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceFreezer), 255, 401);
+            Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceTokenCracker), 493, 401);
+            Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceRowBraker), 731, 401);
+            Fonts.bold20.draw(screen, String.valueOf(LobbyInput.pricePeek), 255, 264);
+            Fonts.bold20.draw(screen, String.valueOf(LobbyInput.pricePrecision), 493, 264);
+            Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceUndo), 731, 264);
+
+            // quantità da acquistare (digitazione stile Auth: click -> tick lampeggiante -> input da tastiera)
+            for (int i = 1; i <= 6; i++) {
+                float xQty = LobbyInput.MARKET_QTY_X[i - 1]-1;
+                float yQty = Gdx.graphics.getHeight()-LobbyInput.MARKET_QTY_Y[i - 1]-5;
+
+                String qtyText;
+                boolean isActive = (lobbyInput.activeMarketQtyField == i);
+
+                if (isActive) qtyText = lobbyInput.marketQtyInput.toString();
+                else {
+                    qtyText = switch (i) {
+                        case 1 -> String.valueOf(LobbyInput.numPurchaseItem1);
+                        case 2 -> String.valueOf(LobbyInput.numPurchaseItem2);
+                        case 3 -> String.valueOf(LobbyInput.numPurchaseItem3);
+                        case 4 -> String.valueOf(LobbyInput.numPurchaseItem4);
+                        case 5 -> String.valueOf(LobbyInput.numPurchaseItem5);
+                        case 6 -> String.valueOf(LobbyInput.numPurchaseItem6);
+                        default -> "1";
+                    };
+                }
+
+                // evidenzia se Ctrl+A attivo
+                if (isActive && lobbyInput.marketQtySelected) Fonts.bold20.setColor(com.badlogic.gdx.graphics.Color.SKY);
+                else Fonts.bold20.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+
+                Fonts.bold20.draw(screen, qtyText, xQty, yQty);
+
+                // tick lampeggiante
+                if (isActive && !lobbyInput.marketQtySelected && cursorVisible) {
+                    layout.setText(Fonts.bold20, qtyText);
+                    float cursorX = xQty + layout.width + 2f;
+                    Fonts.bold20.draw(screen, "|", cursorX, yQty+1);
+                }
+
+                Fonts.bold20.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+            }
         }
 
         // crediti sviluppo gioco

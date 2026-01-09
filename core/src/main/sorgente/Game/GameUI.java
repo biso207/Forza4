@@ -17,7 +17,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.*;
 import sorgente.Authentication.AuthAlgorithms;
-import sorgente.Lobby.DailyChallenges;
 import sorgente.Lobby.LobbyInput;
 import sorgente.Lobby.LobbyManager;
 import sorgente.UserData.FirestoreUserRepository;
@@ -372,7 +371,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         for (int row = 5; row >= 0; row--)
         {
-            float drawY = baseY + (5 - row) * 61; // todo: correggere, le pedine verso l'alto sono leggermente più in basso
+            float drawY = baseY + (5 - row) * 61;
             float drawX = baseX;
 
             for (int col = 0; col < 7; col++)
@@ -386,10 +385,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     }
 
     private float cellX(int col) {
-        return 273 + col * 69f;
+        return 270 + col * 70f;
     }
     private float cellY(int row) {
-        return 95 + (5 - row) * 61f;
+        return 93 + (5 - row) * 61f;
     }
 
     // metodo per la direzione corrente della pedina inserita
@@ -609,8 +608,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // init schermo
         screen.begin();
 
-
-
         // cambio light/dark mode
         isDark(darkMode);
 
@@ -620,7 +617,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
 
         // --- TIMER DI INATTIVITÀ UTENTE (solo in SPEEDY) ---
         if (mod == 3 && !dropActive && !botPending && !isMatchOver) {
@@ -653,9 +649,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             timer = 0;
         }
 
-
-
-
         // evita che l'utente annulli la mossa del bot
         gameInput.setGridEnabled(!dropActive && !botPending && !isMatchOver);
 
@@ -679,12 +672,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         // 1) disegno celle
         screen.draw(cells, 270, 92);
-
         // 2) disegno griglia con pedine giocate
         drawGame();
         // 3) disegno animazione caduta pedina
         drawDrop();
-
         // 4) disegno tabella
         screen.draw(table, 248, 71);
 
