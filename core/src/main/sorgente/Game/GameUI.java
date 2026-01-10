@@ -27,7 +27,6 @@ import java.io.IOException;
 public class GameUI extends ScreenAdapter implements ResourceLoader
 {
     private static final Log log = LogFactory.getLog(GameUI.class);
-    private final Main game;
     private final SpriteBatch screen;
 
     private final GlyphLayout layout = new GlyphLayout();
@@ -131,9 +130,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private int punti = (int) UserProgressService.getProgress("points");
     private int crediti = (int) UserProgressService.getProgress("credits");
 
-    public GameUI (Main game, GameInput in, boolean dark, int mod) {
-        this.game = game;
-        this.screen = game.screen;
+    public GameUI (GameInput in, boolean dark, int mod) {
+        this.screen = GameManager.game.screen;
         GameUI.mod = mod;
 
         isMatchOver=victory=false;
@@ -517,6 +515,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // metodo per i controlli chiamato appena la pedina 'atterra' sulla tabella
     // viene chiamato quando la pedina "atterra" sulla tabella (dopo l'animazione)
     private void onTokenLanded(int player, int row, int col) throws IOException {
+        // suono atterraggio
+        SoundManager.playLand(LobbyInput.effectsPercent);
+
         // --- check vittoria del giocatore che ha appena piazzato ---
         if (CPUBrain.checkWin(boardState, row, col, player)) {
             isMatchOver = true;
@@ -760,7 +761,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
 
 
-            // suono click
+                // suono click
                 SoundManager.playClickButton(LobbyInput.effectsPercent);
                 // caduta pedina
                 startDrop(1, row, col);
@@ -780,9 +781,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             modeTransitionTimer += delta;
             if (modeTransitionTimer >= 0.14f) {
                 if (pendingMode == 0) {
-                    dispose(); // rilascio risorse
                     GameManager.soundGame.stop(); // stop musica di gioco
-                    game.setScreen(new LobbyManager(game)); // back to lobby
+                    GameManager.game.setScreen(new LobbyManager(GameManager.game)); // back to lobby
+                    System.out.println("reached");
+                    dispose(); // rilascio risorse
                 }
             }
         }
@@ -792,8 +794,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     public void loadFont() {}
 
     @Override
-    public void loadImages()
-    {
+    public void loadImages() {
         loadDarkMode();
         loadLightMode();
 
@@ -811,19 +812,28 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     }
 
     @Override
-    public void dispose()
-    {
-        gameBG.dispose();
-        exit.dispose();
-        exitHover.dispose();
-        red.dispose();
-        yellow.dispose();
-        lightGameBG.dispose();
-        lightExit.dispose();
-        lightExitHover.dispose();
-        darkGameBG.dispose();
-        darkExit.dispose();
-        darkExitHover.dispose();
+    public void dispose() {
+        if (lightGameBG != null) lightGameBG.dispose();
+        if (lightTable != null) lightTable.dispose();
+        if (lightCells != null) lightCells.dispose();
+        if (lightExit != null) lightExit.dispose();
+        if (lightExitHover != null) lightExitHover.dispose();
+        if (lightReplay != null) lightReplay.dispose();
+
+        if (darkGameBG != null) darkGameBG.dispose();
+        if (darkTable != null) darkTable.dispose();
+        if (darkCells != null) darkCells.dispose();
+        if (darkExit != null) darkExit.dispose();
+        if (darkExitHover != null) darkExitHover.dispose();
+        if (darkReplay != null) darkReplay.dispose();
+
+        if (red != null) red.dispose();
+        if (yellow != null) yellow.dispose();
+        if (btn_no != null) btn_no.dispose();
+        if (btn_no_clicked != null) btn_no_clicked.dispose();
+        if (btn_yes != null) btn_yes.dispose();
+        if (btn_yes_clicked != null) btn_yes_clicked.dispose();
+        if (starDifficulty != null) starDifficulty.dispose();
     }
 
 }

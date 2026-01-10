@@ -6,3 +6,7 @@ Version Beta 1.3.4
 * corretto il bug della musica in background all'apertura della lobby. il bug faceva sentire l'audio prima del
 rendering della lobby, questo creava un problema per l'utente con un audio basso o muto perché prima partiva
 il soundtrack e poi spariva
+* aggiunto un effetto sonoro all'atterraggio della pedina
+* risolto il bug della doppia scrittura del titolo nelle pagine di gioco
+* nella schermata di caricamento lobby lo schermo è scuro o chiaro in base alla scelta utente di giocare in dark o
+light mode

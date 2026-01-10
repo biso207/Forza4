@@ -421,7 +421,7 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("effects_volume", 0.5);
         UserProgressService.setProgress("music_volume", 0.5);
         // flag boolean dark mode
-        UserProgressService.setProgress("darkMode", true);
+        UserProgressService.setProgress("dark_mode", false);
 
         // salvataggio punti di base in remoto nel loro apposito campo
         try { FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, 0); }

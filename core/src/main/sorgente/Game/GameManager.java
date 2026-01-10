@@ -22,18 +22,17 @@ public class GameManager extends ScreenAdapter
     private static final Log log = LogFactory.getLog(GameManager.class);
     private final GameUI ui;
     private final GameInput input;
-    private final Main game;
+    protected static Main game = null;
 
     protected static Music soundGame;
 
 
 
     // costruttore
-    public GameManager(Main game, boolean dark, int mod)
-    {
-        this.game = game;
+    public GameManager(Main game, boolean dark, int mod) {
+        GameManager.game = game;
         input = new GameInput(mod);
-        ui = new GameUI(game,input, dark, mod);
+        ui = new GameUI(input, dark, mod);
 
 
         //log.info(d);

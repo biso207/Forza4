@@ -29,7 +29,6 @@ import java.util.TreeMap;
 
 
 public class LobbyUI implements ResourceLoader {
-    private final Main game;
     private  final SpriteBatch screen;
 
     private Boolean darkMode;
@@ -85,12 +84,11 @@ public class LobbyUI implements ResourceLoader {
     private DailyChallenges dailyChallenges;
 
     // costruttore
-    public LobbyUI(Main game, LobbyInput lobbyInput) {
+    public LobbyUI(LobbyInput lobbyInput) {
         modeTransition = false;
         modeTransitionTimer = 0f;
 
-        this.game = game;
-        this.screen = game.screen;
+        this.screen = LobbyManager.game.screen;
         this.lobbyInput = lobbyInput;
 
         // creazione istanza di DailyChallenges
@@ -305,7 +303,7 @@ public class LobbyUI implements ResourceLoader {
         }
 
         // stampa light o dark mode
-        darkMode((boolean)UserProgressService.getProgress("darkMode")); // lettura da progressi utente
+        darkMode((boolean)UserProgressService.getProgress("dark_mode")); // lettura da progressi utente
 
         screen.draw(lobby, 0, 0);
 
@@ -579,6 +577,8 @@ public class LobbyUI implements ResourceLoader {
                 lobbyInput.setInputEnabled(false);
             }
         }
+
+        // cambio schermata
         if (modeTransition) {
             modeTransitionTimer += delta;
 
@@ -589,10 +589,11 @@ public class LobbyUI implements ResourceLoader {
                 // cambio schermata
                 switch (pendingMode) {
                     case 0, 1, 2, 3: // avvio gioco
-                        game.setScreen(new GameManager(game, darkMode, pendingMode));
-                        return;
+                        LobbyManager.game.setScreen(new GameManager(LobbyManager.game, darkMode, pendingMode));
+                        break;
                     case 4: // ritorno all'autenticazione
-                        game.setScreen(new AuthManager(game));
+                        LobbyManager.game.setScreen(new AuthManager(LobbyManager.game));
+                        break;
                 }
 
                 // rilascio risorse

@@ -448,10 +448,10 @@ public class LobbyInput implements InputProcessor {
                 // on/off dark mode switch
                 if (switchDL.contains(x,y)) {
                     SoundManager.playClickButton(effectsPercent); // riproduzione suono click
-                    if ((boolean)UserProgressService.getProgress("darkMode")) UserProgressService.setProgress("darkMode", false);
-                    else UserProgressService.setProgress("darkMode", true);
+                    if ((boolean)UserProgressService.getProgress("dark_mode")) UserProgressService.setProgress("dark_mode", false);
+                    else UserProgressService.setProgress("dark_mode", true);
 
-                    System.out.println((boolean)UserProgressService.getProgress("darkMode") ? "on" : "off");
+                    System.out.println((boolean)UserProgressService.getProgress("dark_mode") ? "on" : "off");
                     return clicked();
                 }
 
@@ -1058,7 +1058,7 @@ public class LobbyInput implements InputProcessor {
 
         String candidate = marketQtyInput.toString() + c;
         applyMarketQtyCandidate(candidate);
-        return true;
+        return typed();
     }
 
     // prova ad applicare il valore digitato rispettando il massimo acquistabile

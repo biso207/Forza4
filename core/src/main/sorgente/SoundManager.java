@@ -13,94 +13,53 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import java.util.HashMap;
 
-public class SoundManager
-{
-
-
+public class SoundManager {
     private static float volume;
-    private final HashMap<String, Long> lastPlayedTimeMap;
-
     private static Music soundtrack;
-    private final Sound shotSound;
-    private final Sound hitSound;
     private final Sound creditSound;
     private final Sound completedSound;
     private static final Sound winSound=Gdx.audio.newSound(Gdx.files.internal("sounds/victory.wav"));
     private static final Sound defeatSound=Gdx.audio.newSound(Gdx.files.internal("sounds/game_over.wav"));
     private static final Sound clickButtonSound = Gdx.audio.newSound(Gdx.files.internal("sounds/click_button.wav"));
     private static final Sound digitSound = Gdx.audio.newSound(Gdx.files.internal("sounds/digit.wav"));
-
-    // intervallo minimo (in ms) tra due riproduzioni dello stesso suono
-    private static final long MIN_INTERVAL_SHOT = 50;  // 20 volte al secondo
-    private static final long MIN_INTERVAL_HIT = 100;  // 10 volte al secondo
+    private static final Sound landSound = Gdx.audio.newSound(Gdx.files.internal("sounds/token_land.mp3"));
 
     // costruttore
-    public SoundManager(float volume)
-    {
+    public SoundManager(float volume) {
         this.volume = volume;
-        this.lastPlayedTimeMap = new HashMap<>();
 
         // caricamento suoni
-        shotSound = Gdx.audio.newSound(Gdx.files.internal("sounds/shot_sound.mp3"));
-        hitSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hit_sound.wav"));
         creditSound = Gdx.audio.newSound(Gdx.files.internal("sounds/credit_sound.wav"));
-
         completedSound = Gdx.audio.newSound(Gdx.files.internal("sounds/completed_Missions.mp3"));
-
-
-
         soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.ogg"));
     }
 
-    public static void setMusicVolume(float value)
-    {
-        if (soundtrack != null)
-        {
-            soundtrack.setVolume(value);
-        }
-    } /** Cambia il volume degli EFFETTI in tempo reale */
-
-    public void setEffectsVolume(float value)
-    {
-        volume = value;
-    }
+    /** Cambia il volume della MUSICA in tempo reale */
+    public static void setMusicVolume(float value) { if (soundtrack != null) soundtrack.setVolume(value); }
+    /** Cambia il volume degli EFFETTI in tempo reale */
+    public void setEffectsVolume(float value) { volume = value; }
 
     /** Suoni rari, li riproduciamo sempre **/
     // metodo per il suono dei crediti
-    public void playCreditEarned()
-    {
-        creditSound.play(volume);
-    }
+    public void playCreditEarned() { creditSound.play(volume); }
 
     // metodo per il suono di completamento della missione Missions
-    public void playCompletedMissions()
-    {
-        completedSound.play(volume);
-    }
+    public void playCompletedMissions() { completedSound.play(volume); }
 
     // metodo per il suono di vittoria di una partita
-    public static void playWin(float volume)
-    {
-        winSound.play(volume);
-    }
+    public static void playWin(float volume) { winSound.play(volume); }
 
     // metodo per il suono della sconfitta di una partita
-    public static void  playDefeat(float volume)
-    {
-        defeatSound.play(volume);
-    }
+    public static void  playDefeat(float volume) { defeatSound.play(volume); }
 
     // metodo per riprodurre il click dei pulsanti
-    public static void playClickButton(float volume)
-    {
-        clickButtonSound.play(volume);
-    }
+    public static void playClickButton(float volume) { clickButtonSound.play(volume); }
 
     // metodo per riprodurre il suono della digitazione
-    public static void playDigitSound(float volume)
-    {
-        digitSound.play(volume);
-    }
+    public static void playDigitSound(float volume) { digitSound.play(volume); }
+
+    // metodo per riprodurre il suono della pedina atterrata
+    public static void playLand(float volume) { landSound.play(volume); }
 
     public static void playLobby(float volume) {
         soundtrack.setLooping(true);
@@ -108,24 +67,12 @@ public class SoundManager
         soundtrack.play();
     }
 
-    private void playThrottled(String key, Sound sound, long minIntervalMillis) {
-        long now = System.currentTimeMillis();
-        Long lastPlayed = lastPlayedTimeMap.getOrDefault(key, 0L);
-
-        if (now - lastPlayed >= minIntervalMillis)
-        {
-            sound.play(volume);
-            lastPlayedTimeMap.put(key, now);
-        }
-    }
-
     public void dispose() {
-        shotSound.dispose();
-        hitSound.dispose();
         creditSound.dispose();
         completedSound.dispose();
         winSound.dispose();
         defeatSound.dispose();
+        landSound.dispose();
     }
 
 

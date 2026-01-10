@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import sorgente.Authentication.AuthManager;
 import sorgente.Lobby.LobbyManager;
+import sorgente.UserData.UserProgressService;
 import sorgente.dbManagement.GlobalProgressManager;
 import sorgente.dbManagement.ProgressListener;
 
@@ -37,7 +38,8 @@ public class LoadingScreen implements Screen, ProgressListener {
         "#201F6B",
         "#022159",
         "#A11608",
-        "#9D9D9D"
+        "#FFFFFF",
+        "#000000"
     };
 
     private Music openSound;
@@ -129,13 +131,22 @@ public class LoadingScreen implements Screen, ProgressListener {
     public void selectScreen() {
         Random r = new Random();
         if (playMusic) bg = r.nextInt(3);
+        /* todo: controllo questo blocco perché dà errore, probabilmente non ha ancora recuperato i dati utente
+        else {
+            // scelta basata sulla dark mode
+            if ((boolean) UserProgressService.getProgress("dark_mode")) bg=4;
+            else bg = 3;
+        }
+
+         */
         else bg = 3;
 
         String[] bgPaths = {
             "loading_screens/loading_screen_0.png",
             "loading_screens/loading_screen_1.png",
             "loading_screens/loading_screen_2.png",
-            "loading_screens/loading_screen_3.png"
+            "loading_screens/loading_screen_3.png",
+            "loading_screens/loading_screen_4.png"
         };
         background = new Texture(bgPaths[bg]);
     }
