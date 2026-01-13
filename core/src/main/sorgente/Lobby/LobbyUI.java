@@ -18,6 +18,7 @@ import sorgente.Fonts;
 import sorgente.Game.GameManager;
 import sorgente.Main;
 import sorgente.ResourceLoader;
+import sorgente.UserData.SessionLockService;
 import sorgente.UserData.UserProgressService;
 import sorgente.VersionInfo;
 import java.awt.*;
@@ -592,6 +593,7 @@ public class LobbyUI implements ResourceLoader {
                         LobbyManager.game.setScreen(new GameManager(LobbyManager.game, darkMode, pendingMode));
                         break;
                     case 4: // ritorno all'autenticazione
+                        SessionLockService.shutdownAll(); // rilascia il lock
                         LobbyManager.game.setScreen(new AuthManager(LobbyManager.game));
                         break;
                 }

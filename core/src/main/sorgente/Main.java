@@ -12,6 +12,7 @@ package sorgente;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import sorgente.UserData.SessionLockService;
 
 public class Main extends Game {
     public SpriteBatch screen;
@@ -29,7 +30,7 @@ public class Main extends Game {
 
     @Override
     public void dispose() {
-        //SessionLockManager.shutdownAll(); // rilascia il lock --> serve a sbloccare la sessione utente e permettere un nuovo login
+        SessionLockService.shutdownAll(); // rilascia il lock --> serve a sbloccare la sessione utente e permettere un nuovo login
         screen.dispose(); // rimozione risorse
     }
 }
