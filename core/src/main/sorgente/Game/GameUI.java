@@ -715,22 +715,34 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             draw(exit, gameInput.isBtnExitClicked, 825, 591);
             draw(exitHover, gameInput.isBtnExitHover, 825, 591);
 
-            int col;
-            int row;
+            int col = 0;
+            int row=0;
+
+            row=gameInput.getRowFromClick(Gdx.input.getX(),Gdx.input.getY());
+            log.info("riga :"+row);
+            log.info(Gdx.input.getY());
+
+            col = gameInput.getColumnFromClick(
+                Gdx.input.getX(),
+                Gdx.graphics.getHeight() - Gdx.input.getY()
+            );
+            row = (col != -1) ? gameInput.getLowestFreeRow(col, boardStateAsBoolean()) : -1;
+
+            if(mod == 1 && gravityStep !=0)
+            {
+
+                if(gravityStep == 1)
+                {
+                  row=gameInput.getRowFromClick(Gdx.input.getX(),Gdx.input.getY());
+                    log.info("riga :"+row);
+                  log.info(row);
+                }
+
+            }
 
 
-
-                 col = gameInput.getColumnFromClick(
-                    Gdx.input.getX(),
-                    Gdx.graphics.getHeight() - Gdx.input.getY()
-                );
-                 row = (col != -1) ? gameInput.getLowestFreeRow(col, boardStateAsBoolean()) : -1;
-
-
-
-
-        //    if (col != -1 && row != -1) {
-                // POWER-UP USO SUL PROSSIMO CLICK
+            //    if (col != -1 && row != -1) {
+            // POWER-UP USO SUL PROSSIMO CLICK
                 /*
                 if (gameInput.powerExplosive) {
                     applicaExplosive(row, col);
@@ -761,13 +773,13 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
 
 
-                // suono click
-                SoundManager.playClickButton(LobbyInput.effectsPercent);
-                // caduta pedina
-                startDrop(1, row, col);
-                // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
-                gameInput.isHole = false;
-           // }
+            // suono click
+            SoundManager.playClickButton(LobbyInput.effectsPercent);
+            // caduta pedina
+            startDrop(1, row, col);
+            // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
+            gameInput.isHole = false;
+            // }
         }
 
         screen.end();

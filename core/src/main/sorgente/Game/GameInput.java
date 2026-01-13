@@ -249,6 +249,49 @@ public class GameInput implements InputProcessor {
         return -1;
     }
 
+    /**
+     * Restituisce la riga corrispondente al click.
+     * Si aspetta x,y raw (come ricevuti da touchDown / Gdx.input.getX/Y).
+     * Usa la conversione interna da origine top-left a bottom-left.
+     * Ritorna -1 se il click è fuori dalla griglia o la col passata è invalida.
+     */
+    public int getRowFromClick(int x, int y) {
+        // validazione col
+
+
+        // converti Y da top-left a bottom-left
+        int convertedY = Gdx.graphics.getHeight() - y;
+
+        // parametri della griglia (mantieni coerenti con GameUI)
+        final float baseY = 93f;   // stesso baseY usato in GameUI
+        final float dy = 61f;      // distanza tra righe
+        final float holeSize = 40f; // altezza cella
+
+        // distanza dal bordo inferiore della griglia
+        float delta = convertedY - baseY;
+
+        // fuori griglia in basso
+        if (delta < 0) return -1;
+
+        // altezza totale coperta dalle 6 righe (dal bordo inferiore alla cima dell'ultima cella)
+        float maxHeight = 5 * dy + holeSize;
+        if (delta > maxHeight) return -1;
+
+        // quante "step" di dy ci sono sopra baseY
+        int step = (int) Math.floor(delta / dy);
+
+        // mappa step -> row (poiché y = baseY + (5 - row) * dy)
+        int row = 5 - step;
+
+        // controllo finale
+        if (row < 0 || row > 5) return -1;
+        return row;
+    }
+
+
+
+
+
     public int getLowestFreeRow(int col, boolean[][] board) {
 
         for (int row = 5; row >= 0; row--) {
