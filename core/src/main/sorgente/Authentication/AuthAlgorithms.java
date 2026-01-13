@@ -17,7 +17,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import sorgente.SoundManager;
 import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.UserProgressService;
-import sorgente.UserData.LocalLockStore;
+import sorgente.UserData.LockStatusService;
 import sorgente.UserData.SessionLockService;
 
 import java.io.IOException;
@@ -312,8 +312,10 @@ public class AuthAlgorithms implements InputProcessor {
                 // 1) password in chiaro
                 password = passwordInput.toString();
 
-                // 2) salva password su Firestore (hashata)
+                // 2) salva password su Firestore (hash)
                 FirestoreUserRepository.setPassword(nickname, password);
+
+                // 3) hash della data di registrazione todo
 
                 // 4) data di registrazione
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -326,9 +328,9 @@ public class AuthAlgorithms implements InputProcessor {
                 createUserProgresses();
 
                 // 7) set lock, start heartbeat, ecc.
-                LocalLockStore.setLockStatus(nickname, true);
-                SessionLockService.startHeartbeat(nickname);
-                UserProgressService.loadProgresses();
+                LockStatusService.setLockStatus(nickname, true); // blocco del lock
+                SessionLockService.startHeartbeat(nickname); // avvio dell'heartbeat
+                UserProgressService.loadProgresses(); // caricamento progressi utente
                 state = 3;
             }
             else if (!nickname.isEmpty() && !passwordInput.isEmpty()) {
@@ -350,13 +352,13 @@ public class AuthAlgorithms implements InputProcessor {
             if (!FirestoreUserRepository.checkUsernameExists(nickname)) { resetErrors(); error1 = true; return; }
 
             // sessione scaduta => rilascio del lock
-            if (LocalLockStore.isSessionExpired(nickname)) { LocalLockStore.setLockStatus(nickname, false); }
+            if (LockStatusService.isSessionExpired(nickname)) { LockStatusService.setLockStatus(nickname, false); }
 
             // stato del lock => "true"=>impossibile accedere/"false"=>l'utente entra
-            if (LocalLockStore.isUserLocked(nickname)) { resetErrors(); error3 = true; return; }
+            if (LockStatusService.isUserLocked(nickname)) { resetErrors(); error3 = true; return; }
 
             // blocca subito la sessione
-            LocalLockStore.setLockStatus(nickname, true);
+            LockStatusService.setLockStatus(nickname, true);
 
             // recupero password utente dal server
             String hashedPsw = FirestoreUserRepository.getPassword(nickname);
@@ -364,7 +366,7 @@ public class AuthAlgorithms implements InputProcessor {
             // password errata => libera subito il lock
             if (!BCrypt.checkpw(String.valueOf(passwordInput), hashedPsw)) {
                 resetErrors(); error = true;
-                LocalLockStore.setLockStatus(nickname, false);
+                LockStatusService.setLockStatus(nickname, false);
                 return;
             }
 
@@ -396,10 +398,10 @@ public class AuthAlgorithms implements InputProcessor {
         // INIT PROGRESSI NUOVO UTENTE //
         //UserProgressService.setProgress("avatar", 0);
         // difficoltà modalità di gioco
-        UserProgressService.setProgress("diff_classic", 1);
-        UserProgressService.setProgress("diff_gravity4", 1);
-        UserProgressService.setProgress("diff_horizontal", 1);
-        UserProgressService.setProgress("diff_speedy", 1);
+        UserProgressService.setProgress("diff_classic", 0);
+        UserProgressService.setProgress("diff_gravity4", 0);
+        UserProgressService.setProgress("diff_horizontal", 0);
+        UserProgressService.setProgress("diff_speedy", 0);
         // numero missione raggiunta
         UserProgressService.setProgress("num_mission", 1);
         // numero partite per ogni modalità di gioco

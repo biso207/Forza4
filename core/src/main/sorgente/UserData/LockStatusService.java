@@ -15,20 +15,24 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class LocalLockStore {
+public final class LockStatusService {
 
-    private LocalLockStore() {
+    private LockStatusService() {
         // Utility class: prevent instantiation
     }
 
 
-    private static final String DATABASE_URL = "https://firestore.googleapis.com/v1/projects/astroinvasioncloud/databases/(default)/documents/";
+    // dati del database per la connessione
+    private static final String PROJECT_ID = "forza4-adf22"; // nome database
+    private static final String DATABASE_URL = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/";
+
+    // valori di tempo per gli intervalli
     private static final long DEFAULT_REFRESH_INTERVAL_MS = 5_000; // 5 secondi
     private static final long refreshInterval = DEFAULT_REFRESH_INTERVAL_MS;
 
     // metodo per recuperare l'ultimo timestamp
     private static long getLastTimestamp(String username) throws IOException {
-        String url = DATABASE_URL + "astroData/" + username;
+        String url = DATABASE_URL + "users/" + username;
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -87,7 +91,7 @@ public final class LocalLockStore {
      * @throws IOException in caso di problemi di comunicazione con Firestore
      */
     public static boolean isUserLocked(String username) throws IOException {
-        String url = DATABASE_URL + "astroData/" + username;
+        String url = DATABASE_URL + "users/" + username;
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -132,7 +136,7 @@ public final class LocalLockStore {
      * @throws IOException in caso di problemi di comunicazione con Firestore
      */
     public static void setLockStatus(String username, boolean locked) throws IOException {
-        String url = DATABASE_URL + "astroData/" + username + "?updateMask.fieldPaths=lock";
+        String url = DATABASE_URL + "users/" + username + "?updateMask.fieldPaths=lock";
 
         long timestamp = System.currentTimeMillis();
 

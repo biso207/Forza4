@@ -48,20 +48,20 @@ public final class SessionLockService {
         heartbeatExecutor.scheduleAtFixedRate(() -> {
             if (!checkInternetConnection()) {
                 // internet assente
-                //UIManager.isConnected = false;
-                //System.out.println("[DEBUG] Connessione assente");
+                //LobbyUI.isConnected = false;
+                System.out.println("[DEBUG] Connessione assente");
             } else {
-               // UIManager.isConnected = true;
+                //LobbyUI.isConnected = true;
 
                 try {
                     // aggiorna lo stato del lock
-                    LocalLockStore.setLockStatus(username, true);
+                    LockStatusService.setLockStatus(username, true);
                 } catch (IOException e) {
                     System.out.println("Errore nel settaggio lock: " + e.getMessage());
                 }
 
                 cont_hb++;
-                //System.out.println("[DEBUG] Heartbeat #" + cont_hb + " inviato per utente " + username);
+                System.out.println("[DEBUG] Heartbeat #" + cont_hb + " inviato per utente " + username);
             }
         }, 0, HEARTBEAT_INTERVAL_MS, TimeUnit.MILLISECONDS);
     }
@@ -75,8 +75,8 @@ public final class SessionLockService {
             stopHeartbeat();
             stopRecovery();
             if (currentUsername != null) {
-                LocalLockStore.setLockStatus(currentUsername, false);
-                //System.out.println("[DEBUG] Lock rilasciato per utente " + currentUsername);
+                LockStatusService.setLockStatus(currentUsername, false);
+                System.out.println("[DEBUG] Lock rilasciato per utente " + currentUsername);
             }
         } catch (IOException e) {
             System.out.println("Errore durante il rilascio del lock: " + e.getMessage());
@@ -87,7 +87,7 @@ public final class SessionLockService {
     private static void stopHeartbeat() {
         if (heartbeatExecutor != null && !heartbeatExecutor.isShutdown()) {
             heartbeatExecutor.shutdownNow();
-            //System.out.println("[DEBUG] Heartbeat fermato");
+            System.out.println("[DEBUG] Heartbeat fermato");
         }
     }
 
@@ -95,7 +95,7 @@ public final class SessionLockService {
     private static void stopRecovery() {
         if (recoveryExecutor != null && !recoveryExecutor.isShutdown()) {
             recoveryExecutor.shutdownNow();
-            //System.out.println("[DEBUG] Recovery fermato");
+            System.out.println("[DEBUG] Recovery fermato");
         }
     }
 

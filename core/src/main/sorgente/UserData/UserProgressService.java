@@ -45,6 +45,8 @@ public class UserProgressService implements LoadCallback
 
             @Override
             public void onComplete(boolean success, String result) {
+                // pulizia della mappa prima di un nuovo caricamento
+                progressi.clear();
                 if (success) {
                     // decrypt della stringa passata
                     byte[] decodedBytes = Base64.getDecoder().decode(result);
@@ -91,11 +93,6 @@ public class UserProgressService implements LoadCallback
     public static void setProgress(String nome, Object valore) {
         progressi.put(nome, valore);
         saveProgresses();
-    }
-
-    // metodo per resettare i progressi al logout => evita sovrascritture
-    public static void resetProgress() {
-        progressi.clear();
     }
 
     // ************************************ //
