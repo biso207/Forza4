@@ -137,7 +137,6 @@ public class LoadingScreen implements Screen, ProgressListener {
             if ((boolean) UserProgressService.getProgress("dark_mode")) bg=4;
             else bg = 3;
         }
-
          */
         else bg = 3;
 

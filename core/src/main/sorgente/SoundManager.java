@@ -22,7 +22,7 @@ public class SoundManager {
     private static final Sound defeatSound=Gdx.audio.newSound(Gdx.files.internal("sounds/game_over.wav"));
     private static final Sound clickButtonSound = Gdx.audio.newSound(Gdx.files.internal("sounds/click_button.wav"));
     private static final Sound digitSound = Gdx.audio.newSound(Gdx.files.internal("sounds/digit.wav"));
-    private static final Sound landSound = Gdx.audio.newSound(Gdx.files.internal("sounds/token_land.mp3"));
+    private static final Sound landSound = Gdx.audio.newSound(Gdx.files.internal("sounds/token_land.ogg"));
 
     // costruttore
     public SoundManager(float volume) {

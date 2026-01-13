@@ -8,5 +8,4 @@ rendering della lobby, questo creava un problema per l'utente con un audio basso
 il soundtrack e poi spariva
 * aggiunto un effetto sonoro all'atterraggio della pedina
 * risolto il bug della doppia scrittura del titolo nelle pagine di gioco
-* nella schermata di caricamento lobby lo schermo è scuro o chiaro in base alla scelta utente di giocare in dark o
-light mode
+* aumentato il volume dell'effetto "pedina atterrata" nelle modalità di gioco
