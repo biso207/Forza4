@@ -105,7 +105,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private static final float DROP_SPEED = 600f;
 
     // --- GRAVITY4: ordine direzioni per OGNI mossa ---
-    private int gravityStep = 0; // 0 TOP, 1 BOTTOM, 2 RIGHT, 3 LEFT
+    public static int gravityStep = 0; // 0 TOP, 1 BOTTOM, 2 RIGHT, 3 LEFT
 
     // --- BOT THINK DELAY ---
     private boolean botPending = false;
@@ -361,6 +361,117 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         log.info("Power-up Wild attivato su (" + row + "," + col + ")");
     }
 
+    /**
+     * Gravity4 a 3 direzioni:
+     * 0 = TOP   → cerca il primo spazio libero dal basso
+     * 1 = RIGHT → cerca il primo spazio libero da sinistra
+     * 2 = LEFT  → cerca il primo spazio libero da destra
+     */
+    /**
+     * Gravity4 semplificata:
+     * - cerca SOLO il primo blocco libero nella direzione della gravità
+     * - ignora il punto cliccato SOLO in TOP
+     * - usa clickedRow per LEFT/RIGHT
+     * - restituisce {row, col} oppure {-1, -1}
+     */
+
+    public static int[] getGravityLandingCellStatic(int[][] board, int col) {
+
+        // --- CLASSIC / NON-GRAVITY ---
+        if (GameUI.mod != 1) {
+            // cerca la prima riga libera nella colonna
+            for (int r = 5; r >= 0; r--) {
+                if (board[r][col] == 0)
+                    return new int[]{r, col};
+            }
+            return new int[]{-1, -1};
+        }
+
+        // --- GRAVITY4 ---
+        int gravity = GameUI.gravityStep;
+
+        switch (gravity) {
+
+            // 0 = TOP → classico
+            case 0 -> {
+                for (int r = 5; r >= 0; r--) {
+                    if (board[r][col] == 0)
+                        return new int[]{r, col};
+                }
+                return new int[]{-1, -1};
+            }
+
+            // 1 = RIGHT → cerca la prima cella libera da sinistra (SCORRE TUTTA LA GRIGLIA)
+            case 1 -> {
+                for (int r = 0; r < 6; r++) {
+                    for (int c = 0; c < 7; c++) {
+                        if (board[r][c] == 0)
+                            return new int[]{r, c};
+                    }
+                }
+                return new int[]{-1, -1};
+            }
+
+            // 2 = LEFT → cerca la prima cella libera da destra (SCORRE TUTTA LA GRIGLIA)
+            case 2 -> {
+                for (int r = 0; r < 6; r++) {
+                    for (int c = 6; c >= 0; c--) {
+                        if (board[r][c] == 0)
+                            return new int[]{r, c};
+                    }
+                }
+                return new int[]{-1, -1};
+            }
+        }
+
+        return new int[]{-1, -1};
+    }
+
+
+
+    private int[] getGravityLandingCell(int clickedRow, int clickedCol) {
+
+        // --- MODALITÀ NON GRAVITY ---
+        if (mod != 1) {
+            int row = gameInput.getLowestFreeRow(clickedCol, boardStateAsBoolean());
+            return new int[]{row, clickedCol};
+        }
+
+        // --- GRAVITY4 ---
+        switch (gravityStep) {
+
+            // 0 = TOP → classico
+            case 0 -> {
+                int r = gameInput.getLowestFreeRow(clickedCol, boardStateAsBoolean());
+                if (r == -1) return new int[]{-1, -1};
+                return new int[]{r, clickedCol};
+            }
+
+            // 1 = RIGHT → cerca da sinistra verso destra nella riga cliccata
+            case 1 -> {
+                for (int c = 0; c < 7; c++) {
+                    if (boardState[clickedRow][c] == 0)
+                        return new int[]{clickedRow, c};
+                }
+                return new int[]{-1, -1};
+            }
+
+            // 2 = LEFT → cerca da destra verso sinistra nella riga cliccata
+            case 2 -> {
+                for (int c = 6; c >= 0; c--) {
+                    if (boardState[clickedRow][c] == 0)
+                        return new int[]{clickedRow, c};
+                }
+                return new int[]{-1, -1};
+            }
+        }
+
+        return new int[]{-1, -1};
+    }
+
+
+
+
     // disegno griglia di gioco
     public void drawGame() {
         // pedine sulla griglia
@@ -389,16 +500,17 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         return 93 + (5 - row) * 61f;
     }
 
-    // metodo per la direzione corrente della pedina inserita
     private DropDir currentDropDir() {
-        if (mod != 1) return DropDir.TOP; // classic/speedy/horizontal -> sempre dall'alto
+        if (mod != 1) return DropDir.TOP;
+
         return switch (gravityStep) {
-            case 0 -> DropDir.TOP;
-            case 1 -> DropDir.BOTTOM;
-            case 2 -> DropDir.RIGHT;
-            default -> DropDir.LEFT;
+            case 0 -> DropDir.TOP;   // cade dall’alto
+            case 1 -> DropDir.RIGHT; // entra da destra
+            case 2 -> DropDir.LEFT;  // entra da sinistra
+            default -> DropDir.TOP;
         };
     }
+
 
     // metodo per avviare l'animazione
     private void startDrop(int player, int row, int col) {
@@ -496,7 +608,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             boardState[dropRow][dropCol] = dropPlayer;
 
             // Gravity4: avanza direzione SOLO dopo una mossa completata (a fine rimbalzo)
-            if (mod == 1) gravityStep = (gravityStep + 1) % 4;
+            if (mod == 1) gravityStep = (gravityStep + 1) % 3;
 
             if (dropPlayer == 1) numTokensUser++;
             else numTokensBot++;
@@ -532,21 +644,32 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         }
 
         // --- se ha appena giocato il player, programma la mossa del bot con delay ---
+        // --- se ha appena giocato il player, programma la mossa del bot con delay ---
         if (player == 1) {
+
             int botCol = CPUBrain.chooseMove(boardState);
-            int botRow = gameInput.getLowestFreeRow(botCol, boardStateAsBoolean());
 
-            if (botRow != -1) {
-                botPlannedCol = botCol;
-                botPlannedRow = botRow;
+            boolean botCanPlay = true;
 
+            if (botCol == -1) botCanPlay = false;
+
+            int[] landing = getGravityLandingCell(0, botCol);
+
+            if (landing[0] == -1 || landing[1] == -1) botCanPlay = false;
+
+            if (botCanPlay) {
+                botPlannedRow = landing[0];
+                botPlannedCol = landing[1];
                 botPending = true;
                 botDelayTimer = BOT_THINK_DELAY;
-
-                // griglia bloccata per l'utente
                 gameInput.setGridEnabled(false);
+            } else {
+                botPending = false;
+                gameInput.setGridEnabled(true);
             }
         }
+
+
 
         // sblocco griglia per l'utente
         if (!isMatchOver && player == 2) gameInput.setGridEnabled(true);
@@ -624,6 +747,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             timer +=  delta;
 
+            if(timer == 2f || timer ==4f)
+            {
+                SoundManager.playLand(100);
+            }
 
 
             if (timer >= 5f) {
@@ -718,27 +845,33 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             int col = 0;
             int row=0;
 
-            row=gameInput.getRowFromClick(Gdx.input.getX(),Gdx.input.getY());
-            log.info("riga :"+row);
-            log.info(Gdx.input.getY());
+
 
             col = gameInput.getColumnFromClick(
                 Gdx.input.getX(),
                 Gdx.graphics.getHeight() - Gdx.input.getY()
             );
-            row = (col != -1) ? gameInput.getLowestFreeRow(col, boardStateAsBoolean()) : -1;
 
-            if(mod == 1 && gravityStep !=0)
+            if (col == -1) {
+                gameInput.isHole = false;
+                return;
+            }
+
+
+            int[] landing = getGravityLandingCell(
+                gameInput.getRowFromClick(Gdx.input.getX(), Gdx.input.getY()),
+                col
+            );
+
+            row = landing[0];
+            col = landing[1];
+
+            if (row == -1 || col == -1)
             {
-
-                if(gravityStep == 1)
-                {
-                  row=gameInput.getRowFromClick(Gdx.input.getX(),Gdx.input.getY());
-                    log.info("riga :"+row);
-                  log.info(row);
-                }
+                gameInput.isHole = false;
 
             }
+
 
 
             //    if (col != -1 && row != -1) {
@@ -771,7 +904,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             log.info(mod);
 
 
-
+            if(row != -1 && col !=-1)
+            {
 
             // suono click
             SoundManager.playClickButton(LobbyInput.effectsPercent);
@@ -779,7 +913,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             startDrop(1, row, col);
             // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
             gameInput.isHole = false;
-            // }
+            }
         }
 
         screen.end();
