@@ -37,7 +37,7 @@ public class LoadingScreen implements Screen, ProgressListener {
     private final String[] colorsLoader = {
         "#201F6B",
         "#022159",
-        "#A11608",
+        "#2D0809",
         "#FFFFFF",
         "#000000"
     };
@@ -165,10 +165,7 @@ public class LoadingScreen implements Screen, ProgressListener {
     @Override
     public void dispose() {
         if (!playMusic) background.dispose();
-        if (openSound != null) {
-            openSound.dispose();
-        }
-    }
+        if (openSound != null) openSound.dispose();    }
 
     // metodo che "ascolta" il progresso di caricamento durante upload/download dati
     @Override

@@ -6,3 +6,4 @@ light mode, c'è un errore nel recupero dei progressi utente che avviene dopo il
 * todo: nuove musiche per l'apertura del gioco e la lobby
 * risolto il bug relativo al lock della sessione utente, ora si può giocare con lo stesso utente su un solo dispositivo
 alla volta. alla chiusura del gioco e al logout utente il lock viene rilasciato.
+* cambiato il colore della barra di caricamento per la schermata di caricamento 3.
