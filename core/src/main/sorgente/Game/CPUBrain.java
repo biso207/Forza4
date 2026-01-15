@@ -18,114 +18,280 @@ public class CPUBrain {
         this.modalita = mod;
     }
 
-    // ENTRY POINT: restituisce SOLO la colonna
+    // ---------------- ENTRY POINTS ----------------
+    // Compatibilità: versione senza row/col (fallback)
     public int chooseMove(int[][] board) {
+        // fallback: chiama la versione estesa con valori di default
+        return chooseMove(board, -1, -1);
+    }
+
+    // Nuova versione: il chiamante può passare riga e colonna (es. GameUI)
+    // clickedRow/clickedCol sono "preferenze" o coordinate del click simulato
+    public int chooseMove(int[][] board, int clickedRow, int clickedCol) {
         return switch (difficulty) {
-            case 0 -> randomMove(board);
-            case 1 -> smartMove(board);
-            case 2 -> bestMove(board);
-            default -> randomMove(board);
+            case 0 -> randomMove(board, clickedRow, clickedCol);
+            case 1 -> smartMove(board, clickedRow, clickedCol);
+            case 2 -> bestMove(board, clickedRow, clickedCol);
+            default -> randomMove(board, clickedRow, clickedCol);
         };
     }
 
-    // ---------------- RANDOM MOVE ----------------
-    private int randomMove(int[][] board) {
-        List<Integer> validCols = new ArrayList<>();
+    // ---------------- HELPERS PER LANDING ----------------
+    // Ritorna {row, col} di atterraggio secondo la gravità, partendo da una "colonna richiesta"
+    // modifica landingForColumn per ricevere preferredRow
+    private int[] landingForColumn(int[][] board, int requestedCol, int preferredRow) {
+        return GameUI.getGravityLandingCellStatic(board, requestedCol, preferredRow);
+    }
 
-        for (int col = 0; col < 7; col++) {
-            int[] landing = GameUI.getGravityLandingCellStatic(board, col);
-            if (landing[0] != -1) validCols.add(col);
+    // Per gravità laterale: dato un indice di riga, trova la prima cella libera in quella riga
+    // scansionando le colonne nella direzione della gravità. Restituisce {row, col} o {-1,-1}.
+    private int[] landingForRow(int[][] board, int requestedRow) {
+        int gravity = GameUI.gravityStep;
+
+        if (requestedRow < 0 || requestedRow > 5) return new int[]{-1, -1};
+
+        // RIGHT -> scansiona colonne da destra verso sinistra (preferisce colonne più a destra)
+        if (gravity == 1) {
+            for (int c = 6; c >= 0; c--) {
+                if (board[requestedRow][c] == 0) return new int[]{requestedRow, c};
+            }
+            return new int[]{-1, -1};
+        }
+
+        // LEFT -> scansiona colonne da sinistra verso destra (preferisce colonne più a sinistra)
+        if (gravity == 2) {
+            for (int c = 0; c < 7; c++) {
+                if (board[requestedRow][c] == 0) return new int[]{requestedRow, c};
+            }
+            return new int[]{-1, -1};
+        }
+
+        // Se non è gravità laterale, non usare questa funzione
+        return new int[]{-1, -1};
+    }
+
+    // Per gravità laterale: trova la prima cella libera scorrendo righe dal basso verso l'alto,
+    // e per ogni riga cerca la prima cella libera nella direzione della gravità.
+    private int[] landingForAnyRowBottomUp(int[][] board) {
+        int gravity = GameUI.gravityStep;
+        if (gravity != 1 && gravity != 2) return new int[]{-1, -1};
+
+        for (int r = 5; r >= 0; r--) {
+            int[] l = landingForRow(board, r);
+            if (l[0] != -1) return l;
+        }
+        return new int[]{-1, -1};
+    }
+
+    // Data una "richiesta" (requestedIndex) e la gravità, ritorna la cella di atterraggio:
+    // - se gravity == TOP -> requestedIndex è una colonna
+    // - se gravity == RIGHT/LEFT -> requestedIndex è una riga
+    // Nota: aggiunto preferredRow per coerenza (non sempre necessario)
+    private int[] landingForRequestedIndex(int[][] board, int requestedIndex, int preferredRow) {
+        int gravity = GameUI.gravityStep;
+        if (gravity == 0) {
+            if (requestedIndex < 0 || requestedIndex > 6) return new int[]{-1, -1};
+            return landingForColumn(board, requestedIndex, preferredRow);
+        } else {
+            if (requestedIndex < 0 || requestedIndex > 5) return new int[]{-1, -1};
+            return landingForRow(board, requestedIndex);
+        }
+    }
+
+    // Converte l'indice richiesto (colonna o riga) nella colonna effettiva da restituire al chiamante
+    private int columnFromLanding(int[] landing) {
+        if (landing == null || landing[0] == -1) return -1;
+        return landing[1];
+    }
+
+    // ---------------- RANDOM MOVE ----------------
+    private int randomMove(int[][] board, int clickedRow, int clickedCol) {
+        List<Integer> validCols = new ArrayList<>();
+        int gravity = GameUI.gravityStep;
+
+        if (gravity == 0) {
+            // TOP: itera colonne
+            for (int col = 0; col < 7; col++) {
+                int[] landing = landingForColumn(board, col, clickedRow);
+                if (landing[0] != -1) validCols.add(col);
+            }
+        } else {
+            // RIGHT/LEFT: itera righe (dal basso verso l'alto) e aggiungi la colonna effettiva
+            for (int r = 5; r >= 0; r--) {
+                int[] landing = landingForRow(board, r);
+                if (landing[0] != -1) {
+                    int retCol = landing[1];
+                    if (!validCols.contains(retCol)) validCols.add(retCol);
+                }
+            }
         }
 
         if (validCols.isEmpty()) return -1;
-
         return validCols.get(new Random().nextInt(validCols.size()));
     }
 
-
     // ---------------- SMART MOVE ----------------
-    private int smartMove(int[][] board) {
+    private int smartMove(int[][] board, int clickedRow, int clickedCol) {
+        int gravity = GameUI.gravityStep;
+
         // 1) prova a vincere
-        for (int col = 0; col < 7; col++) {
-            int row = getLowestFreeRow(board, col);
-            if (row != -1) {
-                board[row][col] = botToken;
-                if (checkWin(board, row, col, botToken)) {
-                    board[row][col] = 0;
-                    return col;
+        if (gravity == 0) {
+            // TOP: prova ogni colonna
+            for (int col = 0; col < 7; col++) {
+                int[] landing = landingForColumn(board, col, clickedRow);
+                int row = landing[0];
+                int landingCol = landing[1];
+                if (row != -1) {
+                    board[row][landingCol] = botToken;
+                    boolean win = checkWin(board, row, landingCol, botToken);
+                    board[row][landingCol] = 0;
+                    if (win) return landingCol;
                 }
-                board[row][col] = 0;
+            }
+        } else {
+            // RIGHT/LEFT: prova ogni riga (preferendo clickedRow se valido)
+            List<Integer> rowsOrder = new ArrayList<>();
+            if (clickedRow >= 0 && clickedRow <= 5) rowsOrder.add(clickedRow);
+            for (int r = 5; r >= 0; r--) if (r != clickedRow) rowsOrder.add(r);
+
+            for (int r : rowsOrder) {
+                int[] landing = landingForRow(board, r);
+                int row = landing[0];
+                int landingCol = landing[1];
+                if (row != -1) {
+                    board[row][landingCol] = botToken;
+                    boolean win = checkWin(board, row, landingCol, botToken);
+                    board[row][landingCol] = 0;
+                    if (win) return landingCol;
+                }
             }
         }
 
         // 2) prova a bloccare l’avversario
         int opponent = (botToken == 1) ? 2 : 1;
-        for (int col = 0; col < 7; col++) {
-            int row = getLowestFreeRow(board, col);
-            if (row != -1) {
-                board[row][col] = opponent;
-                if (checkWin(board, row, col, opponent)) {
-                    board[row][col] = 0;
-                    return col;
+        if (gravity == 0) {
+            for (int col = 0; col < 7; col++) {
+                int[] landing = landingForColumn(board, col, clickedRow);
+                int row = landing[0];
+                int landingCol = landing[1];
+                if (row != -1) {
+                    board[row][landingCol] = opponent;
+                    boolean oppWins = checkWin(board, row, landingCol, opponent);
+                    board[row][landingCol] = 0;
+                    if (oppWins) return landingCol;
                 }
-                board[row][col] = 0;
+            }
+        } else {
+            List<Integer> rowsOrder = new ArrayList<>();
+            if (clickedRow >= 0 && clickedRow <= 5) rowsOrder.add(clickedRow);
+            for (int r = 5; r >= 0; r--) if (r != clickedRow) rowsOrder.add(r);
+
+            for (int r : rowsOrder) {
+                int[] landing = landingForRow(board, r);
+                int row = landing[0];
+                int landingCol = landing[1];
+                if (row != -1) {
+                    board[row][landingCol] = opponent;
+                    boolean oppWins = checkWin(board, row, landingCol, opponent);
+                    board[row][landingCol] = 0;
+                    if (oppWins) return landingCol;
+                }
             }
         }
 
-        // 3) altrimenti mossa casuale
-        return randomMove(board);
+        // 3) fallback casuale
+        return randomMove(board, clickedRow, clickedCol);
     }
 
     // ---------------- BEST MOVE ----------------
-    private int bestMove(int[][] board) {
-        int[] preferredOrder = {3, 2, 4, 1, 5, 0, 6};
+    private int bestMove(int[][] board, int clickedRow, int clickedCol) {
+        int[] preferredOrderCols = {3, 2, 4, 1, 5, 0, 6};
 
-        // 1) prova a vincere
-        for (int col : preferredOrder) {
-            int row = getLowestFreeRow(board, col);
-            if (row != -1) {
-                board[row][col] = botToken;
-                if (checkWin(board, row, col, botToken)) {
-                    board[row][col] = 0;
-                    return col;
+        int gravity = GameUI.gravityStep;
+
+        // 1) prova a vincere (ordine preferito)
+        if (gravity == 0) {
+            for (int col : preferredOrderCols) {
+                int[] landing = landingForColumn(board, col, clickedRow);
+                int row = landing[0];
+                int landingCol = landing[1];
+                if (row != -1) {
+                    board[row][landingCol] = botToken;
+                    boolean win = checkWin(board, row, landingCol, botToken);
+                    board[row][landingCol] = 0;
+                    if (win) return landingCol;
                 }
-                board[row][col] = 0;
+            }
+        } else {
+            // per gravità laterale, interpretiamo preferredOrderCols come "preferenze di colonna"
+            // ma cerchiamo righe che permettano quelle colonne; più semplice: proviamo righe dal basso
+            List<Integer> rowsOrder = new ArrayList<>();
+            if (clickedRow >= 0 && clickedRow <= 5) rowsOrder.add(clickedRow);
+            for (int r = 5; r >= 0; r--) if (r != clickedRow) rowsOrder.add(r);
+
+            for (int r : rowsOrder) {
+                int[] landing = landingForRow(board, r);
+                int row = landing[0];
+                int landingCol = landing[1];
+                if (row != -1) {
+                    board[row][landingCol] = botToken;
+                    boolean win = checkWin(board, row, landingCol, botToken);
+                    board[row][landingCol] = 0;
+                    if (win) return landingCol;
+                }
             }
         }
 
         // 2) blocca l’avversario
         int opponent = (botToken == 1) ? 2 : 1;
-        for (int col : preferredOrder) {
-            int row = getLowestFreeRow(board, col);
-            if (row != -1) {
-                board[row][col] = opponent;
-                if (checkWin(board, row, col, opponent)) {
-                    board[row][col] = 0;
-                    return col;
+        if (gravity == 0) {
+            for (int col : preferredOrderCols) {
+                int[] landing = landingForColumn(board, col, clickedRow);
+                int row = landing[0];
+                int landingCol = landing[1];
+                if (row != -1) {
+                    board[row][landingCol] = opponent;
+                    boolean oppWins = checkWin(board, row, landingCol, opponent);
+                    board[row][landingCol] = 0;
+                    if (oppWins) return landingCol;
                 }
-                board[row][col] = 0;
+            }
+        } else {
+            List<Integer> rowsOrder = new ArrayList<>();
+            if (clickedRow >= 0 && clickedRow <= 5) rowsOrder.add(clickedRow);
+            for (int r = 5; r >= 0; r--) if (r != clickedRow) rowsOrder.add(r);
+
+            for (int r : rowsOrder) {
+                int[] landing = landingForRow(board, r);
+                int row = landing[0];
+                int landingCol = landing[1];
+                if (row != -1) {
+                    board[row][landingCol] = opponent;
+                    boolean oppWins = checkWin(board, row, landingCol, opponent);
+                    board[row][landingCol] = 0;
+                    if (oppWins) return landingCol;
+                }
             }
         }
 
-        // 3) scegli la colonna libera più centrale
-        for (int col : preferredOrder) {
-            if (board[0][col] == 0) {
-                return col;
+        // 3) scegli la mossa "più centrale" (fallback)
+        if (gravity == 0) {
+            for (int col : preferredOrderCols) {
+                int[] landing = landingForColumn(board, col, clickedRow);
+                if (landing[0] != -1) return landing[1];
+            }
+        } else {
+            for (int r = 5; r >= 0; r--) {
+                int[] landing = landingForRow(board, r);
+                if (landing[0] != -1) return landing[1];
             }
         }
 
         // 4) fallback
-        return randomMove(board);
+        return randomMove(board, clickedRow, clickedCol);
     }
 
     // ---------------- UTILS ----------------
-    private int getLowestFreeRow(int[][] board, int col) {
-        for (int row = 5; row >= 0; row--) {
-            if (board[row][col] == 0) return row;
-        }
-        return -1;
-    }
-
     public boolean checkWin(int[][] board, int row, int col, int token) {
 
         // modalità HORIZONTAL: solo orizzontale

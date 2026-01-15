@@ -375,14 +375,13 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
      * - restituisce {row, col} oppure {-1, -1}
      */
 
-    public static int[] getGravityLandingCellStatic(int[][] board, int col) {
+    public static int[] getGravityLandingCellStatic(int[][] board, int requestedCol, int preferredRow) {
 
         // --- CLASSIC / NON-GRAVITY ---
         if (GameUI.mod != 1) {
-            // cerca la prima riga libera nella colonna
             for (int r = 5; r >= 0; r--) {
-                if (board[r][col] == 0)
-                    return new int[]{r, col};
+                if (board[r][requestedCol] == 0)
+                    return new int[]{r, requestedCol};
             }
             return new int[]{-1, -1};
         }
@@ -392,32 +391,44 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         switch (gravity) {
 
-            // 0 = TOP → classico
+            // 0 = TOP → classico: cerca la prima riga libera nella colonna (dal basso)
             case 0 -> {
                 for (int r = 5; r >= 0; r--) {
-                    if (board[r][col] == 0)
-                        return new int[]{r, col};
+                    if (board[r][requestedCol] == 0)
+                        return new int[]{r, requestedCol};
                 }
                 return new int[]{-1, -1};
             }
 
-            // 1 = RIGHT → cerca la prima cella libera da sinistra (SCORRE TUTTA LA GRIGLIA)
+            // 1 = RIGHT → gravità verso destra
             case 1 -> {
-                for (int r = 0; r < 6; r++) {
-                    for (int c = 0; c < 7; c++) {
-                        if (board[r][c] == 0)
-                            return new int[]{r, c};
+                // prova prima la preferredRow (se valida), scorrendo colonne da destra verso sinistra
+                if (preferredRow >= 0 && preferredRow <= 5) {
+                    for (int c = 6; c >= 0; c--) {
+                        if (board[preferredRow][c] == 0) return new int[]{preferredRow, c};
+                    }
+                }
+                // fallback: per ogni riga dal basso verso l'alto cerca la prima cella libera scorrendo da destra verso sinistra
+                for (int r = 5; r >= 0; r--) {
+                    for (int c = 6; c >= 0; c--) {
+                        if (board[r][c] == 0) return new int[]{r, c};
                     }
                 }
                 return new int[]{-1, -1};
             }
 
-            // 2 = LEFT → cerca la prima cella libera da destra (SCORRE TUTTA LA GRIGLIA)
+            // 2 = LEFT → gravità verso sinistra
             case 2 -> {
-                for (int r = 0; r < 6; r++) {
-                    for (int c = 6; c >= 0; c--) {
-                        if (board[r][c] == 0)
-                            return new int[]{r, c};
+                // prova prima la preferredRow (se valida), scorrendo colonne da sinistra verso destra
+                if (preferredRow >= 0 && preferredRow <= 5) {
+                    for (int c = 0; c < 7; c++) {
+                        if (board[preferredRow][c] == 0) return new int[]{preferredRow, c};
+                    }
+                }
+                // fallback: per ogni riga dal basso verso l'alto cerca la prima cella libera scorrendo da sinistra verso destra
+                for (int r = 5; r >= 0; r--) {
+                    for (int c = 0; c < 7; c++) {
+                        if (board[r][c] == 0) return new int[]{r, c};
                     }
                 }
                 return new int[]{-1, -1};
@@ -426,6 +437,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         return new int[]{-1, -1};
     }
+
+
 
 
 
@@ -647,13 +660,13 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // --- se ha appena giocato il player, programma la mossa del bot con delay ---
         if (player == 1) {
 
-            int botCol = CPUBrain.chooseMove(boardState);
+            int botCol = CPUBrain.chooseMove(boardState, row, col);
 
             boolean botCanPlay = true;
 
             if (botCol == -1) botCanPlay = false;
 
-            int[] landing = getGravityLandingCell(0, botCol);
+            int[] landing = getGravityLandingCellStatic(boardState, botCol, row);
 
             if (landing[0] == -1 || landing[1] == -1) botCanPlay = false;
 
@@ -668,6 +681,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 gameInput.setGridEnabled(true);
             }
         }
+
+
 
 
 
