@@ -21,9 +21,11 @@ alla volta. alla chiusura del gioco e al logout utente il lock viene rilasciato
   * aggiungere il numero di boost acquistati
   * bloccata la grafica di hover e click sui pulsanti di acquisto se non si hanno abbastanza crediti per procedere con l'acquisto
 
+* aggiunta la nuova musica di startup
+
 * todo: nella schermata di caricamento lobby lo schermo è scuro o chiaro in base alla scelta utente di giocare in dark o
   light mode, c'è un errore nel recupero dei progressi utente che avviene dopo il caricamento.
 
-* todo: implementare le nuove musiche per l'apertura del gioco e la lobby
+* todo: implementare la nuova soundtrack per la lobby
 
 * todo: rendere i pulsanti di acquisto della dark mode più visibili

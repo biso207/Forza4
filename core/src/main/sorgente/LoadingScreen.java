@@ -54,11 +54,11 @@ public class LoadingScreen implements Screen, ProgressListener {
 
         if (playMusic) {
             // musica di apertura
-            openSound = Gdx.audio.newMusic(Gdx.files.internal("sounds/soundtrack home 2023.mp3"));
+            openSound = Gdx.audio.newMusic(Gdx.files.internal("sounds/startup_sound_drop_logic.mp3"));
             openSound.setLooping(false);
             openSound.play();
 
-            targetProgress=finalProgress=200;
+            targetProgress=finalProgress=250;
         } else {
             // caricamento pagina dei dati utente (passaggio alla lobby)
             finalProgress=100; // tempo caricamento
