@@ -127,8 +127,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // nome modalità di gioco
     private String modName;
     // lettura punti e crediti utente
-    private int punti = (int) UserProgressService.getProgress("points");
-    private int crediti = (int) UserProgressService.getProgress("credits");
+    private int punti, crediti;
 
     public GameUI (GameInput in, boolean dark, int mod) {
         this.screen = GameManager.game.screen;
@@ -192,6 +191,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 credits = 10;
             }
         }
+
+        // progressi utente
+        crediti = (int) UserProgressService.getProgress("credits");
+        punti = (int) UserProgressService.getProgress("points");
     }
 
     // metodo per disegnare un elemento su schermo
@@ -684,7 +687,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         }
 
         // --- se ha appena giocato il player, programma la mossa del bot con delay ---
-        // --- se ha appena giocato il player, programma la mossa del bot con delay ---
         if (player == 1) {
 
             int botCol = CPUBrain.chooseMove(boardState, row, col);
@@ -760,15 +762,11 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         Fonts.bold25.draw(screen, numTokensBot + "/21", 83, 135);
 
         // numero boosts
-
     }
 
 
     @Override
-    public void render(float delta)
-    {
-
-
+    public void render(float delta) {
         Gdx.input.setInputProcessor(gameInput); // si può togliere? todo: controllare se si può gestire nel GameManager
 
         // init schermo
@@ -972,7 +970,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 if (pendingMode == 0) {
                     GameManager.soundGame.stop(); // stop musica di gioco
                     GameManager.game.setScreen(new LobbyManager(GameManager.game)); // back to lobby
-                    System.out.println("reached");
                     dispose(); // rilascio risorse
                 }
             }

@@ -34,7 +34,7 @@ public class DailyChallenges {
         "Win {N} matches without using any boosts (any game mode).",
         "Use {N} Freezer.",
         "Earn {N} points.",
-        "Use {N} Row Braker.",
+        "Use {N} Row Breaker.",
         "Win {N} matches at difficulty 3.",
         "Use {N} Precision.",
         "Earn {N} credits."

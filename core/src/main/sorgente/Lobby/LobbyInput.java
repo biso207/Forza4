@@ -147,7 +147,7 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_YES_EXIT = 33;
 
     // prezzi boosters (cambieranno in base al numero selezionato per l'acquisto)
-    protected static int priceFreezer, priceTokenCracker, priceRowBraker, pricePeek, pricePrecision, priceUndo;
+    protected static int priceFreezer, priceTokenCracker, priceRowBreaker, pricePeek, pricePrecision, priceUndo;
     // numero item da acquistare
     protected static int numPurchaseItem1, numPurchaseItem2, numPurchaseItem3, numPurchaseItem4, numPurchaseItem5, numPurchaseItem6;
 
@@ -180,6 +180,8 @@ public class LobbyInput implements InputProcessor {
     private final Rectangle[] marketBuyAreas = new Rectangle[6];
     protected final boolean[] marketBuyHover = new boolean[6];
     protected final boolean[] marketBuyClicked = new boolean[6];
+
+    private final String[] items = {"num_freezer", "num_token_cracker", "num_row_breaker", "num_peek", "num_precision", "num_undo"};
 
 
     // mappa con i punti degli utenti (utile per la scoreboard)
@@ -273,7 +275,6 @@ public class LobbyInput implements InputProcessor {
             marketBuyAreas[i] = new Rectangle(MARKET_BUY_X[i], MARKET_BUY_Y[i], buyW, buyH);
         }
 
-
         btn_no= new Rectangle(503,408,150,50);
         btn_yes= new Rectangle(341,408,150,50);
 
@@ -347,10 +348,20 @@ public class LobbyInput implements InputProcessor {
     private void updateMarketPrices() {
         priceFreezer       = MARKET_UNIT_PRICE[0] * Math.max(1, numPurchaseItem1);
         priceTokenCracker  = MARKET_UNIT_PRICE[1] * Math.max(1, numPurchaseItem2);
-        priceRowBraker     = MARKET_UNIT_PRICE[2] * Math.max(1, numPurchaseItem3);
+        priceRowBreaker     = MARKET_UNIT_PRICE[2] * Math.max(1, numPurchaseItem3);
         pricePeek          = MARKET_UNIT_PRICE[3] * Math.max(1, numPurchaseItem4);
         pricePrecision     = MARKET_UNIT_PRICE[4] * Math.max(1, numPurchaseItem5);
         priceUndo          = MARKET_UNIT_PRICE[5] * Math.max(1, numPurchaseItem6);
+    }
+
+    // conteggio costo acquisto item mercato
+    private int getItemCost(int idx, int qty) {
+        // max acquistabile con credits attuali
+        int max = getMaxPurchasable(idx);
+        qty = Math.min(qty, max); // quantità item acquistati
+        if (qty < 1) qty = 1;
+
+        return getMarketUnitPrice(idx) * qty;
     }
 
 
@@ -511,7 +522,7 @@ public class LobbyInput implements InputProcessor {
                 }
 
                 // chiusura mercato
-                if(btnCloseMarketArea.contains(x,y)) {
+                if (btnCloseMarketArea.contains(x,y)) {
                     btnCloseMarket=true;
                     //clickedTimer = 0.15f;
                     setInputEnabled(false);
@@ -523,41 +534,35 @@ public class LobbyInput implements InputProcessor {
                 // acquisto elementi
                 for (int i = 0; i < 6; i++) {
                     if (marketBuyAreas[i] != null && marketBuyAreas[i].contains(x, y)) {
-
+                        // elementi indicizzati da 1 a 6 per semplicità
                         int idx = i + 1; // 1..6
 
+                        // crediti utente
                         int credits = ((Number) UserProgressService.getProgress("credits")).intValue();
-
                         // quantità selezionata
                         int qty = getNumPurchaseForIndex(idx);
 
-                        // sicurezza: ricontrolla max acquistabile con credits attuali
-                        int max = getMaxPurchasable(idx);
-                        if (max <= 0) return clicked();          // non puoi comprare nemmeno 1 (regola: credits - cost > 0)
-                        qty = Math.min(qty, max);
-                        if (qty < 1) qty = 1;
+                        // costo totale acquisto
+                        int cost = getItemCost(idx, qty);
 
-                        int cost = getMarketUnitPrice(idx) * qty;
+                        // regola richiesta: credits - cost >= 0
+                        if (credits - cost >= 0) {
+                            int oldQty = (int) UserProgressService.getProgress(items[i]);
 
-                        // regola richiesta: credits - cost > 0
-                        if (credits - cost > 0) {
                             credits -= cost;
 
                             // salva subito i crediti
                             UserProgressService.setProgress("credits", credits);
 
-                            // TODO: qui incrementi anche il numero di booster posseduti (se hai già le chiavi)
-                            // Esempio (se esiste): UserProgressService.setProgress("freezer", old + qty);
+                            // incremento numero di boost
+                            UserProgressService.setProgress(items[i], oldQty + qty);
 
                             marketBuyClicked[i] = true;
                             clickedTimer = 0.12f; // giusto un flash veloce
                             return clicked();
                         }
-
-                        return clicked();
                     }
                 }
-
             }
 
             // chiusura scoreboard
@@ -814,7 +819,19 @@ public class LobbyInput implements InputProcessor {
             // hover pulsanti acquisto
             for (int i = 0; i < 6; i++) {
                 if (marketBuyAreas[i] != null && marketBuyAreas[i].contains(screenX, screenY)) {
-                    marketBuyHover[i] = true;
+
+                    // elementi indicizzati da 1 a 6 per semplicità
+                    int idx = i + 1; // 1..6
+
+                    // crediti utente
+                    int credits = ((Number) UserProgressService.getProgress("credits")).intValue();
+                    // quantità selezionata
+                    int qty = getNumPurchaseForIndex(idx);
+                    // costo totale acquisto
+                    int cost = getItemCost(idx, qty);
+
+                    // regola richiesta: credits - cost >= 0
+                    if (credits - cost >= 0) marketBuyHover[i] = true;
                     return true;
                 }
             }
@@ -1144,8 +1161,8 @@ public class LobbyInput implements InputProcessor {
         if (value < 1) return;
 
         int max = getMaxPurchasable(activeMarketQtyField);
-        // se max == 0 significa che non puoi comprare neanche 1 (con la condizione credits - cost > 0)
-        if (max > 0 && value <= max) {
+        // se max == 0 significa che non puoi comprare neanche 1 (con la condizione credits - cost >= 0)
+        if (max >= 0 && value <= max) {
             marketQtyInput.setLength(0);
             marketQtyInput.append(value);
             setNumPurchaseForIndex(activeMarketQtyField, value);

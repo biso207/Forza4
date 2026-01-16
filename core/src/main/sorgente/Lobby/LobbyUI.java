@@ -348,7 +348,7 @@ public class LobbyUI implements ResourceLoader {
         // linea 1
         Fonts.bold13.draw(screen, UserProgressService.getProgress("num_freezer").toString(), 65, 175); //
         Fonts.bold13.draw(screen, UserProgressService.getProgress("num_token_cracker").toString(), 170, 175); //
-        Fonts.bold13.draw(screen, UserProgressService.getProgress("num_row_braker").toString(), 275, 175); //
+        Fonts.bold13.draw(screen, UserProgressService.getProgress("num_row_breaker").toString(), 275, 175); //
         // linea 2
         Fonts.bold13.draw(screen, UserProgressService.getProgress("num_peek").toString(), 65, 110); //
         Fonts.bold13.draw(screen, UserProgressService.getProgress("num_precision").toString(), 170, 110); //
@@ -455,7 +455,7 @@ public class LobbyUI implements ResourceLoader {
             // prezzi boosters
             Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceFreezer), 255, 401);
             Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceTokenCracker), 493, 401);
-            Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceRowBraker), 731, 401);
+            Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceRowBreaker), 731, 401);
             Fonts.bold20.draw(screen, String.valueOf(LobbyInput.pricePeek), 255, 264);
             Fonts.bold20.draw(screen, String.valueOf(LobbyInput.pricePrecision), 493, 264);
             Fonts.bold20.draw(screen, String.valueOf(LobbyInput.priceUndo), 731, 264);
