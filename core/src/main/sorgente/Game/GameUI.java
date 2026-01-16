@@ -516,6 +516,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private DropDir currentDropDir() {
         if (mod != 1) return DropDir.TOP;
 
+        log.info("Gravity"+gravityStep);
+
         return switch (gravityStep) {
             case 0 -> DropDir.TOP;   // cade dall’alto
             case 1 -> DropDir.RIGHT; // entra da destra
@@ -534,23 +536,48 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         dropDir = currentDropDir();
 
+        log.info("Dropdir: "+dropDir);
+
         dropTargetX = cellX(col);
         dropTargetY = cellY(row);
 
         // start position fuori schermo in base alla direzione
-        switch (dropDir) {
+        switch (dropDir)
+        {
             case TOP -> {
                 dropX = dropTargetX;
                 dropY = 430f; }
             case BOTTOM -> {
                 dropX = dropTargetX;
                 dropY = -120f; }
-            case RIGHT -> {
-                dropX = Gdx.graphics.getWidth() + 120f;
-                dropY = dropTargetY; }
-            case LEFT -> {
-                dropX = -120f;
-                dropY = dropTargetY; }
+            case RIGHT ->
+            {
+                if(player == 2)
+                {
+                    dropX = -120f;
+                }
+                else
+                {
+                    dropX = Gdx.graphics.getWidth() + 120f;
+                }
+
+                dropY = dropTargetY;
+            }
+            case LEFT ->
+            {
+
+                if(player ==2)
+                {
+                    dropX = Gdx.graphics.getWidth() + 120f;
+                }
+                else
+                {
+                    dropX = -120f;
+                }
+
+
+                dropY = dropTargetY;
+            }
         }
 
         // parametri per il bounce quando la pedina atterra
@@ -921,13 +948,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             if(row != -1 && col !=-1)
             {
+                // suono click
+                SoundManager.playClickButton(LobbyInput.effectsPercent);
 
-            // suono click
-            SoundManager.playClickButton(LobbyInput.effectsPercent);
-            // caduta pedina
-            startDrop(1, row, col);
-            // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
-            gameInput.isHole = false;
+               // caduta pedina
+                startDrop(1, row, col);
+
+               // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
+                gameInput.isHole = false;
             }
         }
 
