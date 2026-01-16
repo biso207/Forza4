@@ -23,6 +23,6 @@ alla volta. alla chiusura del gioco e al logout utente il lock viene rilasciato.
 * todo: nella schermata di caricamento lobby lo schermo è scuro o chiaro in base alla scelta utente di giocare in dark o
   light mode, c'è un errore nel recupero dei progressi utente che avviene dopo il caricamento.
 
-* todo: nuove musiche per l'apertura del gioco e la lobby
+* todo: implementare le nuove musiche per l'apertura del gioco e la lobby
 
 * todo: rendere i pulsanti di acquisto della dark mode più visibili
