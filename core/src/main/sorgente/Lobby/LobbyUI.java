@@ -23,6 +23,7 @@ import sorgente.UserData.UserProgressService;
 import sorgente.VersionInfo;
 import java.awt.*;
 import java.io.IOException;
+import java.text.Format;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class LobbyUI implements ResourceLoader {
     private Texture darkBtnClose,darkBtnCloseClicked;
     private Texture darkBtnMarket,darkBtnMarketClicked;
     private Texture volume_bar_dark;
-
+    private Texture purchase_item_dark, purchase_item_clicked_dark;
 
     // LIGHT MODE
     private Texture lightLobby,lightLogout,lightSettings,lightCredits, lightScoreboard, lightMarket;
@@ -55,6 +56,7 @@ public class LobbyUI implements ResourceLoader {
     private Texture lightBtnClose,lightBtnCloseClicked;
     private Texture lightBtnMarket,lightBtnMarketClicked;
     private Texture volume_bar_light;
+    private Texture purchase_item_light, purchase_item_clicked_light;
 
     // MODE MODIFICABILE
     private Texture lobby, software_infos, logout, settings,btn_logout_clicked, scoreboard, market;
@@ -68,6 +70,7 @@ public class LobbyUI implements ResourceLoader {
     private Texture market_hover;
     private Texture market_clicked;
     private Texture volume_bar;
+    private Texture purchase_item, purchase_item_clicked;
 
     private int effectsVolume, musicVolume;
 
@@ -127,6 +130,9 @@ public class LobbyUI implements ResourceLoader {
         darkBtnMarketClicked=new Texture("ui/buttons/lobby/dark/market_clicked.png");
 
         volume_bar_dark=new Texture("ui/buttons/lobby/dark/volume_bar_dark.png");
+
+        purchase_item_dark=new Texture("ui/buttons/lobby/dark/purchase_item.png");
+        purchase_item_clicked_dark=new Texture("ui/buttons/lobby/dark/purchase_item_clicked.png");
     }
 
     public void loadLightMode() {
@@ -148,6 +154,9 @@ public class LobbyUI implements ResourceLoader {
         lightBtnMarketClicked=new Texture("ui/buttons/lobby/light/market_clicked.png");
 
         volume_bar_light=new Texture("ui/buttons/lobby/light/volume_bar_light.png");
+
+        purchase_item_light=new Texture("ui/buttons/lobby/light/purchase_item.png");
+        purchase_item_clicked_light=new Texture("ui/buttons/lobby/light/purchase_item_clicked.png");
     }
 
     public void darkMode(boolean isDarkMode) {
@@ -172,6 +181,9 @@ public class LobbyUI implements ResourceLoader {
             market_clicked=darkBtnMarketClicked;
 
             volume_bar=volume_bar_dark;
+
+            purchase_item=purchase_item_dark;
+            purchase_item_clicked=purchase_item_clicked_dark;
         }
         else {
             lobby=lightLobby;
@@ -192,6 +204,9 @@ public class LobbyUI implements ResourceLoader {
             market_clicked=lightBtnMarketClicked;
 
             volume_bar=volume_bar_light;
+
+            purchase_item=purchase_item_light;
+            purchase_item_clicked=purchase_item_clicked_light;
         }
     }
 
@@ -324,7 +339,7 @@ public class LobbyUI implements ResourceLoader {
         // calcolo larghezza del testo
         GlyphLayout layout2 = new GlyphLayout(Fonts.bold25, text2);
         // stampa testo
-        Fonts.bold25.draw(screen, layout2, (775 - layout2.width), 623);
+        Fonts.bold25.draw(screen, formatter.format(credits), (775 - layout2.width), 623);
 
         // SCOREBOARD TOP 5 USERS //
         drawScoreboard(5);
@@ -372,31 +387,24 @@ public class LobbyUI implements ResourceLoader {
                 case 0:
                     draw(star, true, 131, 301);   // Classic stella 1
                     break;
-
                 case 1:
                     draw(star, true, 161, 301);   // Classic stella 2
                     break;
-
                 case 2:
                     draw(star, true, 371, 301);   // Gravity4 stella 1
                     break;
-
                 case 3:
                     draw(star, true, 401, 301);   // Gravity4 stella 2
                     break;
-
                 case 4:
                     draw(star, true, 609, 301);   // Horizontal stella 1
                     break;
-
                 case 5:
                     draw(star, true, 639, 301);   // Horizontal stella 2
                     break;
-
                 case 6:
                     draw(star, true, 849, 301);   // Speedy stella 1
                     break;
-
                 case 7:
                     draw(star, true, 879, 301);   // Speedy stella 2
                     break;
@@ -487,6 +495,23 @@ public class LobbyUI implements ResourceLoader {
                 }
 
                 Fonts.bold20.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+            }
+
+            // pulsanti acquisto
+            // pulsanti "acquista" (icone)
+            final float buyW = 30f;
+            final float buyH = 30f;
+            final float H = Gdx.graphics.getHeight();
+
+            for (int i = 1; i <= 6; i++) {
+                float xBuy = LobbyInput.MARKET_BUY_X[i - 1]+8;
+                float yBuy = H - LobbyInput.MARKET_BUY_Y[i - 1]-33;
+
+                boolean isClicked = lobbyInput.marketBuyClicked[i - 1];
+                boolean isHover = lobbyInput.marketBuyHover[i - 1];
+
+                if (isClicked) screen.draw(purchase_item_clicked, xBuy, yBuy, buyW, buyH);
+                if (isHover) screen.draw(purchase_item, xBuy, yBuy, buyW, buyH);
             }
         }
 

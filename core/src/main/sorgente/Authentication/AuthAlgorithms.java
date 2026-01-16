@@ -417,7 +417,7 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("num_precision", 1);
         UserProgressService.setProgress("num_undo", 1);
         // punti e crediti
-        UserProgressService.setProgress("credits", 0);
+        UserProgressService.setProgress("credits", 10000); // todo: reimpostare a 50 il minimo a inizio gioco
         UserProgressService.setProgress("points", 0);
         // volumi di gioco
         UserProgressService.setProgress("effects_volume", 0.5);

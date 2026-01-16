@@ -26,7 +26,6 @@ import java.util.Map;
 
 public class LobbyInput implements InputProcessor {
     private static final Log log = LogFactory.getLog(LobbyInput.class);
-    private int numero=0;
 
     // percentuale audio
     public static float effectsPercent;
@@ -55,6 +54,8 @@ public class LobbyInput implements InputProcessor {
     protected boolean btnCloseScoreboard;
     // game mods
     protected boolean classic, gravity4, horizontal, speedy;
+    // purchase market items
+    protected boolean purchaseItem;
 
     // FLAGS BUTTONS HOVER //
     // difficoltà game mods
@@ -72,6 +73,8 @@ public class LobbyInput implements InputProcessor {
     protected boolean isBtnCloseScoreboardHover;
     // game mods
     protected boolean classicHover, gravity4Hover, horizontalHover, speedyHover;
+    // purchase market items
+    protected boolean purchaseItemHover;
 
     // FLAGS CONTROLLO SCHERMATE APERTE //
     // per aprire le finestre in sovra impressione
@@ -148,7 +151,8 @@ public class LobbyInput implements InputProcessor {
     // numero item da acquistare
     protected static int numPurchaseItem1, numPurchaseItem2, numPurchaseItem3, numPurchaseItem4, numPurchaseItem5, numPurchaseItem6;
 
-    // --- MARKETPLACE: digitazione quantità (stessa logica stile Auth) ---
+    // -- MARKETPLACE -- //
+    // digitazione quantità (stessa logica stile Auth) ---
     // prezzi base (unitari) dei booster (usati per calcolare il massimo acquistabile e il totale mostrato)
     private static final int[] MARKET_UNIT_PRICE = {10, 5, 5, 20, 10, 20};
 
@@ -168,6 +172,15 @@ public class LobbyInput implements InputProcessor {
 
     // stato selezione (Ctrl+A) del campo attivo
     protected boolean marketQtySelected = false;
+
+    // pulsanti ACQUISTA (icone purchase_item / purchase_item_clicked) ---
+    protected static final float[] MARKET_BUY_X = {307f, 544f, 781f, 307f, 544f, 781f};
+    protected static final float[] MARKET_BUY_Y = {320f, 320f, 320f, 457f, 457f, 457f};
+
+    private final Rectangle[] marketBuyAreas = new Rectangle[6];
+    protected final boolean[] marketBuyHover = new boolean[6];
+    protected final boolean[] marketBuyClicked = new boolean[6];
+
 
     // mappa con i punti degli utenti (utile per la scoreboard)
     protected static Map<String, Integer> usersPointsMap = new HashMap<>();
@@ -240,7 +253,8 @@ public class LobbyInput implements InputProcessor {
         btnCloseMarketArea= new Rectangle(814,187,40,40);
         btnCloseScoreboardArea= new Rectangle(814,174,40,40);
 
-        // --- MARKET: aree click quantità (calcolate dalle coordinate di disegno) ---
+        // MARKET //
+        // aree click quantità (calcolate dalle coordinate di disegno) ---
         // In LibGDX touchDown usa coordinate top-left, mentre il rendering usa bottom-left.
         // Convertiamo: y_input = H - (y_draw + h_box)
         final int H = Gdx.graphics.getHeight();
@@ -251,6 +265,14 @@ public class LobbyInput implements InputProcessor {
             float yBox = MARKET_QTY_Y[i];
             marketQtyAreas[i] = new Rectangle(xBox, yBox, boxW, boxH);
         }
+
+        // aree click "ACQUISTA"
+        final float buyW = 30f;
+        final float buyH = 30f;
+        for (int i = 0; i < 6; i++) {
+            marketBuyAreas[i] = new Rectangle(MARKET_BUY_X[i], MARKET_BUY_Y[i], buyW, buyH);
+        }
+
 
         btn_no= new Rectangle(503,408,150,50);
         btn_yes= new Rectangle(341,408,150,50);
@@ -361,6 +383,9 @@ public class LobbyInput implements InputProcessor {
 
         // yes/no logout
         isBtnLogoutClicked = btnNoExit = btnYesExit = false;
+
+        // pulsanti purchase market items
+        for (int i = 0; i < 6; i++) marketBuyClicked[i] = false;
     }
 
     // resetta lo stato di Hover dei pulsanti
@@ -382,6 +407,8 @@ public class LobbyInput implements InputProcessor {
 
         // stelle difficoltà
         for ( int i=0; i<8; i++) starHover[i] = false;
+        // hover pulsanti acquisto item mercato
+        for (int i = 0; i < 6; i++) marketBuyHover[i] = false;
     }
 
     // metodo per il controllo dei click
@@ -482,16 +509,54 @@ public class LobbyInput implements InputProcessor {
                         return clicked();
                     }
                 }
-            }
 
-            // chiusura mercato
-            if(isMarketOpen && btnCloseMarketArea.contains(x,y)) {
-                btnCloseMarket=true;
-                //clickedTimer = 0.15f;
-                setInputEnabled(false);
+                // chiusura mercato
+                if(btnCloseMarketArea.contains(x,y)) {
+                    btnCloseMarket=true;
+                    //clickedTimer = 0.15f;
+                    setInputEnabled(false);
 
-                scheduleScreenChange(ACT_CLOSE_MARKET, 0.20f);
-                return clicked();
+                    scheduleScreenChange(ACT_CLOSE_MARKET, 0.20f);
+                    return clicked();
+                }
+
+                // acquisto elementi
+                for (int i = 0; i < 6; i++) {
+                    if (marketBuyAreas[i] != null && marketBuyAreas[i].contains(x, y)) {
+
+                        int idx = i + 1; // 1..6
+
+                        int credits = ((Number) UserProgressService.getProgress("credits")).intValue();
+
+                        // quantità selezionata
+                        int qty = getNumPurchaseForIndex(idx);
+
+                        // sicurezza: ricontrolla max acquistabile con credits attuali
+                        int max = getMaxPurchasable(idx);
+                        if (max <= 0) return clicked();          // non puoi comprare nemmeno 1 (regola: credits - cost > 0)
+                        qty = Math.min(qty, max);
+                        if (qty < 1) qty = 1;
+
+                        int cost = getMarketUnitPrice(idx) * qty;
+
+                        // regola richiesta: credits - cost > 0
+                        if (credits - cost > 0) {
+                            credits -= cost;
+
+                            // salva subito i crediti
+                            UserProgressService.setProgress("credits", credits);
+
+                            // TODO: qui incrementi anche il numero di booster posseduti (se hai già le chiavi)
+                            // Esempio (se esiste): UserProgressService.setProgress("freezer", old + qty);
+
+                            marketBuyClicked[i] = true;
+                            clickedTimer = 0.12f; // giusto un flash veloce
+                            return clicked();
+                        }
+
+                        return clicked();
+                    }
+                }
 
             }
 
@@ -712,7 +777,6 @@ public class LobbyInput implements InputProcessor {
         // reset hover
         resetHover();
 
-
         // sets hover states for open window buttons
         if(isInfoOpen || isSettingsOpen || isLogoutOpen || isScoreboardOpen || isMarketOpen) {
             // close game credits
@@ -745,6 +809,14 @@ public class LobbyInput implements InputProcessor {
             if (btnCloseScoreboardArea.contains(screenX,screenY)) {
                 isBtnCloseScoreboardHover=true;
                 return true;
+            }
+
+            // hover pulsanti acquisto
+            for (int i = 0; i < 6; i++) {
+                if (marketBuyAreas[i] != null && marketBuyAreas[i].contains(screenX, screenY)) {
+                    marketBuyHover[i] = true;
+                    return true;
+                }
             }
 
             return false;
@@ -809,7 +881,6 @@ public class LobbyInput implements InputProcessor {
         }
 
         if (horizontalArea.contains(screenX, screenY)) { // game "horizontal"
-
             horizontalHover= true;
             return true;
         }

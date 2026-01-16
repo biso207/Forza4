@@ -7,5 +7,4 @@ Version Beta 1.3.4
 rendering della lobby, questo creava un problema per l'utente con un audio basso o muto perché prima partiva
 il soundtrack e poi spariva
 * aggiunto un effetto sonoro all'atterraggio della pedina
-* risolto il bug della doppia scrittura del titolo nelle pagine di gioco
 * aumentato il volume dell'effetto "pedina atterrata" nelle modalità di gioco
