@@ -36,6 +36,12 @@ public class SoundManager {
 
     /** Cambia il volume della MUSICA in tempo reale */
     public static void setMusicVolume(float value) { if (soundtrack != null) soundtrack.setVolume(value); }
+
+    public static void playError()
+    {
+        defeatSound.play(volume);
+    }
+
     /** Cambia il volume degli EFFETTI in tempo reale */
     public void setEffectsVolume(float value) { volume = value; }
 

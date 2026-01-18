@@ -42,7 +42,7 @@ public class GameInput implements InputProcessor {
 
     // Power-up flags
     public boolean powerExplosive = false;
-    public boolean powerSwap = false;
+    public boolean powerExplosiveBig = false;
     public boolean powerFreeze = false;
     public boolean powerWild = false;
 
@@ -57,7 +57,7 @@ public class GameInput implements InputProcessor {
 
     // Power-up buttons
     public Rectangle btnExplosive;
-    public Rectangle btnSwap;
+    public Rectangle btnExplosiveBig;
     public Rectangle btnFreeze;
     public Rectangle btnWild;
 
@@ -105,9 +105,10 @@ public class GameInput implements InputProcessor {
         btn_yes = new Rectangle(341, 408, 150, 50);
 
         // Power-up buttons (posizioni esempio)
-        btnExplosive = new Rectangle(50, 600, 64, 64);
-        btnSwap      = new Rectangle(130, 600, 64, 64);
-        btnFreeze    = new Rectangle(210, 600, 64, 64);
+
+        btnFreeze    = new Rectangle(293, 165, 24, 24);
+        btnExplosive = new Rectangle(368, 169, 24, 24);
+        btnExplosiveBig = new Rectangle(457, 171, 24, 24);
         btnWild      = new Rectangle(290, 600, 64, 64);
     }
 
@@ -126,21 +127,27 @@ public class GameInput implements InputProcessor {
         checkHitBox(x, y);
 
         // POWER-UP BUTTONS
-        /*
+
         if (btnExplosive.contains(x, y)) {
             activatePowerUp("explosive");
+
             return true;
         }
 
-        if (btnSwap.contains(x, y)) {
+
+        if (btnExplosiveBig.contains(x, y)) {
             activatePowerUp("swap");
             return true;
         }
+
+
 
         if (btnFreeze.contains(x, y)) {
             activatePowerUp("freeze");
             return true;
         }
+
+        /*
 
         if (btnWild.contains(x, y)) {
             activatePowerUp("wild");
@@ -150,8 +157,14 @@ public class GameInput implements InputProcessor {
          */
 
         // click sulla griglia
+         // click sulla griglia
         int col = getColumnFromClick(x, y);
-        if (gridEnabled && col != -1) isHole = true;
+        if (gridEnabled && col != -1)
+        {
+
+            isHole = true;
+        }
+
 
 
 
@@ -161,7 +174,7 @@ public class GameInput implements InputProcessor {
     private void activatePowerUp(String type) {
 
         powerExplosive = false;
-        powerSwap = false;
+        powerExplosiveBig = false;
         powerFreeze = false;
         powerWild = false;
 
@@ -174,7 +187,7 @@ public class GameInput implements InputProcessor {
                 break;
 
             case "swap":
-                powerSwap = true;
+                powerExplosiveBig = true;
                 log.info("Power-up Swap attivato");
                 break;
 

@@ -129,7 +129,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // lettura punti e crediti utente
     private int punti, crediti;
 
-    public GameUI (GameInput in, boolean dark, int mod) {
+    public GameUI (GameInput in, boolean dark, int mod)
+    {
         this.screen = GameManager.game.screen;
         GameUI.mod = mod;
 
@@ -142,36 +143,46 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
 
         // inizializza boardState
-        for (int r = 0; r < 6; r++) {
+        for (int r = 0; r < 6; r++)
+        {
             for (int c = 0; c < 7; c++) boardState[r][c] = 0;
         }
 
         // variabili basate sulla modalità di gioco
-        switch(mod) {
-            case 0 -> {
+        switch(mod)
+        {
+            case 0 ->
+            {
                 // nome modalità
                 modName = "CLASSIC";
                 // difficoltà
                 gameDifficulty = (int) UserProgressService.getProgress("diff_classic");
             }
-            case 1 -> {
+
+            case 1 ->
+            {
                 // nome modalità
                 modName = "GRAVITY4";
                 // difficoltà
                 gameDifficulty = (int) UserProgressService.getProgress("diff_gravity4");
             }
-            case 2 -> {
+
+            case 2 ->
+            {
                 // nome modalità
                 modName = "HORIZONTAL";
                 // difficoltà
                 gameDifficulty = (int) UserProgressService.getProgress("diff_horizontal");
             }
-            case 3 -> {
+
+            case 3 ->
+            {
                 // nome modalità
                 modName = "SPEEDY";
                 // difficoltà
                 gameDifficulty = (int) UserProgressService.getProgress("diff_speedy");
             }
+
         }
 
         CPUBrain = new CPUBrain(gameDifficulty, 2, mod);
@@ -294,7 +305,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         // reset power-up state
         gameInput.powerExplosive = false;
-        gameInput.powerSwap = false;
+        gameInput.powerExplosiveBig = false;
         gameInput.powerFreeze = false;
         gameInput.powerWild = false;
         gameInput.selectedSwapColumn = -1;
@@ -314,35 +325,65 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     // ---------------- POWER-UP METHODS ----------------
 
-    // 🔥 Explosive → distrugge pedine vicine (3x3)
-    private void applicaExplosive(int row, int col)
+
+    // 🔥 Explosive → rimuove la pedina cliccata e compatta solo nella direzione della gravità
+    public void applicaExplosive(int row, int col)
     {
-        for (int r = row - 1; r <= row + 1; r++)
+
+        log.info("entro");
+
+        if (row < 0 || row > 5 || col < 0 || col > 6) return;
+
+        // modalità non-gravity → sempre TOP
+        int gravity = (mod == 1) ? gravityStep : 0;
+
+        // --- GRAVITY TOP (classico) ---
+        if (gravity == 0)
         {
-            for (int c = col - 1; c <= col + 1; c++)
+            // la pedina cliccata sparisce
+            boardState[row][col] = 0;
+
+            // fai scendere SOLO le pedine sopra
+            for (int r = row; r > 0; r--)
             {
-                if (r >= 0 && r < 6 && c >= 0 && c < 7)
-                {
-                    boardState[r][c] = 0;
-                }
+                boardState[r][col] = boardState[r - 1][col];
             }
+
+            // la cella più in alto diventa vuota
+            boardState[0][col] = 0;
+            return;
         }
-        log.info("Power-up Explosive attivato su (" + row + "," + col + ")");
-    }
 
-    // 🔄 Swap → scambia due colonne
-    private void applicaSwap(int col1, int col2)
-    {
-        if (col1 < 0 || col1 > 6 || col2 < 0 || col2 > 6 || col1 == col2) return;
-
-        for (int r = 0; r < 6; r++)
+        // --- GRAVITY RIGHT ---
+        if (gravity == 1)
         {
-            int temp = boardState[r][col1];
-            boardState[r][col1] = boardState[r][col2];
-            boardState[r][col2] = temp;
+            boardState[row][col] = 0;
+
+            // fai scorrere SOLO le pedine a sinistra verso destra
+            for (int c = col; c > 0; c--)
+            {
+                boardState[row][c] = boardState[row][c - 1];
+            }
+
+            // la cella più a sinistra diventa vuota
+            boardState[row][0] = 0;
+            return;
         }
 
-        log.info("Power-up Swap attivato tra colonne " + col1 + " e " + col2);
+        // --- GRAVITY LEFT ---
+        if (gravity == 2)
+        {
+            boardState[row][col] = 0;
+
+            // fai scorrere SOLO le pedine a destra verso sinistra
+            for (int c = col; c < 6; c++)
+            {
+                boardState[row][c] = boardState[row][c + 1];
+            }
+
+            // la cella più a destra diventa vuota
+            boardState[row][6] = 0;
+        }
     }
 
     // 🧊 Freeze → blocca una colonna per 2 turni
@@ -355,14 +396,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         log.info("Power-up Freeze attivato sulla colonna " + col);
     }
 
-    // ✨ Wild → piazza una pedina jolly (per ora rossa)
-    private void applicaWild(int row, int col)
-    {
-        if (row < 0 || row > 5 || col < 0 || col > 6) return;
-
-        boardState[row][col] = 1;
-        log.info("Power-up Wild attivato su (" + row + "," + col + ")");
-    }
 
     /**
      * Gravity4 a 3 direzioni:
@@ -529,6 +562,16 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         };
     }
 
+    private int findAlternativeColumnForBot() {
+        for (int c = 0; c < 7; c++) {
+            if (c == freezeColumn) continue;
+            int[] landing = getGravityLandingCellStatic(boardState, c, -1);
+            if (landing[0] != -1) return c;
+        }
+        return -1; // nessuna colonna disponibile
+    }
+
+
 
     // metodo per avviare l'animazione
     private void startDrop(int player, int row, int col) {
@@ -672,6 +715,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private void onTokenLanded(int player, int row, int col) throws IOException {
         // suono atterraggio
         SoundManager.playLand(LobbyInput.effectsPercent);
+        // --- POWER-UP FREEZE ---
+        // Applica il freeze SOLO dopo che la pedina è atterrata
+        if (player == 1 && gameInput.powerFreeze) {
+            applicaFreeze(col);
+            gameInput.powerFreeze = false;
+        }
+
+
 
         // --- check vittoria del giocatore che ha appena piazzato ---
         if (CPUBrain.checkWin(boardState, row, col, player)) {
@@ -690,6 +741,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         if (player == 1) {
 
             int botCol = CPUBrain.chooseMove(boardState, row, col);
+
+             // ⛔ Se la colonna è congelata, il bot NON può usarla
+            if (freezeTurns > 0 && botCol == freezeColumn) {
+                // scegli una colonna alternativa valida
+                botCol = findAlternativeColumnForBot();
+            }
 
             boolean botCanPlay = true;
 
@@ -717,6 +774,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         // sblocco griglia per l'utente
         if (!isMatchOver && player == 2) gameInput.setGridEnabled(true);
+
+
+        // decrementa freeze
+        if (freezeTurns > 0) {
+            freezeTurns--;
+            if (freezeTurns == 0) freezeColumn = -1;
+        }
+
     }
 
     // metodo per scrivere i testi in gioco
@@ -766,7 +831,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
 
     @Override
-    public void render(float delta) {
+    public void render(float delta)
+    {
         Gdx.input.setInputProcessor(gameInput); // si può togliere? todo: controllare se si può gestire nel GameManager
 
         // init schermo
@@ -873,7 +939,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         if (numTokensBot==21) resetGame();
 
         // LOGICA DI GIOCO (solo se non è aperta la finestra isMatchOver)
-        if (!isMatchOver && gameInput.isHole) {
+        if (!isMatchOver && gameInput.isHole)
+        {
             // durante animazione o “pensiero bot” ignora input del player
             if (dropActive || botPending) gameInput.isHole = false;
 
@@ -897,6 +964,37 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 return;
             }
 
+            // calcolo la riga cliccata
+             row = gameInput.getRowFromClick(Gdx.input.getX(), Gdx.input.getY());
+
+
+            if (gameInput.powerExplosive)
+            {
+                applicaExplosive(row, col);
+                gameInput.powerExplosive = false;
+                gameInput.isHole = false;
+
+            }
+
+            if(gameInput.powerExplosiveBig)
+            {
+                applicaBigExplosive(row,col);
+                gameInput.powerExplosiveBig=false;
+                gameInput.isHole =false;
+            }
+
+
+            /*
+            // ⛔ BLOCCO FREEZE
+             if (freezeTurns > 0 && col == freezeColumn)
+             {
+                 SoundManager.playError(); // opzionale
+                 gameInput.isHole = false;
+                 return;
+             }
+
+             */
+
 
             int[] landing = getGravityLandingCell(
                 gameInput.getRowFromClick(Gdx.input.getX(), Gdx.input.getY()),
@@ -913,61 +1011,37 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             }
 
 
-
-            //    if (col != -1 && row != -1) {
-            // POWER-UP USO SUL PROSSIMO CLICK
-                /*
-                if (gameInput.powerExplosive) {
-                    applicaExplosive(row, col);
-                    gameInput.powerExplosive = false;
-                } else if (gameInput.powerSwap) {
-                    if (gameInput.selectedSwapColumn == -1) {
-                        // primo click: seleziona colonna
-                        gameInput.selectedSwapColumn = col;
-                        log.info("Prima colonna per Swap selezionata: " + col);
-                    } else {
-                        // secondo click: esegue swap
-                        applicaSwap(gameInput.selectedSwapColumn, col);
-                        gameInput.selectedSwapColumn = -1;
-                        gameInput.powerSwap = false;
-                    }
-                } else if (gameInput.powerFreeze) {
-                    applicaFreeze(col);
-                    gameInput.powerFreeze = false;
-                } else if (gameInput.powerWild) {
-                    applicaWild(row, col);
-                    gameInput.powerWild = false;
-                }
-
-                 */
-
-            log.info(mod);
-
-
-            if(row != -1 && col !=-1)
+            if (col != -1 && row != -1 && gameInput.isHole)
             {
+
+                log.info(mod);
+
                 // suono click
                 SoundManager.playClickButton(LobbyInput.effectsPercent);
 
-               // caduta pedina
+                // caduta pedina
                 startDrop(1, row, col);
 
-               // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
-                gameInput.isHole = false;
+                // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
+                gameInput.isHole = true;
             }
         }
 
         screen.end();
 
-        if (gameInput.isBtnExitClicked || gameInput.btnNoExit) {
+        if (gameInput.isBtnExitClicked || gameInput.btnNoExit)
+        {
             modeTransition = true;
             pendingMode = 0;
         }
 
-        if (modeTransition) {
+        if (modeTransition)
+        {
             modeTransitionTimer += delta;
-            if (modeTransitionTimer >= 0.14f) {
-                if (pendingMode == 0) {
+            if (modeTransitionTimer >= 0.14f)
+            {
+                if (pendingMode == 0)
+                {
                     GameManager.soundGame.stop(); // stop musica di gioco
                     GameManager.game.setScreen(new LobbyManager(GameManager.game)); // back to lobby
                     dispose(); // rilascio risorse
@@ -975,6 +1049,85 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             }
         }
     }
+
+    private void applicaBigExplosive(int row, int col) {
+
+        if (row < 0 || row > 5) return;
+
+        int gravity = (mod == 1) ? gravityStep : 0;
+
+        // --- GRAVITY TOP (classico) ---
+        if (gravity == 0) {
+
+            // Cancella tutta la riga
+            for (int c = 0; c < 7; c++) {
+                boardState[row][c] = 0;
+            }
+
+            // Fai scendere tutte le righe sopra
+            for (int r = row; r > 0; r--) {
+                for (int c = 0; c < 7; c++) {
+                    boardState[r][c] = boardState[r - 1][c];
+                }
+            }
+
+            // La riga più in alto diventa vuota
+            for (int c = 0; c < 7; c++) {
+                boardState[0][c] = 0;
+            }
+
+            return;
+        }
+
+        // --- GRAVITY RIGHT ---
+        if (gravity == 1) {
+
+            // Cancella tutta la riga
+            for (int c = 0; c < 7; c++) {
+                boardState[row][c] = 0;
+            }
+
+            // Ricompatta da sinistra verso destra
+            int write = 6;
+            for (int c = 6; c >= 0; c--) {
+                if (boardState[row][c] != 0) {
+                    boardState[row][write] = boardState[row][c];
+                    write--;
+                }
+            }
+
+            // Svuota le celle rimaste a sinistra
+            for (int c = write; c >= 0; c--) {
+                boardState[row][c] = 0;
+            }
+
+            return;
+        }
+
+        // --- GRAVITY LEFT ---
+        if (gravity == 2) {
+
+            // Cancella tutta la riga
+            for (int c = 0; c < 7; c++) {
+                boardState[row][c] = 0;
+            }
+
+            // Ricompatta da destra verso sinistra
+            int write = 0;
+            for (int c = 0; c < 7; c++) {
+                if (boardState[row][c] != 0) {
+                    boardState[row][write] = boardState[row][c];
+                    write++;
+                }
+            }
+
+            // Svuota le celle rimaste a destra
+            for (int c = write; c < 7; c++) {
+                boardState[row][c] = 0;
+            }
+        }
+    }
+
 
     @Override
     public void loadFont() {}
