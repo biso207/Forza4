@@ -288,7 +288,6 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
                 if (alg.error) Fonts.draw(screen, "Incorrect ID Creation Date",375,63, Fonts.bold20);
                 break;
             case 3:
-
                 AuthManager.soundAuth.stop();
                 // schermata di caricamento per upload/download dati
                 LoadingScreen loadingScreen = new LoadingScreen(game, false);

@@ -13,11 +13,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import sorgente.Authentication.AuthAlgorithms;
 import sorgente.Authentication.AuthManager;
 import sorgente.Fonts;
 import sorgente.Game.GameManager;
 import sorgente.Main;
 import sorgente.ResourceLoader;
+import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.SessionLockService;
 import sorgente.UserData.UserProgressService;
 import sorgente.VersionInfo;
@@ -25,6 +27,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.text.Format;
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -41,6 +45,9 @@ public class LobbyUI implements ResourceLoader {
 
     private final LobbyInput lobbyInput;
 
+    // texture btn claim reward daily
+    private Texture btn_claim;
+    private Texture bgProgressBar, progressBar;
 
     // DARK MODE
     private Texture darkLobby,darkLogout,darkSettings,darkCredits, darkScoreboard, darkMarket;
@@ -71,8 +78,6 @@ public class LobbyUI implements ResourceLoader {
     private Texture market_clicked;
     private Texture volume_bar;
     private Texture purchase_item, purchase_item_clicked;
-
-    private int effectsVolume, musicVolume;
 
     // --- GAME MODE TRANSITION (delay per mostrare "clicked") ---
     private static final float MODE_CLICK_DELAY = 0.14f; // puoi cambiare (0.10f–0.18f)
@@ -107,7 +112,7 @@ public class LobbyUI implements ResourceLoader {
     @Override
     public void loadFont() {}
 
-
+    // caricamento assets per la dark mode
     public void  loadDarkMode() {
         darkLobby=new Texture("lobby_screens/dark/lobby_dark.png");
         darkLogout=new Texture("lobby_screens/dark/logout_dark.png");
@@ -134,7 +139,7 @@ public class LobbyUI implements ResourceLoader {
         purchase_item_dark=new Texture("ui/buttons/lobby/dark/purchase_item.png");
         purchase_item_clicked_dark=new Texture("ui/buttons/lobby/dark/purchase_item_clicked.png");
     }
-
+    // caricamento assets per la light mode
     public void loadLightMode() {
         lightLobby=new Texture("lobby_screens/light/lobby_light.png");
         lightLogout=new Texture("lobby_screens/light/logout_light.png");
@@ -238,6 +243,11 @@ public class LobbyUI implements ResourceLoader {
 
         btn_yes=new Texture("ui/buttons/lobby/btn_yes.png");
         btn_yes_clicked=new Texture("ui/buttons/lobby/btn_yes_clicked.png");
+
+        btn_claim = new Texture("ui/buttons/lobby/btn_claim.png");
+
+        bgProgressBar = new Texture("ui/icons/bg_progress_bar.png");
+        progressBar = new Texture("ui/icons/progress_bar_daily.png");
     }
 
     // metodo per stampare la top 5 nella lobby
@@ -355,10 +365,44 @@ public class LobbyUI implements ResourceLoader {
         Fonts.bold13.draw(screen, UserProgressService.getProgress("num_undo").toString(), 275, 110); //
 
         // DAILY CHALLENGE
-        Fonts.bold25.draw(screen, "N."+UserProgressService.getProgress("num_mission").toString(), 865, 242); // numero missione
+        // controllo completamento daily challenge //
+        Fonts.bold30.draw(screen, "• Quest "+UserProgressService.getProgress("num_mission").toString(), 785, 248); // numero missione
+        // stampa missione da fare
         Fonts.drawWrapped(screen, dailyChallenges.getMission(), 678, 207, 280, Fonts.bold25); // missione
-        Fonts.bold25.draw(screen, dailyChallenges.getCredits(), 720, 143); // premio
+        Fonts.bold25.draw(screen, dailyChallenges.prize(), 720, 143); // premio
 
+        boolean isCompleted = (boolean) UserProgressService.getProgress("is_daily_completed"); // recupero stato di completamento
+        boolean isClaimed = (boolean) UserProgressService.getProgress("is_daily_reward_claimed");
+        long unlockAt = ((Number) UserProgressService.getProgress("daily_next_unlock_at")).longValue();
+        long remainingMs = unlockAt - System.currentTimeMillis();
+
+        if (isCompleted && !isClaimed) screen.draw(btn_claim, 845, 120); // disegno pulsante claim
+        else if (isCompleted && remainingMs > 0) { // stampa tempo allo sblocco della prossima
+            String txt = dailyChallenges.formatCountdown(remainingMs);
+            System.out.println(txt);
+        }
+        else { // barra progresso
+            final float barX = 760f;
+            final float barY = 125f;
+            final float barW = 180f;
+
+            // sfondo barra (180px)
+            screen.draw(bgProgressBar, barX, barY, barW, bgProgressBar.getHeight());
+
+            // todo: recuperare dailyCurrent dal DB (progressi utente)
+            int dailyCurrent = 1;
+            int dailyTarget = dailyChallenges.N;
+
+            // fill
+            float ratio = dailyCurrent / (float) dailyTarget;
+            float fillW = ratio * 175;
+            screen.draw(progressBar, barX+2, barY+2, fillW, progressBar.getHeight());
+
+            // testo tipo 3/10
+            Fonts.bold15.draw(screen, dailyCurrent + "/" + dailyTarget, barX+8, barY+15);
+        }
+
+        // DIFFICOLTÀ IN GIOCO //
         // star selected
         int[][] posX = {
             {131, 161}, // blocco 0 -> diff 1, diff 2
@@ -384,30 +428,14 @@ public class LobbyUI implements ResourceLoader {
             if (!lobbyInput.starHover[i]) continue;
 
             switch (i) {
-                case 0:
-                    draw(star, true, 131, 301);   // Classic stella 1
-                    break;
-                case 1:
-                    draw(star, true, 161, 301);   // Classic stella 2
-                    break;
-                case 2:
-                    draw(star, true, 371, 301);   // Gravity4 stella 1
-                    break;
-                case 3:
-                    draw(star, true, 401, 301);   // Gravity4 stella 2
-                    break;
-                case 4:
-                    draw(star, true, 609, 301);   // Horizontal stella 1
-                    break;
-                case 5:
-                    draw(star, true, 639, 301);   // Horizontal stella 2
-                    break;
-                case 6:
-                    draw(star, true, 849, 301);   // Speedy stella 1
-                    break;
-                case 7:
-                    draw(star, true, 879, 301);   // Speedy stella 2
-                    break;
+                case 0 -> draw(star, true, 131, 301);   // Classic stella 1
+                case 1 -> draw(star, true, 161, 301);   // Classic stella 2
+                case 2 -> draw(star, true, 371, 301);   // Gravity4 stella 1
+                case 3 -> draw(star, true, 401, 301);   // Gravity4 stella 2
+                case 4 -> draw(star, true, 609, 301);   // Horizontal stella 1
+                case 5 -> draw(star, true, 639, 301);   // Horizontal stella 2
+                case 6 -> draw(star, true, 849, 301);   // Speedy stella 1
+                case 7 -> draw(star, true, 879, 301);   // Speedy stella 2
             }
         }
 
@@ -553,8 +581,8 @@ public class LobbyUI implements ResourceLoader {
             draw(btn_yes,lobbyInput.isBtnYesExitHover,342,244);
             draw(btn_yes_clicked,lobbyInput.btnYesExit,342,244);
 
-            draw(btn_no_clicked,lobbyInput.btnNoExit,506,244);
             draw(btn_no,lobbyInput.isBtnNoExitHover,506,244);
+            draw(btn_no_clicked,lobbyInput.btnNoExit,506,244);
         }
 
         // scoreboard

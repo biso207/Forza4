@@ -15,7 +15,6 @@ import java.util.HashMap;
 
 public class SoundManager {
     private static float volume;
-    private static Music soundtrack;
     private final Sound creditSound;
     private final Sound completedSound;
     private static final Sound winSound=Gdx.audio.newSound(Gdx.files.internal("sounds/victory.wav"));
@@ -31,11 +30,7 @@ public class SoundManager {
         // caricamento suoni
         creditSound = Gdx.audio.newSound(Gdx.files.internal("sounds/credit_sound.wav"));
         completedSound = Gdx.audio.newSound(Gdx.files.internal("sounds/completed_Missions.mp3"));
-        soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.ogg"));
     }
-
-    /** Cambia il volume della MUSICA in tempo reale */
-    public static void setMusicVolume(float value) { if (soundtrack != null) soundtrack.setVolume(value); }
 
     public static void playError()
     {
@@ -66,12 +61,6 @@ public class SoundManager {
 
     // metodo per riprodurre il suono della pedina atterrata
     public static void playLand(float volume) { landSound.play(volume); }
-
-    public static void playLobby(float volume) {
-        soundtrack.setLooping(true);
-        soundtrack.setVolume(volume);// true=loop music; false=no loop
-        soundtrack.play();
-    }
 
     public void dispose() {
         creditSound.dispose();

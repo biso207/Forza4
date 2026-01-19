@@ -315,19 +315,15 @@ public class AuthAlgorithms implements InputProcessor {
                 // 2) salva password su Firestore (hash)
                 FirestoreUserRepository.setPassword(nickname, password);
 
-                // 3) hash della data di registrazione todo
-
                 // 4) data di registrazione
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 String date = LocalDate.now().format(formatter);
 
-                // 5) salva la data su Firestore
-                FirestoreUserRepository.setSignupDate(nickname, date);
+                // 5) salvataggio su firestore della data di registrazioni
+                FirestoreUserRepository.setSignupDate(nickname, date); // data di registrazione
+                createUserProgresses(); // crea i progressi utente
 
-                // 6) crea i progressi utente
-                createUserProgresses();
-
-                // 7) set lock, start heartbeat, ecc.
+                // 6) set lock, start heartbeat e caricamento progressi utente
                 LockStatusService.setLockStatus(nickname, true); // blocco del lock
                 SessionLockService.startHeartbeat(nickname); // avvio dell'heartbeat
                 UserProgressService.loadProgresses(); // caricamento progressi utente
@@ -341,7 +337,6 @@ public class AuthAlgorithms implements InputProcessor {
             System.err.println(e.getMessage());
         }
     }
-
 
     // algoritmo di accesso
     public void LogInAlg() {
@@ -381,6 +376,38 @@ public class AuthAlgorithms implements InputProcessor {
         }
     }
 
+    // algoritmo per il reset della password
+    private void processPasswordReset() {
+        try {
+            // compone la data in formato dd/MM/yyyy (uguale al DB)
+            String day   = resetDayInput.toString();
+            String month = resetMonthInput.toString();
+            String year  = resetYearInput.toString();
+
+            String dateUser = day + "/" + month + "/" + year;
+
+            // recupera data dal DB
+            String dateDB = FirestoreUserRepository.getSignupDate(nickname);
+
+            if (dateDB == null || !BCrypt.checkpw(dateUser, dateDB)) {
+                resetErrors(); // reset errori
+                resetFieldsNewPSW(); // pulizia campi
+                error = true; // in AuthUI è scritto come "Incorrect ID Creation Date"
+                return;
+            }
+
+            // aggiornamento password su Firestore
+            String newPasswordPlain = resetPasswordInput.toString();
+            FirestoreUserRepository.setPassword(nickname, newPasswordPlain);
+
+            // PASSWORD OK, DATA OK -> passiamo a LOBBY (state 3)
+            state = 3;
+        } catch (Exception e) {
+            e.printStackTrace();
+            resetErrors();
+        }
+    }
+
     // metodo per creare i file per i progressi utente
     public void createUserProgresses() {
         // data di registrazione utente
@@ -390,10 +417,9 @@ public class AuthAlgorithms implements InputProcessor {
         // hash della password
         password = BCrypt.hashpw(password, BCrypt.gensalt(12));
 
-        // setting dati del nuovo utente
+        // setting dati utente
         UserProgressService.setProgress("nickname", nickname); // nickname
         UserProgressService.setProgress("password", password); // password
-        UserProgressService.setProgress("date", date); // data di registrazione
 
         // INIT PROGRESSI NUOVO UTENTE //
         //UserProgressService.setProgress("avatar", 0);
@@ -424,6 +450,10 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("music_volume", 0.5);
         // flag boolean dark mode
         UserProgressService.setProgress("dark_mode", false);
+        // parametri modalità daily
+        UserProgressService.setProgress("is_daily_completed", false);
+        UserProgressService.setProgress("is_daily_reward_claimed", false);
+        UserProgressService.setProgress("daily_next_unlock_at", 0L);
 
         // salvataggio punti di base in remoto nel loro apposito campo
         try { FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, 0); }
@@ -529,38 +559,6 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         return true;
-    }
-
-    // metodo per il reset della password
-    private void processPasswordReset() {
-        try {
-            // compone la data in formato dd/MM/yyyy (uguale al DB)
-            String day   = resetDayInput.toString();
-            String month = resetMonthInput.toString();
-            String year  = resetYearInput.toString();
-
-            String dateUser = day + "/" + month + "/" + year;
-
-            // recupera data dal DB
-            String dateDb = FirestoreUserRepository.getSignupDate(nickname);
-
-            if (dateDb == null || !dateDb.equals(dateUser)) {
-                resetErrors(); // reset errori
-                resetFieldsNewPSW(); // pulizia campi
-                error = true; // in AuthUI è scritto come "Incorrect ID Creation Date"
-                return;
-            }
-
-            // aggiornamento password su Firestore
-            String newPasswordPlain = resetPasswordInput.toString();
-            FirestoreUserRepository.setPassword(nickname, newPasswordPlain);
-
-            // PASSWORD OK, DATA OK -> passiamo a LOBBY (state 3)
-            state = 3;
-        } catch (Exception e) {
-            e.printStackTrace();
-            resetErrors();
-        }
     }
 
     // chiamato dopo il delay di auth (login/signup/reset)

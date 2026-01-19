@@ -32,11 +32,12 @@ public class AuthManager extends ScreenAdapter {
     private AuthPage currentPage = AuthPage.LOGIN;
     protected static Music soundAuth;
 
+    // costruttore
     public AuthManager(Main game)
     {
         this.authUI = new AuthUI(game);
 
-        soundAuth= Gdx.audio.newMusic(Gdx.files.internal("sounds/auth.mp3"));
+        soundAuth= Gdx.audio.newMusic(Gdx.files.internal("sounds/auth_lobby.ogg"));
         soundAuth.setLooping(true); // true=loop music; false=no loop
         soundAuth.play();
     }
@@ -52,7 +53,6 @@ public class AuthManager extends ScreenAdapter {
 
         soundAuth.setVolume(100);
         authUI.render(delta);
-
     }
 
     @Override

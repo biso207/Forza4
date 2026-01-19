@@ -275,8 +275,8 @@ public class LobbyInput implements InputProcessor {
             marketBuyAreas[i] = new Rectangle(MARKET_BUY_X[i], MARKET_BUY_Y[i], buyW, buyH);
         }
 
-        btn_no= new Rectangle(503,408,150,50);
-        btn_yes= new Rectangle(341,408,150,50);
+        btn_no= new Rectangle(499,408,150,50);
+        btn_yes= new Rectangle(336,408,150,50);
 
         marketButton= new Rectangle(831,64,50,50);
 
@@ -363,7 +363,6 @@ public class LobbyInput implements InputProcessor {
 
         return getMarketUnitPrice(idx) * qty;
     }
-
 
     // rilascio unica risorsa grafica
     public static void dispose() {

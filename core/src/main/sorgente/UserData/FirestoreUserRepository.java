@@ -28,6 +28,56 @@ public class FirestoreUserRepository {
     // costruttore
     public FirestoreUserRepository() {}
 
+    // metodo per creare una nuova richiesta al db e creare un field al documento utente
+    public static void createRequest(String type, String nameField, Object valueField, String username) throws IOException {
+        // URL con updateMask per aggiornare solo il campo "date"
+        String url = DATABASE_URL + "users/" + username + "?updateMask.fieldPaths=" + nameField;
+
+        Map<String, Object> pswField = new HashMap<>();
+        Map<String, Object> fields = new HashMap<>();
+        Map<String, Object> document = new HashMap<>();
+
+        pswField.put(type, valueField);
+        fields.put(nameField, pswField);
+        document.put("fields", fields);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(document);
+
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+        Request request = new Request.Builder()
+            .url(url)
+            .header("Authorization", "Bearer " + getAccessToken())
+            .patch(body)
+            .build();
+
+        Response response = client.newCall(request).execute();
+        response.close();
+    }
+
+    // metodo per creare una richiesta per i getter
+    public static Map createGetterRequest(String nameField, String username) throws IOException {
+        String url = DATABASE_URL + "users/" + username;
+
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+            .url(url)
+            .header("Authorization", "Bearer " + getAccessToken())
+            .get()
+            .build();
+
+        Response response = client.newCall(request).execute();
+
+        assert response.body() != null;
+        String body = response.body().string();
+        response.close();
+
+        Map responseMap = new Gson().fromJson(body, Map.class);
+        Map fields = (Map) responseMap.get("fields");
+        return (Map) fields.get(nameField);
+    }
+
     // metodo per recuperare il token che permette la comunicazione client-server
     protected static String getAccessToken() throws IOException {
         GoogleCredentials credentials = GoogleCredentials.fromStream(Gdx.files.internal("private_key_db.json").read())
@@ -147,115 +197,31 @@ public class FirestoreUserRepository {
 
 
     // PASSWORD //
-    // metodo per recuperare la password utente
-    public static String getPassword(String username) throws IOException {
-        String url = DATABASE_URL + "users/" + username;
-
-        //System.out.println(url);
-
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-            .url(url)
-            .header("Authorization", "Bearer " + getAccessToken())
-            .get()
-            .build();
-
-        Response response = client.newCall(request).execute();
-        assert response.body() != null;
-        String body = response.body().string();
-        response.close();
-
-        Map responseMap = new Gson().fromJson(body, Map.class);
-        Map fields = (Map) responseMap.get("fields");
-        Map pswField = (Map) fields.get("psw");
-        return (String) pswField.get("stringValue");
-    }
-
     // metodo per salvare la password utente in cloud
     public static void setPassword(String username, String password) throws IOException {
-        // URL con updateMask per aggiornare solo il campo "psw"
-        String url = DATABASE_URL + "users/" + username + "?updateMask.fieldPaths=psw";
-
         // hash della password
         password = BCrypt.hashpw(password, BCrypt.gensalt());
-
-        Map<String, Object> fields = new HashMap<>();
-        Map<String, Object> pswField = new HashMap<>();
-        pswField.put("stringValue", password);
-        fields.put("psw", pswField);
-
-        Map<String, Object> document = new HashMap<>();
-        document.put("fields", fields);
-
-        Gson gson = new Gson();
-        String json = gson.toJson(document);
-
-        OkHttpClient client = new OkHttpClient();
-        RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
-        Request request = new Request.Builder()
-            .url(url)
-            .header("Authorization", "Bearer " + getAccessToken())
-            .patch(body)
-            .build();
-
-        Response response = client.newCall(request).execute();
-        response.close();
+        createRequest("stringValue", "psw", password, username);
     }
+
+    // metodo per recuperare la password utente
+    public static String getPassword(String username) throws IOException {
+        return (String) createGetterRequest("psw", username).get("stringValue");
+    }
+
 
     // DATA REGISTRAZIONE //
     // metodo per salvare la data di registrazione utente
     public static void setSignupDate(String username, String date) throws IOException {
-        // URL con updateMask per aggiornare solo il campo "date"
-        String url = DATABASE_URL + "users/" + username + "?updateMask.fieldPaths=date";
-
-        // campo "date" come stringValue
-        Map<String, Object> dateField = new HashMap<>();
-        dateField.put("stringValue", date);
-
-        Map<String, Object> fields = new HashMap<>();
-        fields.put("date", dateField);
-
-        Map<String, Object> document = new HashMap<>();
-        document.put("fields", fields);
-
-        Gson gson = new Gson();
-        String json = gson.toJson(document);
-
-        OkHttpClient client = new OkHttpClient();
-        RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
-        Request request = new Request.Builder()
-            .url(url)
-            .header("Authorization", "Bearer " + getAccessToken())
-            .patch(body)
-            .build();
-
-        Response response = client.newCall(request).execute();
-        response.close();
+        // hash della data
+        date = BCrypt.hashpw(date, BCrypt.gensalt());
+        createRequest("stringValue", "date", date, username);
     }
-
     // metodo per recuperare la data di registrazione utente
     public static String getSignupDate(String username) throws IOException {
-        String url = DATABASE_URL + "users/" + username;
-
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-            .url(url)
-            .header("Authorization", "Bearer " + getAccessToken())
-            .get()
-            .build();
-
-        Response response = client.newCall(request).execute();
-
-        assert response.body() != null;
-        String body = response.body().string();
-        response.close();
-
-        Map responseMap = new Gson().fromJson(body, Map.class);
-        Map fields = (Map) responseMap.get("fields");
-
-        Map dateField = (Map) fields.get("date");
-        return (String) dateField.get("stringValue");
+        return (String) createGetterRequest("date", username).get("stringValue");
     }
+
 
     // DATI //
     // salva il file .dat => esegue tutto con un thread separato dal thread main di gioco
@@ -339,6 +305,54 @@ public class FirestoreUserRepository {
             }
         }).start();
     }
+
+    // Getter MINIMAL: legge daily_progress.current e daily_progress.target dal documento utente.
+    // Se il campo non esiste (utente nuovo), ritorna {0, 1}.
+    public static int[] getDailyProgressNumbers(String username) throws IOException {
+        try {
+            Map dailyProgress = createGetterRequest("daily_progress", username);
+            if (dailyProgress == null) return new int[]{0, 1};
+
+            Map mapValue = (Map) dailyProgress.get("mapValue");
+            if (mapValue == null) return new int[]{0, 1};
+
+            Map fields = (Map) mapValue.get("fields");
+            if (fields == null) return new int[]{0, 1};
+
+            int current = 0;
+            int target = 1;
+
+            Map currentMap = (Map) fields.get("current");
+            if (currentMap != null && currentMap.get("integerValue") != null) {
+                current = Integer.parseInt(currentMap.get("integerValue").toString());
+            }
+
+            Map targetMap = (Map) fields.get("target");
+            if (targetMap != null && targetMap.get("integerValue") != null) {
+                target = Integer.parseInt(targetMap.get("integerValue").toString());
+            }
+
+            if (target <= 0) target = 1;
+            if (current < 0) current = 0;
+            if (current > target) current = target;
+
+            return new int[]{current, target};
+
+        } catch (Exception ignore) {
+            return new int[]{0, 1};
+        }
+    }
+
+    // metodo per salvare la prossima mezzanotte dopo il completamente dell'ultima missione
+    public static void setNextDailyTime(String username, String time) throws IOException {
+        createRequest("timestamp", "daily_next_unlock_at", time, username);
+    }
+
+    // metodo per settare i contatori/progresso per le missioni
+    public static void setDailyProgress(String username, Map<String, Object> countProgresses) throws IOException {
+        createRequest("mapValue", "daily_progress", countProgresses, username);
+    }
+
 
     // ELIMINAZIONE PROFILO //
     // metodo per eliminare definitivamente un profilo utente

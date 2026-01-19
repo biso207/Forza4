@@ -13,9 +13,11 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import sorgente.Authentication.AuthAlgorithms;
 import sorgente.Authentication.AuthManager;
 import sorgente.Game.GameManager;
 import sorgente.Main;
+import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.UserProgressService;
 
 import java.io.IOException;
@@ -37,7 +39,7 @@ public class LobbyManager extends ScreenAdapter {
         ui = new LobbyUI(input);
 
         // musica di sottofondo
-        soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.mp3")); // file audio
+        soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/auth_lobby.ogg")); // file audio
         soundtrack.setLooping(true); // true=loop music; false=no loop
         soundtrack.play(); // avvio musica
     }

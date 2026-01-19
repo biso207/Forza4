@@ -18,6 +18,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.*;
 import sorgente.Lobby.LobbyInput;
+import sorgente.Lobby.LobbyUI;
+import sorgente.UserData.UserProgressService;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -41,11 +44,11 @@ public class GameInput implements InputProcessor {
     protected boolean isBtnYesExitHover;
 
     // Power-up flags
-    public boolean powerExplosive = false;
-    public boolean powerExplosiveBig = false;
+    public boolean powerTokenCracker = false;
+    public boolean powerRowBreaker = false;
     public boolean powerFreeze = false;
-    public boolean powerPredict = false;
-    public boolean powerTarget=false;
+    public boolean powerPeek = false;
+    public boolean powerPrecision=false;
     public boolean powerUndo=false;
 
     // Swap: prima colonna selezionata
@@ -53,9 +56,7 @@ public class GameInput implements InputProcessor {
     private int mod;
 
     // Rettangoli UI
-    protected final Rectangle exit;
-    private Rectangle btn_no;
-    private Rectangle btn_yes;
+    private final Rectangle exit, btn_no, btn_yes;
 
     // Power-up buttons
     public Rectangle btnExplosive;
@@ -119,12 +120,12 @@ public class GameInput implements InputProcessor {
     }
 
     public void resetAllPowers() {
-        powerExplosive = false;
-        powerExplosiveBig = false;
+        powerTokenCracker = false;
+        powerRowBreaker = false;
         powerFreeze = false;
-        powerPredict = false;
+        powerPeek = false;
+        powerPrecision = false;
         powerUndo = false;
-        powerTarget = false;
     }
 
 
@@ -142,97 +143,89 @@ public class GameInput implements InputProcessor {
 
         checkHitBox(x, y);
 
-        // POWER-UP BUTTONS
-
-        if (btnExplosive.contains(x, y)) {
-            activatePowerUp("explosive");
-
-            return true;
-        }
-
-
-        if (btnExplosiveBig.contains(x, y)) {
-            activatePowerUp("bigExplosive");
-            return true;
-        }
-
-
-
+        // POWER-UP BUTTONS //
         if (btnFreeze.contains(x, y)) {
             activatePowerUp("freeze");
-            return true;
+            return clicked();
         }
 
-
-
-        if (btnPredict.contains(x, y))
-        {
-            activatePowerUp("predict");
-            return true;
+        if (btnExplosive.contains(x, y)) {
+            activatePowerUp("tokenCracker");
+            return clicked();
         }
 
-        if (btnTarget.contains(x, y))
-        {
-            activatePowerUp("target");
-            return true;
+        if (btnExplosiveBig.contains(x, y)) {
+            activatePowerUp("rowBreaker");
+            return clicked();
         }
 
-        if(btnUndo.contains(x,y))
-        {
+        if (btnPredict.contains(x, y)) {
+            activatePowerUp("peek");
+            return clicked();
+        }
+
+        if (btnTarget.contains(x, y)) {
+            activatePowerUp("precision");
+            return clicked();
+        }
+
+        if(btnUndo.contains(x,y)) {
             activatePowerUp("undo");
-            return true;
+            return clicked();
         }
 
-
-
-        // click sulla griglia
          // click sulla griglia
         int col = getColumnFromClick(x, y);
-        if (gridEnabled && col != -1)
-        {
+        if (gridEnabled && col != -1) isHole = true;
 
-            isHole = true;
-        }
-
-
-
-
-        return false;
+        return true;
     }
 
     private void activatePowerUp(String type) {
 
+        // disattivazione di tutti al click
+        resetAllPowers();
+
         resetAllPowers();
         selectedSwapColumn = -1;
 
+        // recupero numero power up in possesso
+        int numFreezer      = (int) UserProgressService.getProgress("num_freezer");
+        int numTokenCracker = (int) UserProgressService.getProgress("num_token_cracker");
+        int numRowBraker    = (int) UserProgressService.getProgress("num_row_breaker");
+        int numPeek         = (int) UserProgressService.getProgress("num_peek");
+        int numPrecision    = (int) UserProgressService.getProgress("num_precision");
+        int numUndo         = (int) UserProgressService.getProgress("num_undo");
+
+        // attivazione
         switch (type) {
-            case "explosive":
-                powerExplosive = true;
-                log.info("Power-up Explosive attivato");
-                break;
-
-            case "bigExplosive":
-                powerExplosiveBig = true;
-                log.info("Power-up Swap attivato");
-                break;
-
-            case "freeze":
-                powerFreeze = true;
+            case "freeze": // blocca una colonna per un turno che corrisponde a una mossa utente e una bot
+                if (numFreezer>=1) powerFreeze = true;
                 log.info("Power-up Freeze attivato");
                 break;
-
-            case "predict":
-                powerPredict = true;
-                log.info("Power-up Predict attivato");
+            case "tokenCracker": // distrugge una pedina (utente o bot)
+                if (numTokenCracker>=1 && GameUI.numTokensBot>=1) powerTokenCracker = true;
+                log.info("Power-up Explosive attivato");
                 break;
-
-            case "undo":
-                powerUndo=true;
+            case "rowBreaker": // distrugge un'intera riga (deve contenere almeno due pedine)
+                if (numRowBraker>=1) powerRowBreaker = true;
+                log.info("Power-up Swap attivato");
+                break;
+            case "peek": // osserva la prossima mossa dell'avversario
+                if (numPeek>=1) powerPeek = true;
+                log.info("Power-up Peek attivato");
+                break;
+            case "precision": // posizione con precisione un pedina fregandosene della gravità
+                if(numPrecision>=1) powerPrecision = true;
+                log.info("Power-up Precision attivato");
+                break;
+            case "undo": // annulla l'ultima mossa (solo utente)
+                if (numUndo>=1) powerUndo = true;
                 log.info("Power-up Undo attivato");
                 break;
 
             case "target":
-                powerTarget=true;
+                powerPrecision=true;
                 log.info("Power-up Target attivato");
                 break;
         }
@@ -335,10 +328,6 @@ public class GameInput implements InputProcessor {
         if (row < 0 || row > 5) return -1;
         return row;
     }
-
-
-
-
 
     public int getLowestFreeRow(int col, boolean[][] board) {
 
