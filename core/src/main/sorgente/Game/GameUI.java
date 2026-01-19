@@ -23,6 +23,8 @@ import sorgente.UserData.FirestoreUserRepository;
 import sorgente.UserData.UserProgressService;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class GameUI extends ScreenAdapter implements ResourceLoader
 {
@@ -106,6 +108,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     // --- GRAVITY4: ordine direzioni per OGNI mossa ---
     public static int gravityStep = 0; // 0 TOP, 1 BOTTOM, 2 RIGHT, 3 LEFT
+
+
+    //--PREDICT: timer pedina fantasma
+    private float predictTimer = 0f;
+    private static final float PREDICT_DURATION = 2f; // 2 secondi
+
 
     // --- BOT THINK DELAY ---
     private boolean botPending = false;
@@ -337,6 +345,50 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // ---------------- POWER-UP METHODS ----------------
 
 
+    private void startBotMoveAfterPowerUp() {
+
+        // scegli colonna bot
+        int botCol = CPUBrain.chooseMove(boardState);
+
+        // evita colonna congelata
+        if (freezeColumn == botCol) {
+            botCol = findAlternativeColumnForBot();
+        }
+
+        if (botCol == -1) {
+            log.info("Bot non può giocare dopo power-up");
+            return;
+        }
+
+        int[] landing = getGravityLandingCellStatic(boardState, botCol, -1);
+        int r = landing[0];
+        int c = landing[1];
+
+        if (r == -1 || c == -1) {
+            log.info("Bot landing cell invalida dopo power-up");
+            return;
+        }
+
+        // salva stato per Undo
+        for (int rr = 0; rr < 6; rr++) {
+            for (int cc = 0; cc < 7; cc++) {
+                lastBoardState[rr][cc] = boardState[rr][cc];
+            }
+        }
+        lastGravityStep = gravityStep;
+        lastFreezeColumn = freezeColumn;
+        lastFreezeTurns = freezeTurns;
+        lastNumTokensBot = numTokensBot;
+
+        // avvia animazione bot
+        botPlannedRow = r;
+        botPlannedCol = c;
+        botPending = true;
+        botDelayTimer = 0f; // esegue subito
+        gameInput.setGridEnabled(false);
+    }
+
+
     // 🔥 Explosive → rimuove la pedina cliccata e compatta solo nella direzione della gravità
     public void applicaExplosive(int row, int col)
     {
@@ -395,6 +447,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             // la cella più a destra diventa vuota
             boardState[row][6] = 0;
         }
+
+        startBotMoveAfterPowerUp();
+
+
     }
 
     // 🧊 Freeze → blocca una colonna per 2 turni
@@ -405,19 +461,18 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         freezeColumn = col;
         freezeTurns = 2;
         log.info("Power-up Freeze attivato sulla colonna " + col);
+
+        startBotMoveAfterPowerUp();
+
     }
 
 
 
-
     public void applicaPredict() {
-
         int botCol = CPUBrain.chooseMove(boardState);
 
-        // evita colonna congelata
-        if (freezeColumn == botCol) {
+        if (freezeColumn == botCol)
             botCol = findAlternativeColumnForBot();
-        }
 
         if (botCol == -1) {
             predictRow = -1;
@@ -429,7 +484,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         predictRow = landing[0];
         predictCol = landing[1];
+
+        predictTimer = PREDICT_DURATION; // attiva timer
     }
+
 
     public void applicaUndo() {
 
@@ -599,9 +657,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             }
         }
 
-        if (predictRow != -1 && predictCol != -1) {
-            screen.draw(yellow, cellX(predictCol), cellY(predictRow)); // pedina fantasma
+        if (predictTimer > 0 && predictRow != -1 && predictCol != -1) {
+            screen.draw(yellow, cellX(predictCol), cellY(predictRow));
         }
+
 
 
     }
@@ -787,7 +846,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         }
 
 
-
         // --- check vittoria del giocatore che ha appena piazzato ---
         if (CPUBrain.checkWin(boardState, row, col, player)) {
             isMatchOver = true;
@@ -844,10 +902,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 gameInput.setGridEnabled(true);
             }
         }
-
-
-
-
 
         // sblocco griglia per l'utente
         if (!isMatchOver && player == 2) gameInput.setGridEnabled(true);
@@ -920,22 +974,48 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // cambio light/dark mode
         isDark(darkMode);
 
+
+        // --- PREDICT: esegui subito quando il bottone è cliccato ---
+        if (gameInput.powerPredict)
+        {
+            applicaPredict();
+            gameInput.powerPredict = false;
+        }
+
+
+        // --- UNDO: esegui subito quando il bottone è cliccato ---
+        if (gameInput.powerUndo) {
+            applicaUndo();
+            gameInput.powerUndo = false;
+        }
+
+
         // aggiorna animazione caduta
-        try {
+        try
+        {
             updateDrop(delta);
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             throw new RuntimeException(e);
         }
+
+
 
         // --- TIMER DI INATTIVITÀ UTENTE (solo in SPEEDY) ---
         if (mod == 3 && !dropActive && !botPending && !isMatchOver) {
 
             timer +=  delta;
 
-            if(timer == 2f || timer ==4f)
+            if (timer >= 2f && timer < 2f + delta)
             {
                 SoundManager.playLand(100);
             }
+
+            if (timer >= 4f && timer < 4f + delta) {
+                SoundManager.playLand(100);
+            }
+
 
 
             if (timer >= 5f) {
@@ -1040,7 +1120,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             if (col == -1) {
                 gameInput.isHole = false;
-                return;
+
             }
 
             // calcolo la riga cliccata
@@ -1062,42 +1142,47 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 gameInput.isHole =false;
             }
 
-            if(gameInput.powerPredict)
+            if (gameInput.powerTarget)
             {
-                applicaPredict();
-                gameInput.powerPredict=false;
-                gameInput.isHole=false;
-            }
 
-            if (gameInput.powerTarget) {
+                // sicurezza: click fuori griglia
+                if (row < 0 || row > 5 || col < 0 || col > 6) {
+                    gameInput.powerTarget = false;
 
-                if (boardState[row][col] == 0) {
-                    boardState[row][col] = 1; // pedina del player
-                    log.info("Target piazzato su (" + row + "," + col + ")");
                 }
 
+                // se la cella è vuota → piazza la pedina
+                if (boardState[row][col] == 0) {
+                    boardState[row][col] = 1;
+                    log.info("Target piazzato su (" + row + "," + col + ")");
+                } else {
+                    log.info("Target: cella occupata, nessuna azione");
+                }
+
+                // NON passa il turno al bot
                 gameInput.powerTarget = false;
+                gameInput.isHole = false;
+                gameInput.setGridEnabled(true);
 
                 // check vittoria immediata
                 if (CPUBrain.checkWin(boardState, row, col, 1)) {
                     isMatchOver = true;
                     victory = true;
                     SoundManager.playWin(LobbyInput.musicPercent);
-
-
+                    try {
+                        saveUserProgresses(points, 1);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
 
-                // se vuoi far giocare il bot dopo Target:
+                startBotMoveAfterPowerUp();
 
 
             }
 
-            if(gameInput.powerUndo)
-            {
-                applicaUndo();
-                gameInput.powerUndo=false;
-                gameInput.isHole=false;
-            }
+
+
 
 
             /*
@@ -1164,6 +1249,15 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 }
             }
         }
+
+        if (predictTimer > 0) {
+            predictTimer -= delta;
+            if (predictTimer <= 0) {
+                predictRow = -1;
+                predictCol = -1;
+            }
+        }
+
     }
 
     private void applicaBigExplosive(int row, int col) {

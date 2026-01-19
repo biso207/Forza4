@@ -111,12 +111,22 @@ public class GameInput implements InputProcessor {
         // Power-up buttons (posizioni esempio)
 
         btnFreeze    = new Rectangle(293, 165, 24, 24);
-        btnExplosive = new Rectangle(368, 169, 24, 24);
-        btnExplosiveBig = new Rectangle(457, 171, 24, 24);
-        btnPredict = new Rectangle(530, 172, 24, 24);
-        btnTarget= new  Rectangle(605,172,24,24);
-        btnUndo=new Rectangle(689,172,24,24);
+        btnExplosive = new Rectangle(368, 165, 24, 24);
+        btnExplosiveBig = new Rectangle(457, 165, 24, 24);
+        btnPredict = new Rectangle(530, 165, 24, 24);
+        btnTarget= new  Rectangle(605,165,24,24);
+        btnUndo=new Rectangle(689,165,24,24);
     }
+
+    public void resetAllPowers() {
+        powerExplosive = false;
+        powerExplosiveBig = false;
+        powerFreeze = false;
+        powerPredict = false;
+        powerUndo = false;
+        powerTarget = false;
+    }
+
 
     // genera il suono al click
     private boolean clicked() {
@@ -192,13 +202,7 @@ public class GameInput implements InputProcessor {
 
     private void activatePowerUp(String type) {
 
-        powerExplosive = false;
-        powerExplosiveBig = false;
-        powerFreeze = false;
-        powerPredict = false;
-        powerTarget=false;
-        powerUndo=false;
-
+        resetAllPowers();
         selectedSwapColumn = -1;
 
         switch (type) {
@@ -225,10 +229,12 @@ public class GameInput implements InputProcessor {
             case "undo":
                 powerUndo=true;
                 log.info("Power-up Undo attivato");
+                break;
 
             case "target":
                 powerTarget=true;
                 log.info("Power-up Target attivato");
+                break;
         }
     }
 
