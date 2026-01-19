@@ -120,6 +120,17 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private int freezeColumn = -1;
     private int freezeTurns = 0;
 
+    private int predictRow = -1;
+    private int predictCol = -1;
+
+    private int[][] lastBoardState = new int[6][7];
+    private int lastGravityStep = 0;
+    private int lastFreezeColumn = -1;
+    private int lastFreezeTurns = 0;
+    private int lastNumTokensBot = 0;
+
+
+
     // pedine utente e bot giocate
     private int numTokensUser=0, numTokensBot=0;
     // difficoltà di gioco, punti e crediti per partita
@@ -307,7 +318,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         gameInput.powerExplosive = false;
         gameInput.powerExplosiveBig = false;
         gameInput.powerFreeze = false;
-        gameInput.powerWild = false;
+        gameInput.powerPredict = false;
         gameInput.selectedSwapColumn = -1;
         freezeColumn = -1;
         freezeTurns = 0;
@@ -394,6 +405,53 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         freezeColumn = col;
         freezeTurns = 2;
         log.info("Power-up Freeze attivato sulla colonna " + col);
+    }
+
+
+
+
+    public void applicaPredict() {
+
+        int botCol = CPUBrain.chooseMove(boardState);
+
+        // evita colonna congelata
+        if (freezeColumn == botCol) {
+            botCol = findAlternativeColumnForBot();
+        }
+
+        if (botCol == -1) {
+            predictRow = -1;
+            predictCol = -1;
+            return;
+        }
+
+        int[] landing = getGravityLandingCellStatic(boardState, botCol, -1);
+
+        predictRow = landing[0];
+        predictCol = landing[1];
+    }
+
+    public void applicaUndo() {
+
+        // se il bot non ha ancora giocato → niente da annullare
+        if (lastNumTokensBot == numTokensBot) {
+            log.info("Undo impossibile: nessuna mossa bot da annullare");
+            return;
+        }
+
+        // ripristina board
+        for (int r = 0; r < 6; r++) {
+            for (int c = 0; c < 7; c++) {
+                boardState[r][c] = lastBoardState[r][c];
+            }
+        }
+
+        gravityStep = lastGravityStep;
+        freezeColumn = lastFreezeColumn;
+        freezeTurns = lastFreezeTurns;
+        numTokensBot = lastNumTokensBot;
+
+        log.info("Undo eseguito: mossa bot annullata");
     }
 
 
@@ -540,6 +598,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 drawX += 70;
             }
         }
+
+        if (predictRow != -1 && predictCol != -1) {
+            screen.draw(yellow, cellX(predictCol), cellY(predictRow)); // pedina fantasma
+        }
+
+
     }
 
     private float cellX(int col) {
@@ -756,6 +820,19 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             if (landing[0] == -1 || landing[1] == -1) botCanPlay = false;
 
+            // salva stato prima della mossa del bot
+            for (int r = 0; r < 6; r++) {
+                for (int c = 0; c < 7; c++) {
+                    lastBoardState[r][c] = boardState[r][c];
+                }
+            }
+
+            lastGravityStep = gravityStep;
+            lastFreezeColumn = freezeColumn;
+            lastFreezeTurns = freezeTurns;
+            lastNumTokensBot = numTokensBot;
+
+
             if (botCanPlay) {
                 botPlannedRow = landing[0];
                 botPlannedCol = landing[1];
@@ -827,6 +904,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         Fonts.bold25.draw(screen, numTokensBot + "/21", 83, 135);
 
         // numero boosts
+
+
     }
 
 
@@ -981,6 +1060,43 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 applicaBigExplosive(row,col);
                 gameInput.powerExplosiveBig=false;
                 gameInput.isHole =false;
+            }
+
+            if(gameInput.powerPredict)
+            {
+                applicaPredict();
+                gameInput.powerPredict=false;
+                gameInput.isHole=false;
+            }
+
+            if (gameInput.powerTarget) {
+
+                if (boardState[row][col] == 0) {
+                    boardState[row][col] = 1; // pedina del player
+                    log.info("Target piazzato su (" + row + "," + col + ")");
+                }
+
+                gameInput.powerTarget = false;
+
+                // check vittoria immediata
+                if (CPUBrain.checkWin(boardState, row, col, 1)) {
+                    isMatchOver = true;
+                    victory = true;
+                    SoundManager.playWin(LobbyInput.musicPercent);
+
+
+                }
+
+                // se vuoi far giocare il bot dopo Target:
+
+
+            }
+
+            if(gameInput.powerUndo)
+            {
+                applicaUndo();
+                gameInput.powerUndo=false;
+                gameInput.isHole=false;
             }
 
 

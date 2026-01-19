@@ -29,7 +29,8 @@ public class GameManager extends ScreenAdapter
 
 
     // costruttore
-    public GameManager(Main game, boolean dark, int mod) {
+    public GameManager(Main game, boolean dark, int mod)
+    {
         GameManager.game = game;
         input = new GameInput(mod);
         ui = new GameUI(input, dark, mod);
@@ -37,7 +38,30 @@ public class GameManager extends ScreenAdapter
 
         //log.info(d);
 
-        soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game.mp3")); // file audio
+        switch (mod)
+        {
+            case 0:
+                soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game.mp3"));
+                break;
+
+            case 1:
+                soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/gravity.mp3"));
+                break;
+
+            case 2:
+                soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/horizontal.mp3"));
+                break;
+
+            case 3:
+                soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/speedy.mp3"));
+                break;
+
+            default:
+                soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game.mp3"));
+                break;
+
+        }
+
         soundGame.setLooping(true); // true=loop music; false=no loop
         soundGame.play(); // avvio musica
     }

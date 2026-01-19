@@ -11,10 +11,12 @@ package sorgente.Authentication;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import sorgente.Lobby.LobbyInput;
 import sorgente.Main;
 
 /**
@@ -28,9 +30,15 @@ public class AuthManager extends ScreenAdapter {
 
     // pagina corrente gestita a livello di Screen (AuthUI viene tenuta in sync)
     private AuthPage currentPage = AuthPage.LOGIN;
+    protected static Music soundAuth;
 
-    public AuthManager(Main game) {
+    public AuthManager(Main game)
+    {
         this.authUI = new AuthUI(game);
+
+        soundAuth= Gdx.audio.newMusic(Gdx.files.internal("sounds/auth.mp3"));
+        soundAuth.setLooping(true); // true=loop music; false=no loop
+        soundAuth.play();
     }
 
     // ====================== //
@@ -42,7 +50,9 @@ public class AuthManager extends ScreenAdapter {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        soundAuth.setVolume(100);
         authUI.render(delta);
+
     }
 
     @Override

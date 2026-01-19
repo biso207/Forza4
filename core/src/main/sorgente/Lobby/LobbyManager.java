@@ -37,7 +37,7 @@ public class LobbyManager extends ScreenAdapter {
         ui = new LobbyUI(input);
 
         // musica di sottofondo
-        soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.ogg")); // file audio
+        soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/lobby_sound.mp3")); // file audio
         soundtrack.setLooping(true); // true=loop music; false=no loop
         soundtrack.play(); // avvio musica
     }

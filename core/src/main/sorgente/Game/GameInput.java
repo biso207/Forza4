@@ -44,7 +44,9 @@ public class GameInput implements InputProcessor {
     public boolean powerExplosive = false;
     public boolean powerExplosiveBig = false;
     public boolean powerFreeze = false;
-    public boolean powerWild = false;
+    public boolean powerPredict = false;
+    public boolean powerTarget=false;
+    public boolean powerUndo=false;
 
     // Swap: prima colonna selezionata
     public int selectedSwapColumn = -1;
@@ -59,7 +61,9 @@ public class GameInput implements InputProcessor {
     public Rectangle btnExplosive;
     public Rectangle btnExplosiveBig;
     public Rectangle btnFreeze;
-    public Rectangle btnWild;
+    public Rectangle btnPredict;
+    public Rectangle btnTarget;
+    public Rectangle btnUndo;
 
     // Griglia
     public Rectangle[][] holes = new Rectangle[6][7];
@@ -109,7 +113,9 @@ public class GameInput implements InputProcessor {
         btnFreeze    = new Rectangle(293, 165, 24, 24);
         btnExplosive = new Rectangle(368, 169, 24, 24);
         btnExplosiveBig = new Rectangle(457, 171, 24, 24);
-        btnWild      = new Rectangle(290, 600, 64, 64);
+        btnPredict = new Rectangle(530, 172, 24, 24);
+        btnTarget= new  Rectangle(605,172,24,24);
+        btnUndo=new Rectangle(689,172,24,24);
     }
 
     // genera il suono al click
@@ -136,7 +142,7 @@ public class GameInput implements InputProcessor {
 
 
         if (btnExplosiveBig.contains(x, y)) {
-            activatePowerUp("swap");
+            activatePowerUp("bigExplosive");
             return true;
         }
 
@@ -147,14 +153,27 @@ public class GameInput implements InputProcessor {
             return true;
         }
 
-        /*
 
-        if (btnWild.contains(x, y)) {
-            activatePowerUp("wild");
+
+        if (btnPredict.contains(x, y))
+        {
+            activatePowerUp("predict");
             return true;
         }
 
-         */
+        if (btnTarget.contains(x, y))
+        {
+            activatePowerUp("target");
+            return true;
+        }
+
+        if(btnUndo.contains(x,y))
+        {
+            activatePowerUp("undo");
+            return true;
+        }
+
+
 
         // click sulla griglia
          // click sulla griglia
@@ -176,7 +195,9 @@ public class GameInput implements InputProcessor {
         powerExplosive = false;
         powerExplosiveBig = false;
         powerFreeze = false;
-        powerWild = false;
+        powerPredict = false;
+        powerTarget=false;
+        powerUndo=false;
 
         selectedSwapColumn = -1;
 
@@ -186,7 +207,7 @@ public class GameInput implements InputProcessor {
                 log.info("Power-up Explosive attivato");
                 break;
 
-            case "swap":
+            case "bigExplosive":
                 powerExplosiveBig = true;
                 log.info("Power-up Swap attivato");
                 break;
@@ -196,10 +217,18 @@ public class GameInput implements InputProcessor {
                 log.info("Power-up Freeze attivato");
                 break;
 
-            case "wild":
-                powerWild = true;
-                log.info("Power-up Wild attivato");
+            case "predict":
+                powerPredict = true;
+                log.info("Power-up Predict attivato");
                 break;
+
+            case "undo":
+                powerUndo=true;
+                log.info("Power-up Undo attivato");
+
+            case "target":
+                powerTarget=true;
+                log.info("Power-up Target attivato");
         }
     }
 

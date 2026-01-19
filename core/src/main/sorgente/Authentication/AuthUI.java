@@ -23,6 +23,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import sorgente.*;
+import sorgente.Game.GameManager;
 import sorgente.dbManagement.GlobalProgressManager;
 
 public class AuthUI extends ScreenAdapter implements ResourceLoader {
@@ -287,6 +288,8 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
                 if (alg.error) Fonts.draw(screen, "Incorrect ID Creation Date",375,63, Fonts.bold20);
                 break;
             case 3:
+
+                AuthManager.soundAuth.stop();
                 // schermata di caricamento per upload/download dati
                 LoadingScreen loadingScreen = new LoadingScreen(game, false);
                 game.setScreen(loadingScreen); // creazione di un nuovo screen
