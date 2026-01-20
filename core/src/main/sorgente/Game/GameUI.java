@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.*;
 import sorgente.Authentication.AuthAlgorithms;
+import sorgente.Lobby.DailyChallenges;
 import sorgente.Lobby.LobbyInput;
 import sorgente.Lobby.LobbyManager;
 import sorgente.UserData.FirestoreUserRepository;
@@ -148,6 +149,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // lettura punti e crediti utente
     private int punti, crediti;
 
+    // flag per controllare l'utilizzo di un booster
+    private boolean usedAnyBoostThisMatch = false;
+
     // costruttore
     public GameUI (GameInput in, boolean dark, int mod) {
         this.screen = GameManager.game.screen;
@@ -260,10 +264,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         }
         else nuovoPunteggio = Math.max(0, punti - delta/2); // sconfitta (punteggio minimo utente 0)
 
+        // salvataggio progressi utente
         UserProgressService.setProgress("credits", crediti+nuoviCrediti); // salvataggio crediti
         UserProgressService.setProgress("points", nuovoPunteggio); // salvataggio nei progressi utente
         FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, nuovoPunteggio); // salvataggio nel campo "points"
 
+        // aggiornamento progresso daily
     }
 
     private void isDark(boolean dark) {
@@ -296,6 +302,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private void resetGame() {
         isMatchOver = false;
         victory = false;
+        usedAnyBoostThisMatch = false;
 
         // reset griglia
         for (int r = 0; r < 6; r++) {
@@ -823,23 +830,20 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             // aggiornamento punteggio utente
             saveUserProgresses(points, player);
+
+            // aggiornamento progresso daily in corso
+            DailyChallenges.updateDaily(victory, usedAnyBoostThisMatch, mod, points, credits, gameDifficulty);
             return;
         }
 
         // --- se ha appena giocato il player, programma la mossa del bot con delay ---
         if (player == 1) {
-
             int botCol = CPUBrain.chooseMove(boardState, row, col);
 
-             // ⛔ Se la colonna è congelata, il bot NON può usarla
-            if (freezeTurns > 0 && botCol == freezeColumn) {
-                // scegli una colonna alternativa valida
-                botCol = findAlternativeColumnForBot();
-            }
+             // se la colonna è congelata, il bot NON può usarla
+            if (freezeTurns > 0 && botCol == freezeColumn) botCol = findAlternativeColumnForBot();
 
-            boolean botCanPlay = true;
-
-            if (botCol == -1) botCanPlay = false;
+            boolean botCanPlay = botCol != -1;
 
             int[] landing = getGravityLandingCellStatic(boardState, botCol, row);
 
@@ -943,12 +947,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
         // --- PREDICT: esegui subito quando il bottone è cliccato ---
         if (gameInput.powerPeek) {
+            usedAnyBoostThisMatch = true;
             applicaPredict();
             gameInput.powerPeek = false;
         }
 
         // --- UNDO: esegui subito quando il bottone è cliccato ---
         if (gameInput.powerUndo) {
+            usedAnyBoostThisMatch = true;
             applicaUndo();
             gameInput.powerUndo = false;
         }
@@ -992,10 +998,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 timer = 0; // reset timer
             }
 
-        } else {
-            // se l’utente fa qualcosa → reset timer
-            timer = 0;
         }
+        // se l’utente fa qualcosa → reset timer
+        else timer = 0;
 
         // evita che l'utente annulli la mossa del bot
         gameInput.setGridEnabled(!dropActive && !botPending && !isMatchOver);
@@ -1052,15 +1057,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // reset in caso di pareggio
         if (numTokensBot == 21 && !isMatchOver) resetGame();
 
+        // pulsante in alto a dx per chiudere la partita
+        draw(exitHover, gameInput.isBtnExitHover, 833, 588);
+        draw(exit, gameInput.isBtnExitClicked, 833, 588);
+
         // LOGICA DI GIOCO (solo se non è aperta la finestra isMatchOver)
         if (!isMatchOver && gameInput.isHole) {
             // durante animazione o “pensiero bot” ignora input del player
             if (dropActive || botPending) gameInput.isHole = false;
-
-            // todo: capire perché non funzionano mai e risolvere il bug
-            // pulsante in alto a dx per chiudere la partita
-            draw(exitHover, gameInput.isBtnExitHover, 825, 591);
-            draw(exit, gameInput.isBtnExitClicked, 825, 591);
 
             int col, row;
 
@@ -1098,6 +1102,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             }
 
             if (gameInput.powerTokenCracker) {
+                usedAnyBoostThisMatch = true;
+
                 applicaExplosive(row, col);
                 gameInput.powerTokenCracker = false;
                 gameInput.isHole = false;
@@ -1105,12 +1111,15 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             }
 
             if (gameInput.powerRowBreaker) {
+                usedAnyBoostThisMatch = true;
+
                 applicaBigExplosive(row, col);
                 gameInput.powerRowBreaker = false;
                 gameInput.isHole = false;
             }
 
             if (gameInput.powerPrecision) {
+                usedAnyBoostThisMatch = true;
 
                 // sicurezza: click fuori griglia
                 if (row < 0 || row > 5 || col < 0 || col > 6) {
@@ -1178,6 +1187,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             }
         }
 
+        // chiusura screen
         screen.end();
 
         if (gameInput.isBtnExitClicked || gameInput.btnNoExit) {

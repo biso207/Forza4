@@ -429,7 +429,7 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("diff_horizontal", 0);
         UserProgressService.setProgress("diff_speedy", 0);
         // numero missione raggiunta
-        UserProgressService.setProgress("num_mission", 1);
+        UserProgressService.setProgress("num_mission", 5); // todo: back at 1
         // numero partite per ogni modalità di gioco
         UserProgressService.setProgress("matches_classic", 0);
         UserProgressService.setProgress("matches_gravity4", 0);
@@ -454,6 +454,9 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("is_daily_completed", false);
         UserProgressService.setProgress("is_daily_reward_claimed", false);
         UserProgressService.setProgress("daily_next_unlock_at", 0L);
+        UserProgressService.setProgress("daily_progress", 0);
+        UserProgressService.setProgress("daily_streak", 0);
+
 
         // salvataggio punti di base in remoto nel loro apposito campo
         try { FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, 0); }

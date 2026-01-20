@@ -31,6 +31,8 @@ public class LobbyManager extends ScreenAdapter {
 
     protected static Music soundtrack;
 
+    private float midnightTimer = 0f;
+
     // costruttore
     public LobbyManager(Main game) {
         LobbyManager.game = game;
@@ -42,6 +44,9 @@ public class LobbyManager extends ScreenAdapter {
         soundtrack = Gdx.audio.newMusic(Gdx.files.internal("sounds/auth_lobby.ogg")); // file audio
         soundtrack.setLooping(true); // true=loop music; false=no loop
         soundtrack.play(); // avvio musica
+
+        // check sblocco daily a mezzanotte
+        DailyChallenges.checkDailyMidnightUnlock();
     }
 
     // ====================== //
@@ -65,6 +70,13 @@ public class LobbyManager extends ScreenAdapter {
             input.update(delta);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+        // check mezzanotte in gioco, nel caso l'utente sia attivo a mezzanotte il nuovo daily scatta in automatico
+        midnightTimer += delta;
+        if (midnightTimer >= 1f) {
+            midnightTimer = 0f;
+            DailyChallenges.checkDailyMidnightUnlock();
         }
 
         Gdx.gl.glClearColor(0, 0, 0, 1);

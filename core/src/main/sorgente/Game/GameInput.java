@@ -111,12 +111,12 @@ public class GameInput implements InputProcessor {
 
         // Power-up buttons (posizioni esempio)
 
-        btnFreeze    = new Rectangle(293, 165, 24, 24);
-        btnExplosive = new Rectangle(368, 165, 24, 24);
-        btnExplosiveBig = new Rectangle(457, 165, 24, 24);
-        btnPredict = new Rectangle(530, 165, 24, 24);
-        btnTarget= new  Rectangle(605,165,24,24);
-        btnUndo=new Rectangle(689,165,24,24);
+        btnFreeze       = new Rectangle(293,162,50,50);
+        btnExplosive    = new Rectangle(368,162,50,50);
+        btnExplosiveBig = new Rectangle(457,162,50,50);
+        btnPredict      = new Rectangle(530,162,50,50);
+        btnTarget       = new Rectangle(605,162,50,50);
+        btnUndo         = new Rectangle(689,162,50,50);
     }
 
     public void resetAllPowers() {

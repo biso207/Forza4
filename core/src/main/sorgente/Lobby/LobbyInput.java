@@ -54,8 +54,8 @@ public class LobbyInput implements InputProcessor {
     protected boolean btnCloseScoreboard;
     // game mods
     protected boolean classic, gravity4, horizontal, speedy;
-    // purchase market items
-    protected boolean purchaseItem;
+    // claim "daily" prize
+    protected boolean isBtnClaimPrizeClicked;
 
     // FLAGS BUTTONS HOVER //
     // difficoltà game mods
@@ -73,8 +73,8 @@ public class LobbyInput implements InputProcessor {
     protected boolean isBtnCloseScoreboardHover;
     // game mods
     protected boolean classicHover, gravity4Hover, horizontalHover, speedyHover;
-    // purchase market items
-    protected boolean purchaseItemHover;
+    // claim "daily" prize
+    protected boolean isBtnClaimPrizeHover;
 
     // FLAGS CONTROLLO SCHERMATE APERTE //
     // per aprire le finestre in sovra impressione
@@ -128,6 +128,8 @@ public class LobbyInput implements InputProcessor {
 
     private Rectangle btnMusic, btnEffects; // pulsanti dei volumi nelle impostazioni
 
+    private Rectangle btnClaimPrize;
+
     // AZIONI CLICK //
     public static final int ACT_CLOSE_INFO = 1;
     public static final int ACT_CLOSE_SETTINGS = 2;
@@ -136,6 +138,7 @@ public class LobbyInput implements InputProcessor {
     public static final int ACT_OPEN_SETTINGS = 5;
     public static final int ACT_OPEN_EXIT = 6;
     public static final int ACT_CLOSE_SCOREBOARD = 7;
+    public static final int ACT_CLAIM_REWARD_DAILY = 8;
 
     public static final int ACT_START_CLASSIC = 10;
     public static final int ACT_START_GRAVITY4 = 11;
@@ -187,6 +190,9 @@ public class LobbyInput implements InputProcessor {
     // mappa con i punti degli utenti (utile per la scoreboard)
     protected static Map<String, Integer> usersPointsMap = new HashMap<>();
 
+    // istanza di DailyChallenges
+    private final DailyChallenges dailyChallenges;
+
     // costruttore
     public LobbyInput() {
         // creazione hit boxes
@@ -209,6 +215,9 @@ public class LobbyInput implements InputProcessor {
 
         // aggiornamento punti subito all'apertura e poi ogni 60 secondi
         timerUpdateUsersPointsMap = 0.1f;
+
+        // creazione istanza di DailyChallenges
+        dailyChallenges = new DailyChallenges();
     }
 
     // metodo per la creazione dei rectangle
@@ -254,6 +263,8 @@ public class LobbyInput implements InputProcessor {
         btnCloseSettingsArea = new Rectangle(686,245,40,40);
         btnCloseMarketArea= new Rectangle(814,187,40,40);
         btnCloseScoreboardArea= new Rectangle(814,174,40,40);
+
+        btnClaimPrize = new Rectangle(837, 561, 100, 30);
 
         // MARKET //
         // aree click quantità (calcolate dalle coordinate di disegno) ---
@@ -396,6 +407,9 @@ public class LobbyInput implements InputProcessor {
 
         // pulsanti purchase market items
         for (int i = 0; i < 6; i++) marketBuyClicked[i] = false;
+
+        // claim reward
+        isBtnClaimPrizeClicked = false;
     }
 
     // resetta lo stato di Hover dei pulsanti
@@ -419,6 +433,9 @@ public class LobbyInput implements InputProcessor {
         for ( int i=0; i<8; i++) starHover[i] = false;
         // hover pulsanti acquisto item mercato
         for (int i = 0; i < 6; i++) marketBuyHover[i] = false;
+
+        // claim reward
+        isBtnClaimPrizeHover = false;
     }
 
     // metodo per il controllo dei click
@@ -507,7 +524,8 @@ public class LobbyInput implements InputProcessor {
                     return clicked();
                 }
             }
-            // --- MARKET: click su quantità (attiva la digitazione e mostra il tick lampeggiante) ---
+
+            // market
             if (isMarketOpen) {
                 // iterazione sulle aree cliccabili per la digitazione delle quantità
                 for (int i = 0; i < 6; i++) {
@@ -743,6 +761,18 @@ public class LobbyInput implements InputProcessor {
             return clicked();
         }
 
+        // pulsante claim reward 'daily'
+        if (btnClaimPrize.contains(x, y) &&
+            !((boolean) UserProgressService.getProgress("is_daily_reward_claimed")) &&
+            ((boolean) UserProgressService.getProgress("is_daily_completed"))
+        ) {
+            isBtnClaimPrizeClicked=true;
+            clickedTimer = 0.10f;
+            setInputEnabled(false);
+            scheduleScreenChange(ACT_CLAIM_REWARD_DAILY, 0.20f);
+            return clicked();
+        }
+
         // -- COMMAND BAR --
         if (exitArea.contains(x, y)) {
             isBtnLogoutClicked = true;
@@ -908,6 +938,15 @@ public class LobbyInput implements InputProcessor {
 
         if (scoreboardArea.contains(screenX, screenY)) { // schermata classifica
             isBtnScoreboardHover = true;
+            return true;
+        }
+
+        // btn claim reward 'daily'
+        if (btnClaimPrize.contains(screenX, screenY) &&
+            !((boolean) UserProgressService.getProgress("is_daily_reward_claimed")) &&
+            ((boolean) UserProgressService.getProgress("is_daily_completed"))
+        ) {
+            isBtnClaimPrizeHover=true;
             return true;
         }
 
@@ -1095,6 +1134,24 @@ public class LobbyInput implements InputProcessor {
             case ACT_CLOSE_SCOREBOARD:
                 isScoreboardOpen=false;
                 break;
+
+            case ACT_CLAIM_REWARD_DAILY: {
+                // salvataggio raccolta premio
+                UserProgressService.setProgress("is_daily_reward_claimed", true);
+
+                // salva lo sblocco alla prossima mezzanotte (ms)
+                long unlockAt = DailyChallenges.nextMidnightFromNow().toEpochMilli();
+                UserProgressService.setProgress("daily_next_unlock_at", unlockAt);
+
+                // incremento missione
+                int numMission = (int) UserProgressService.getProgress("num_mission");
+                UserProgressService.setProgress("num_mission", numMission + 1);
+
+                // assegnazione premio
+                int credits = (int) UserProgressService.getProgress("credits");
+                UserProgressService.setProgress("credits", credits + DailyChallenges.prize());
+                break;
+            }
         }
     }
 

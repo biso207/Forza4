@@ -45,9 +45,10 @@ public class LobbyUI implements ResourceLoader {
 
     private final LobbyInput lobbyInput;
 
-    // texture btn claim reward daily
-    private Texture btn_claim;
+    // texture che non cambiano
+    private Texture btn_claim, btn_claim_clicked;
     private Texture bgProgressBar, progressBar;
+    private Texture creditImg;
 
     // DARK MODE
     private Texture darkLobby,darkLogout,darkSettings,darkCredits, darkScoreboard, darkMarket;
@@ -90,7 +91,7 @@ public class LobbyUI implements ResourceLoader {
     private final NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
 
     // istanza di DailyChallenges
-    private DailyChallenges dailyChallenges;
+    private final DailyChallenges dailyChallenges;
 
     // costruttore
     public LobbyUI(LobbyInput lobbyInput) {
@@ -245,9 +246,12 @@ public class LobbyUI implements ResourceLoader {
         btn_yes_clicked=new Texture("ui/buttons/lobby/btn_yes_clicked.png");
 
         btn_claim = new Texture("ui/buttons/lobby/btn_claim.png");
+        btn_claim_clicked = new Texture("ui/buttons/lobby/btn_claim_clicked.png");
 
         bgProgressBar = new Texture("ui/icons/bg_progress_bar.png");
         progressBar = new Texture("ui/icons/progress_bar_daily.png");
+
+        creditImg = new Texture("ui/icons/credit.png");
     }
 
     // metodo per stampare la top 5 nella lobby
@@ -365,42 +369,58 @@ public class LobbyUI implements ResourceLoader {
         Fonts.bold13.draw(screen, UserProgressService.getProgress("num_undo").toString(), 275, 110); //
 
         // DAILY CHALLENGE
-        // controllo completamento daily challenge //
-        Fonts.bold30.draw(screen, "• Quest "+UserProgressService.getProgress("num_mission").toString(), 785, 248); // numero missione
-        // stampa missione da fare
-        Fonts.drawWrapped(screen, dailyChallenges.getMission(), 678, 207, 280, Fonts.bold25); // missione
-        Fonts.bold25.draw(screen, dailyChallenges.prize(), 720, 143); // premio
+        // numero missione
+        Fonts.bold30.draw(screen, "• Quest " + UserProgressService.getProgress("num_mission").toString(), 785, 248);
 
+        // progressi utente
         boolean isCompleted = (boolean) UserProgressService.getProgress("is_daily_completed"); // recupero stato di completamento
         boolean isClaimed = (boolean) UserProgressService.getProgress("is_daily_reward_claimed");
         long unlockAt = ((Number) UserProgressService.getProgress("daily_next_unlock_at")).longValue();
         long remainingMs = unlockAt - System.currentTimeMillis();
 
-        if (isCompleted && !isClaimed) screen.draw(btn_claim, 845, 120); // disegno pulsante claim
-        else if (isCompleted && remainingMs > 0) { // stampa tempo allo sblocco della prossima
-            String txt = dailyChallenges.formatCountdown(remainingMs);
-            System.out.println(txt);
+        if (isCompleted && remainingMs > 0) { // stampa tempo allo sblocco della prossima
+            String txt = DailyChallenges.formatCountdown(remainingMs);
+            Fonts.bold25.draw(screen, txt, 678, 207);
         }
-        else { // barra progresso
-            final float barX = 760f;
-            final float barY = 125f;
-            final float barW = 180f;
+        else { // missione da compiere + barra progresso
+            // stampa missione da fare e premio //
+            Fonts.drawWrapped(screen, DailyChallenges.getMission(), 678, 207, 280, Fonts.bold25); // missione
+            Fonts.bold25.draw(screen, "+" + DailyChallenges.prize(), 720, 128); // premio
+            // immagine crediti
+            screen.draw(creditImg, 672, 100);
 
-            // sfondo barra (180px)
-            screen.draw(bgProgressBar, barX, barY, barW, bgProgressBar.getHeight());
+            // disegno pulsante claim al completamento //
+            if (isCompleted && !isClaimed) {
+                screen.draw(btn_claim, 845, 105); // disegno pulsante claim
 
-            // todo: recuperare dailyCurrent dal DB (progressi utente)
-            int dailyCurrent = 1;
-            int dailyTarget = dailyChallenges.N;
+                // hover e click
+                draw(btn_claim, lobbyInput.isBtnClaimPrizeHover,845, 105);
+                draw(btn_claim_clicked, lobbyInput.isBtnClaimPrizeClicked,845, 105);
+            }
+            // barra progresso compiuto //
+            else {
+                final float barX = 760f;
+                final float barY = 110f;
+                final float barW = 180f;
 
-            // fill
-            float ratio = dailyCurrent / (float) dailyTarget;
-            float fillW = ratio * 175;
-            screen.draw(progressBar, barX+2, barY+2, fillW, progressBar.getHeight());
+                // sfondo barra (180px)
+                screen.draw(bgProgressBar, barX, barY, barW, bgProgressBar.getHeight());
 
-            // testo tipo 3/10
-            Fonts.bold15.draw(screen, dailyCurrent + "/" + dailyTarget, barX+8, barY+15);
+                // recupero progresso utente e obiettivo missione
+                int dailyCurrent = (int) UserProgressService.getProgress("daily_progress");
+                int dailyTarget = DailyChallenges.targetN((int) UserProgressService.getProgress("num_mission"));
+
+                // fill
+                float ratio = dailyCurrent / (float) dailyTarget;
+                float fillW = ratio * 175;
+                screen.draw(progressBar, barX+2, barY+2, fillW, progressBar.getHeight());
+
+                // testo tipo 3/10
+                Fonts.bold15.draw(screen, dailyCurrent + "/" + dailyTarget, barX+8, barY+15);
+            }
         }
+
+
 
         // DIFFICOLTÀ IN GIOCO //
         // star selected
