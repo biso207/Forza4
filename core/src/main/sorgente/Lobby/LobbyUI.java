@@ -90,9 +90,6 @@ public class LobbyUI implements ResourceLoader {
     // formatter per la virgola delle migliaia !in automatico converte l'intero in stringa
     private final NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
 
-    // istanza di DailyChallenges
-    private final DailyChallenges dailyChallenges;
-
     // costruttore
     public LobbyUI(LobbyInput lobbyInput) {
         modeTransition = false;
@@ -100,9 +97,6 @@ public class LobbyUI implements ResourceLoader {
 
         this.screen = LobbyManager.game.screen;
         this.lobbyInput = lobbyInput;
-
-        // creazione istanza di DailyChallenges
-        dailyChallenges = new DailyChallenges();
 
         // caricamento font
         Fonts.load();

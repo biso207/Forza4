@@ -190,9 +190,6 @@ public class LobbyInput implements InputProcessor {
     // mappa con i punti degli utenti (utile per la scoreboard)
     protected static Map<String, Integer> usersPointsMap = new HashMap<>();
 
-    // istanza di DailyChallenges
-    private final DailyChallenges dailyChallenges;
-
     // costruttore
     public LobbyInput() {
         // creazione hit boxes
@@ -215,9 +212,6 @@ public class LobbyInput implements InputProcessor {
 
         // aggiornamento punti subito all'apertura e poi ogni 60 secondi
         timerUpdateUsersPointsMap = 0.1f;
-
-        // creazione istanza di DailyChallenges
-        dailyChallenges = new DailyChallenges();
     }
 
     // metodo per la creazione dei rectangle
