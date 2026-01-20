@@ -840,7 +840,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         if (player == 1) {
             int botCol = CPUBrain.chooseMove(boardState, row, col);
 
-             // se la colonna è congelata, il bot NON può usarla
+            // se la colonna è congelata, il bot NON può usarla
             if (freezeTurns > 0 && botCol == freezeColumn) botCol = findAlternativeColumnForBot();
 
             boolean botCanPlay = botCol != -1;
@@ -1062,7 +1062,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         draw(exit, gameInput.isBtnExitClicked, 833, 588);
 
         // LOGICA DI GIOCO (solo se non è aperta la finestra isMatchOver)
-        if (!isMatchOver && gameInput.isHole) {
+        if (!isMatchOver && gameInput.isHole)
+        {
             // durante animazione o “pensiero bot” ignora input del player
             if (dropActive || botPending) gameInput.isHole = false;
 
@@ -1072,6 +1073,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 Gdx.input.getX(),
                 Gdx.input.getY()
             );
+
+            log.info(col);
 
             if (col == -1) gameInput.isHole = false;
 
@@ -1113,38 +1116,50 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             if (gameInput.powerRowBreaker) {
                 usedAnyBoostThisMatch = true;
 
-                applicaBigExplosive(row, col);
+                applicaBigExplosive(row);
                 gameInput.powerRowBreaker = false;
                 gameInput.isHole = false;
             }
 
-            if (gameInput.powerPrecision) {
+            if (gameInput.powerPrecision)
+            {
                 usedAnyBoostThisMatch = true;
 
                 // sicurezza: click fuori griglia
-                if (row < 0 || row > 5 || col < 0 || col > 6) {
+                if (row < 0 || row > 5 || col < 0 || col > 6)
+                {
+                    log.info("non è una cella");
+                }
+                else
+                {
                     gameInput.powerPrecision = false;
+
+                    /*
                     if (gameInput.powerPeek) {
                         applicaPredict();
                         gameInput.powerPeek = false;
                         gameInput.isHole = false;
                     }
 
+                     */
+
+                    log.info(col);
+
                     // se la cella è vuota → piazza la pedina
                     if (boardState[row][col] == 0) {
                         boardState[row][col] = 1;
                         log.info("Target piazzato su (" + row + "," + col + ")");
-                    } else {
+                    } else
+                    {
                         log.info("Target: cella occupata, nessuna azione");
-                        boardState[row][col] = 1; // pedina del player
-                        log.info("Precision piazzato su (" + row + "," + col + ")");
+
                     }
 
                     // NON passa il turno al bot
-                    gameInput.powerPrecision = false;
+
                     gameInput.isHole = false;
                     gameInput.setGridEnabled(true);
-                    gameInput.powerPrecision = false;
+
 
                     // check vittoria immediata
                     if (CPUBrain.checkWin(boardState, row, col, 1)) {
@@ -1160,6 +1175,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
                     startBotMoveAfterPowerUp();
                 }
+
+                /*
 
                 int[] landing = getGravityLandingCell(
                     gameInput.getRowFromClick(Gdx.input.getX(), Gdx.input.getY()),
@@ -1184,6 +1201,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                     // chiusura dell’input del player fino a fine mossa (animazione + eventuale bot)
                     gameInput.isHole = true;
                 }
+
+                 */
             }
         }
 
@@ -1215,7 +1234,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         }
     }
 
-    private void applicaBigExplosive(int row, int col) {
+    private void applicaBigExplosive(int row) {
 
         if (row < 0 || row > 5) return;
 

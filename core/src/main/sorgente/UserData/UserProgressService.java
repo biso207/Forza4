@@ -104,4 +104,3 @@ public class UserProgressService implements LoadCallback
     @Override
     public void onComplete(boolean success, String result) {}
 }
-
