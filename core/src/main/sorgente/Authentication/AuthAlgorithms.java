@@ -429,7 +429,7 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("diff_horizontal", 0);
         UserProgressService.setProgress("diff_speedy", 0);
         // numero missione raggiunta
-        UserProgressService.setProgress("num_mission", 5); // todo: back at 1
+        UserProgressService.setProgress("num_mission", 1);
         // numero partite per ogni modalità di gioco
         UserProgressService.setProgress("matches_classic", 0);
         UserProgressService.setProgress("matches_gravity4", 0);

@@ -260,7 +260,7 @@ public class DailyChallenges {
 
     // metodo per il reset della missione
     public static void checkDailyMidnightUnlock() {
-        boolean claimed = (boolean) UserProgressService.getProgress("daily_reward_claimed");
+        boolean claimed = (boolean) UserProgressService.getProgress("is_daily_reward_claimed");
         boolean completed = (boolean) UserProgressService.getProgress("is_daily_completed");
         long unlockAt = ((Number) UserProgressService.getProgress("daily_next_unlock_at")).longValue();
 
@@ -274,7 +274,7 @@ public class DailyChallenges {
         UserProgressService.setProgress("daily_progress", 0);
         UserProgressService.setProgress("daily_streak", 0);
         UserProgressService.setProgress("is_daily_completed", false);
-        UserProgressService.setProgress("daily_reward_claimed", false);
+        UserProgressService.setProgress("is_daily_reward_claimed", false);
         UserProgressService.setProgress("daily_next_unlock_at", 0L);
     }
 
