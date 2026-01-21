@@ -243,32 +243,6 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
             cursorTimer = 0f;
         }
 
-        // TIMER PER ANIMAZIONE CLICK
-        if (alg.clickedTimer > 0) {
-            alg.clickedTimer -= delta;
-            if (alg.clickedTimer <= 0) {
-                alg.resetClickFlags(); // spegne tutti i pulsanti "clicked"
-            }
-        }
-
-        // esecuzione ritardata del processo di autenticazione (login/signup/reset)
-        if (alg.pendingAuthProcess) {
-            alg.authDelay -= delta;
-            if (alg.authDelay <= 0f) {
-                alg.pendingAuthProcess = false;
-                alg.executeAuthProcess();
-            }
-        }
-
-        // ritardo del cambio schermata (per transizioni login/signup/reset)
-        if (alg.pendingScreenChange) {
-            alg.screenChangeDelay -= delta;
-            if (alg.screenChangeDelay <= 0) {
-                alg.state = alg.pendingNextState;
-                alg.pendingScreenChange = false;
-            }
-        }
-
         screen.begin();
 
         switch (alg.state) {
@@ -357,6 +331,33 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         Fonts.medium20.draw(screen, layout, x, y);
 
         screen.end();
+
+        // TIMER PER ANIMAZIONE CLICK
+        if (alg.clickedTimer > 0) {
+            alg.clickedTimer -= delta;
+            if (alg.clickedTimer <= 0) {
+                alg.resetClickFlags(); // spegne tutti i pulsanti "clicked"
+            }
+        }
+
+        // esecuzione ritardata del processo di autenticazione (login/signup/reset)
+        if (alg.pendingAuthProcess) {
+            alg.authDelay -= delta;
+            if (alg.authDelay <= 0f) {
+                alg.pendingAuthProcess = false;
+                alg.executeAuthProcess();
+            }
+        }
+
+        // ritardo del cambio schermata (per transizioni login/signup/reset)
+        if (alg.pendingScreenChange) {
+            alg.screenChangeDelay -= delta;
+            if (alg.screenChangeDelay <= 0) {
+                alg.state = alg.pendingNextState;
+                alg.pendingScreenChange = false;
+            }
+        }
+
     }
 
     // spegnimento controllo input

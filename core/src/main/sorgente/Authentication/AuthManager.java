@@ -27,9 +27,6 @@ import sorgente.Main;
  */
 public class AuthManager extends ScreenAdapter {
     private final AuthUI authUI;
-
-    // pagina corrente gestita a livello di Screen (AuthUI viene tenuta in sync)
-    private AuthPage currentPage = AuthPage.LOGIN;
     protected static Music soundAuth;
 
     // costruttore
@@ -61,10 +58,7 @@ public class AuthManager extends ScreenAdapter {
     }
 
     @Override
-    public void show() {
-        // se in futuro vuoi fare setup extra quando lo screen viene mostrato,
-        // puoi farlo qui.
-    }
+    public void show() {}
 
     @Override
     public void hide() {
@@ -74,13 +68,5 @@ public class AuthManager extends ScreenAdapter {
     @Override
     public void dispose() {
         authUI.dispose();
-    }
-
-    public AuthPage getCurrentPage() {
-        return currentPage;
-    }
-
-    public void setCurrentPage(AuthPage currentPage) {
-        this.currentPage = currentPage;
     }
 }

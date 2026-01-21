@@ -343,29 +343,30 @@ public class AuthAlgorithms implements InputProcessor {
         nickname = sanitizeNickname(nicknameInput.toString());
 
         try {
-            // nickname non trovato
+            // caso A: nickname non trovato
             if (!FirestoreUserRepository.checkUsernameExists(nickname)) { resetErrors(); error1 = true; return; }
 
-            // sessione scaduta => rilascio del lock
+            // caso B: sessione scaduta => rilascio del lock
             if (LockStatusService.isSessionExpired(nickname)) { LockStatusService.setLockStatus(nickname, false); }
 
-            // stato del lock => "true"=>impossibile accedere/"false"=>l'utente entra
+            // caso C: stato del lock a "true" => impossibile accedere / stato del lock a "false" => l'utente entra
             if (LockStatusService.isUserLocked(nickname)) { resetErrors(); error3 = true; return; }
 
-            // blocca subito la sessione
+            // L'UTENTE PUÓ ENTRARE
+            // 1) blocca subito la sessione
             LockStatusService.setLockStatus(nickname, true);
 
-            // recupero password utente dal server
+            // 2) recupero password utente dal server
             String hashedPsw = FirestoreUserRepository.getPassword(nickname);
 
-            // password errata => libera subito il lock
+            // 2.1) password errata => l'utente NON entra => libera subito il lock
             if (!BCrypt.checkpw(String.valueOf(passwordInput), hashedPsw)) {
                 resetErrors(); error = true;
                 LockStatusService.setLockStatus(nickname, false);
                 return;
             }
 
-            // password corretta => procede con la lobby
+            // 2.2) password corretta => procede con la lobby
             password = passwordInput.toString();
 
             SessionLockService.startHeartbeat(nickname); // inizio del refresh del timestamp
@@ -399,7 +400,7 @@ public class AuthAlgorithms implements InputProcessor {
             // aggiornamento password su Firestore
             String newPasswordPlain = resetPasswordInput.toString();
             FirestoreUserRepository.setPassword(nickname, newPasswordPlain);
-
+            UserProgressService.loadProgresses(); // caricamento progressi utente
             // PASSWORD OK, DATA OK -> passiamo a LOBBY (state 3)
             state = 3;
         } catch (Exception e) {
@@ -582,10 +583,7 @@ public class AuthAlgorithms implements InputProcessor {
             }
 
             // 2) check campi (MM/DD/YYYY + nuova password)
-            if (!isValidResetInput()) {
-                // campi incompleti, non andare avanti
-                return;
-            }
+            if (!isValidResetInput()) return; // campi incompleti, non andare avanti
 
             // 3) check data + reset password + passaggio a lobby
             processPasswordReset();
@@ -710,43 +708,35 @@ public class AuthAlgorithms implements InputProcessor {
                 resetTexts(); // reset campi editabili
                 resetFieldsNewPSW(); // campi nella pagina di reset password
                 resetErrors(); // reset di qualunque errore
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
         // click per procedere avanti (pulsante rosso)
-        if ((screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
+        if ((isValidInput() || isValidResetInput()) && (screenX >= 417 && screenX <= 567) && (screenY >= 436 && screenY <= 487)) {
             SoundManager.playClickButton(50); // suono del click
             btnRedClicked = true;
             clickedTimer = 0.15f;
 
             // LOGIN / SIGNUP (state 0 o 1)
             if (state == 0 || state == 1) {
-                if (!isValidInput()) {
-                    return true; // campi vuoti, non facciamo nulla
-                }
+                if (!isValidInput()) return true; // campi vuoti, non facciamo nulla
 
-                if (!checkInternetConnection()) {
+                if (!checkInternetConnection()) { // connessione assente
                     resetErrors();
                     error2 = true;
-                } else {
-                    // delay prima di eseguire login/signup
-                    scheduleAuthProcess(0.20f);
-                }
+                } else scheduleAuthProcess(0.20f); // delay prima di eseguire login/signup
             }
 
             // PASSWORD RESET (state == 2)
             else if (state == 2) {
-                if (!isValidResetInput()) {
-                    // dati incompleti, non andare avanti
-                    return true;
-                }
+                if (!isValidResetInput()) return true; // dati incompleti, non andare avanti
 
                 // delay prima di eseguire il reset
                 scheduleAuthProcess(0.20f);
             }
-
             return true; // importantissimo: abbiamo gestito il click, non proseguire oltre
         }
 
@@ -758,8 +748,7 @@ public class AuthAlgorithms implements InputProcessor {
         }
 
         // click per attivare la digitazione del nickname
-        if (!enteringNickname &&
-            (screenX >= 251 && screenX <= 732) && (screenY >= 243 && screenY <= 283)) {
+        if (!enteringNickname && (screenX >= 251 && screenX <= 732) && (screenY >= 243 && screenY <= 283)) {
             SoundManager.playClickButton(50); // suono del click
             enteringNickname = true;
             enteringPassword = false;
