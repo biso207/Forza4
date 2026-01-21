@@ -263,12 +263,12 @@ boolean clicked() {
         return true;
     }
 
-    private void activatePowerUp(String type) {
+    private void activatePowerUp(String type)
+    {
 
         // disattivazione di tutti al click
         resetAllPowers();
 
-        resetAllPowers();
         selectedSwapColumn = -1;
 
         // recupero numero power up in possesso
@@ -282,34 +282,68 @@ boolean clicked() {
         // attivazione
         switch (type) {
             case "freeze": // blocca una colonna per un turno che corrisponde a una mossa utente e una bot
-                if (numFreezer>=1) powerFreeze = true;
-                log.info("Power-up Freeze attivato");
-                break;
-            case "tokenCracker": // distrugge una pedina (utente o bot)
-                if (numTokenCracker>=1 && GameUI.numTokensBot>=1) powerTokenCracker = true;
-                log.info("Power-up Explosive attivato");
-                break;
-            case "rowBreaker": // distrugge un'intera riga (deve contenere almeno due pedine)
-                if (numRowBraker>=1) powerRowBreaker = true;
-                log.info("Power-up Swap attivato");
-                break;
-            case "peek": // osserva la prossima mossa dell'avversario
-                if (numPeek>=1) powerPeek = true;
-                log.info("Power-up Peek attivato");
-                break;
-            case "precision": // posizione con precisione un pedina fregandosene della gravità
-                if(numPrecision>=1) powerPrecision = true;
-                log.info("Power-up Precision attivato");
-                break;
-            case "undo": // annulla l'ultima mossa (solo utente)
-                if (numUndo>=1) powerUndo = true;
-                log.info("Power-up Undo attivato");
+                if (numFreezer>=1)
+                {
+                    powerFreeze = true;
+                    log.info("Power-up Freeze attivato");
+                    SoundManager.playPowerUp(LobbyInput.effectsPercent);
+                }
+
                 break;
 
-            case "target":
-                powerPrecision=true;
-                log.info("Power-up Target attivato");
+            case "tokenCracker": // distrugge una pedina (utente o bot)
+                if (numTokenCracker>=1 && GameUI.numTokensBot>=1)
+                {
+                    powerTokenCracker = true;
+                    log.info("Power-up Explosive attivato");
+                    SoundManager.playPowerUp(LobbyInput.effectsPercent);
+                }
                 break;
+
+            case "rowBreaker": // distrugge un'intera riga (deve contenere almeno due pedine)
+                if (numRowBraker>=1)
+                {
+                    powerRowBreaker = true;
+                    log.info("Power-up Swap attivato");
+                    SoundManager.playPowerUp(LobbyInput.effectsPercent);
+                }
+
+                break;
+
+            case "peek": // osserva la prossima mossa dell'avversario
+                if (numPeek>=1)
+                {
+                    powerPeek = true;
+                    log.info("Power-up Peek attivato");
+                    SoundManager.playPowerUp(LobbyInput.effectsPercent);
+                }
+
+                break;
+            case "precision": // posizione con precisione un pedina fregandosene della gravità
+                if(numPrecision>=1)
+                {
+                    powerPrecision = true;
+                    log.info("Power-up Precision attivato");
+                    SoundManager.playPowerUp(LobbyInput.effectsPercent);
+                }
+
+                break;
+
+            case "undo": // annulla l'ultima mossa (solo utente)
+                if (numUndo>=1)
+                {
+                    powerUndo = true;
+                    log.info("Power-up Undo attivato");
+                    SoundManager.playPowerUp(LobbyInput.effectsPercent);
+                }
+
+                break;
+
+
+
+            default:
+                SoundManager.playError(LobbyInput.effectsPercent);
+
         }
     }
 

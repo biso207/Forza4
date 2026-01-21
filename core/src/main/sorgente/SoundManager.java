@@ -9,9 +9,7 @@ package sorgente;
 
 // import classi e librerie
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-import java.util.HashMap;
 
 public class SoundManager {
     private static float volume;
@@ -22,6 +20,11 @@ public class SoundManager {
     private static final Sound clickButtonSound = Gdx.audio.newSound(Gdx.files.internal("sounds/click_button.wav"));
     private static final Sound digitSound = Gdx.audio.newSound(Gdx.files.internal("sounds/digit.wav"));
     private static final Sound landSound = Gdx.audio.newSound(Gdx.files.internal("sounds/token_land.ogg"));
+    private static final Sound top = Gdx.audio.newSound(Gdx.files.internal("sounds/top.mp3"));
+    private static final Sound right = Gdx.audio.newSound(Gdx.files.internal("sounds/right.mp3"));
+    private static final Sound left = Gdx.audio.newSound(Gdx.files.internal("sounds/left.mp3"));
+    private static final Sound power = Gdx.audio.newSound(Gdx.files.internal("sounds/power.mp3"));
+    private static final Sound buy = Gdx.audio.newSound(Gdx.files.internal("sounds/buy.mp3"));
 
     // costruttore
     public SoundManager(float volume) {
@@ -32,24 +35,34 @@ public class SoundManager {
         completedSound = Gdx.audio.newSound(Gdx.files.internal("sounds/completed_Missions.mp3"));
     }
 
-    public static void playError()
+    public static void playError(float volume)
     {
         defeatSound.play(volume);
     }
 
-    public static void playGravityTop(float effectsPercent)
+    public static void playGravityTop(float volume)
     {
-        landSound.play(volume);
+        top.play(volume);
     }
 
-    public static void playGravityRight(float effectsPercent)
+    public static void playGravityRight(float volume)
     {
-        landSound.play(volume);
+        right.play(volume);
     }
 
-    public static void playGravityLeft(float effectsPercent)
+    public static void playGravityLeft(float volume)
     {
-        landSound.play(volume);
+        left.play(volume);
+    }
+
+    public static void playPowerUp(float volume)
+    {
+        power.play(volume);
+    }
+
+    public static void playPurchase(float volume)
+    {
+        buy.play(volume);
     }
 
     /** Cambia il volume degli EFFETTI in tempo reale */
