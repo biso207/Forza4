@@ -1123,8 +1123,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             if (victory) Fonts.draw(screen, "VICTORY", 415, 459, Fonts.bold40); // vittoria
             else Fonts.draw(screen, "DEFEAT", 425, 459, Fonts.bold40); // sconfitta
 
-            draw(btn_yes_clicked, gameInput.btnYesExit, 342, 244);
             draw(btn_yes, gameInput.isBtnYesExitHover, 342, 244);
+            draw(btn_yes_clicked, gameInput.btnYesExit, 342, 244);
 
             draw(btn_no, gameInput.isBtnNoExitHover, 506, 244);
             draw(btn_no_clicked, gameInput.btnNoExit, 506, 244);

@@ -51,32 +51,37 @@ public class LobbyUI implements ResourceLoader {
     private Texture creditImg;
 
     // DARK MODE
-    private Texture darkLobby,darkLogout,darkSettings,darkCredits, darkScoreboard, darkMarket;
+    private Texture darkLobby, darkLogout, darkSettings, darkCredits, darkScoreboard, darkMarket, darkProfileInfos;
     private Texture darkGameModeClicked, darkGameModeHover, darkCenterClicked,darkCenterHover;
-    private Texture darkBtnClose,darkBtnCloseClicked;
-    private Texture darkBtnMarket,darkBtnMarketClicked;
-    private Texture volume_bar_dark;
-    private Texture purchase_item_dark, purchase_item_clicked_dark;
+    private Texture darkBtnClose, darkBtnCloseClicked; // X chiusura
+    private Texture darkBtnCloseBig, darkBtnCloseClickedBig; // X chiusura 50x50
+    private Texture darkBtnMarket, darkBtnMarketClicked; // mercato
+    private Texture darkBtnProfileInfos, darkBtnProfileInfosClicked; // profilo utente
+    private Texture volume_bar_dark; // barra volume
+    private Texture purchase_item_dark, purchase_item_clicked_dark; // acquisto item nel mercato
 
     // LIGHT MODE
-    private Texture lightLobby,lightLogout,lightSettings,lightCredits, lightScoreboard, lightMarket;
+    private Texture lightLobby, lightLogout, lightSettings, lightCredits, lightScoreboard, lightMarket, lightProfileInfos;
     private Texture lightGameModeClicked, lightGameModeHover, lightCenterClicked,lightCenterHover;
-    private Texture lightBtnClose,lightBtnCloseClicked;
-    private Texture lightBtnMarket,lightBtnMarketClicked;
-    private Texture volume_bar_light;
-    private Texture purchase_item_light, purchase_item_clicked_light;
+    private Texture lightBtnClose, lightBtnCloseClicked; // X chiusura
+    private Texture lightBtnCloseBig, lightBtnCloseClickedBig; // X chiusura 50x50
+    private Texture lightBtnMarket, lightBtnMarketClicked; // mercato
+    private Texture lightBtnProfileInfos, lightBtnProfileInfosClicked; // profilo utente
+    private Texture volume_bar_light; // barra volume
+    private Texture purchase_item_light, purchase_item_clicked_light; // acquisto item nel mercato
 
     // MODE MODIFICABILE
-    private Texture lobby, software_infos, logout, settings,btn_logout_clicked, scoreboard, market;
+    private Texture lobby, software_infos, logout, settings,btn_logout_clicked, scoreboard, market, profile_infos;
     private Texture gameMode_clicked, gameMode_hover, center_clicked,center_hover;
-    private Texture btn_infos_clicked,btn_infos;
-    private Texture btn_logout,btn_settings_clicked,btn_settings;
-    private Texture btn_close,btn_close_clicked;
-    private Texture btn_no,btn_yes,btn_no_clicked,btn_yes_clicked;
-    private Texture star,star_selected;
+    private Texture btn_infos_clicked, btn_infos;
+    private Texture btn_logout, btn_settings_clicked, btn_settings;
+    private Texture btn_close, btn_close_clicked;
+    private Texture btn_close_big, btn_close_clicked_big;
+    private Texture btn_no, btn_yes, btn_no_clicked, btn_yes_clicked;
+    private Texture star, star_selected;
     private Texture music, effects, noMusic,noEffects;
-    private Texture market_hover;
-    private Texture market_clicked;
+    private Texture market_hover, market_clicked;
+    private Texture profile_infos_hover, profile_infos_clicked;
     private Texture volume_bar;
     private Texture purchase_item, purchase_item_clicked;
 
@@ -109,52 +114,77 @@ public class LobbyUI implements ResourceLoader {
 
     // caricamento assets per la dark mode
     public void  loadDarkMode() {
+        // lobby bg
         darkLobby=new Texture("lobby_screens/dark/lobby_dark.png");
+
+        // schermate in sovra impressione
         darkLogout=new Texture("lobby_screens/dark/logout_dark.png");
         darkSettings=new Texture("lobby_screens/dark/settings_dark.png");
         darkCredits=new Texture("lobby_screens/dark/software_info_dark.png");
         darkScoreboard=new Texture("lobby_screens/dark/scoreboard_dark.png");
         darkMarket=new Texture("lobby_screens/dark/market_dark.png");
+        darkProfileInfos=new Texture("lobby_screens/dark/profile_infos_dark.png");
 
+        // game mods
         darkGameModeHover=new Texture("ui/buttons/lobby/dark/game_mode_hover.png");
         darkGameModeClicked=new Texture("ui/buttons/lobby/dark/game_mode_clicked.png");
         darkCenterClicked=new Texture("ui/buttons/lobby/dark/bottom_center_clicked.png");
         darkCenterHover=new Texture("ui/buttons/lobby/dark/bottom_center_hover.png");
-        darkBtnClose=new Texture("ui/buttons/lobby/dark/btn_close.png");
-        darkCenterClicked=new Texture("ui/buttons/lobby/dark/bottom_center_clicked.png");
-        darkCenterHover=new Texture("ui/buttons/lobby/dark/bottom_center_hover.png");
-        darkBtnClose=new Texture("ui/buttons/lobby/dark/btn_close.png");
 
+        // X chiusura
+        darkBtnClose=new Texture("ui/buttons/lobby/dark/btn_close.png");
         darkBtnCloseClicked=new Texture("ui/buttons/lobby/dark/btn_close_clicked.png");
+        darkBtnCloseBig = new Texture("ui/buttons/game/dark/quit_dark.png");
+        darkBtnCloseClickedBig = new Texture("ui/buttons/game/dark/quit_dark_clicked.png");
+
+        // apertura market e profile infos
         darkBtnMarket=new Texture("ui/buttons/lobby/dark/market.png");
         darkBtnMarketClicked=new Texture("ui/buttons/lobby/dark/market_clicked.png");
+        darkBtnProfileInfos=new Texture("ui/buttons/lobby/dark/profile.png");
+        darkBtnProfileInfosClicked=new Texture("ui/buttons/lobby/dark/profile_clicked.png");
 
+        // barra volume
         volume_bar_dark=new Texture("ui/buttons/lobby/dark/volume_bar_dark.png");
 
+        // icona acquisto item nel mercato
         purchase_item_dark=new Texture("ui/buttons/lobby/dark/purchase_item.png");
         purchase_item_clicked_dark=new Texture("ui/buttons/lobby/dark/purchase_item_clicked.png");
     }
     // caricamento assets per la light mode
     public void loadLightMode() {
+        // lobby bg
         lightLobby=new Texture("lobby_screens/light/lobby_light.png");
+
+        // schermate in sovra impressione
         lightLogout=new Texture("lobby_screens/light/logout_light.png");
         lightSettings=new Texture("lobby_screens/light/settings_light.png");
         lightCredits=new Texture("lobby_screens/light/software_infos_light.png");
         lightScoreboard=new Texture("lobby_screens/light/scoreboard_light.png");
         lightMarket=new Texture("lobby_screens/light/market_light.png");
+        lightProfileInfos=new Texture("lobby_screens/light/profile_infos_light.png");
 
+        // game mods
         lightGameModeHover=new Texture("ui/buttons/lobby/light/game_mode_hover.png");
         lightGameModeClicked=new Texture("ui/buttons/lobby/light/game_mode_clicked.png");
         lightCenterClicked=new Texture("ui/buttons/lobby/light/bottom_center_clicked.png");
         lightCenterHover=new Texture("ui/buttons/lobby/light/bottom_center_hover.png");
-        lightBtnClose=new Texture("ui/buttons/lobby/light/btn_close.png");
 
+        // X chiusura
+        lightBtnClose=new Texture("ui/buttons/lobby/light/btn_close.png");
         lightBtnCloseClicked=new Texture("ui/buttons/lobby/light/btn_close_clicked.png");
+        lightBtnCloseBig = new Texture("ui/buttons/game/light/quit_light.png");
+        lightBtnCloseClickedBig = new Texture("ui/buttons/game/light/quit_light_clicked.png");
+
+        // apertura market e profile infos
         lightBtnMarket=new Texture("ui/buttons/lobby/light/market.png");
         lightBtnMarketClicked=new Texture("ui/buttons/lobby/light/market_clicked.png");
+        lightBtnProfileInfos=new Texture("ui/buttons/lobby/light/profile.png");
+        lightBtnProfileInfosClicked=new Texture("ui/buttons/lobby/light/profile_clicked.png");
 
+        // barra volume
         volume_bar_light=new Texture("ui/buttons/lobby/light/volume_bar_light.png");
 
+        // icona acquisto item nel mercato
         purchase_item_light=new Texture("ui/buttons/lobby/light/purchase_item.png");
         purchase_item_clicked_light=new Texture("ui/buttons/lobby/light/purchase_item_clicked.png");
     }
@@ -163,48 +193,76 @@ public class LobbyUI implements ResourceLoader {
         darkMode=isDarkMode;
 
         if(darkMode) {
+            // lobby bg
             lobby=darkLobby;
+
+            // secondary windows
             software_infos=darkCredits;
             logout=darkLogout;
             settings=darkSettings;
             scoreboard=darkScoreboard;
             market=darkMarket;
+            profile_infos=darkProfileInfos;
 
+            // game mods
             gameMode_hover = darkGameModeHover;
             gameMode_clicked = darkGameModeClicked;
             center_clicked=darkCenterClicked;
             center_hover=darkCenterHover;
+
+            // X chiusura
             btn_close=darkBtnClose;
             btn_close_clicked=darkBtnCloseClicked;
+            btn_close_big=darkBtnCloseBig;
+            btn_close_clicked_big=darkBtnCloseClickedBig;
 
+            // apertura market e profile infos
             market_hover=darkBtnMarket;
             market_clicked=darkBtnMarketClicked;
+            profile_infos_hover=darkBtnProfileInfos;
+            profile_infos_clicked=darkBtnProfileInfosClicked;
 
+            // barra volume
             volume_bar=volume_bar_dark;
 
+            // icona acquisto item nel mercato
             purchase_item=purchase_item_dark;
             purchase_item_clicked=purchase_item_clicked_dark;
         }
         else {
+            // lobby bg
             lobby=lightLobby;
+
+            // secondary windows
             software_infos=lightCredits;
             logout=lightLogout;
             settings=lightSettings;
             scoreboard=lightScoreboard;
             market=lightMarket;
+            profile_infos=lightProfileInfos;
 
+            // game mods
             gameMode_hover = lightGameModeHover;
             gameMode_clicked = lightGameModeClicked;
             center_clicked=lightCenterClicked;
             center_hover=lightCenterHover;
+
+            // X chiusura
             btn_close=lightBtnClose;
             btn_close_clicked=lightBtnCloseClicked;
+            btn_close_big=lightBtnCloseBig;
+            btn_close_clicked_big=lightBtnCloseClickedBig;
 
+            // apertura market e profile infos
             market_hover=lightBtnMarket;
             market_clicked=lightBtnMarketClicked;
+            profile_infos_hover=lightBtnProfileInfos;
+            profile_infos_clicked=lightBtnProfileInfosClicked;
 
+            // barra volume
             volume_bar=volume_bar_light;
 
+            // icona acquisto item nel mercato
             purchase_item=purchase_item_light;
             purchase_item_clicked=purchase_item_clicked_light;
         }
@@ -347,7 +405,7 @@ public class LobbyUI implements ResourceLoader {
         // calcolo larghezza del testo
         GlyphLayout layout2 = new GlyphLayout(Fonts.bold25, text2);
         // stampa testo
-        Fonts.bold25.draw(screen, formatter.format(credits), (775 - layout2.width), 623);
+        Fonts.bold25.draw(screen, formatter.format(credits), (770 - layout2.width), 623);
 
         // SCOREBOARD TOP 5 USERS //
         drawScoreboard(5);
@@ -415,7 +473,6 @@ public class LobbyUI implements ResourceLoader {
         }
 
 
-
         // DIFFICOLTÀ IN GIOCO //
         // star selected
         int[][] posX = {
@@ -453,43 +510,44 @@ public class LobbyUI implements ResourceLoader {
             }
         }
 
-        // --- GAME MODES --- //
-        draw(gameMode_hover, lobbyInput.classicHover,35, 334);
-        draw(gameMode_hover, lobbyInput.gravity4Hover,275, 334);
-        draw(gameMode_hover, lobbyInput.horizontalHover,513, 334);
-        draw(gameMode_hover, lobbyInput.speedyHover,753, 334);
+        // --- GAME MODES AREAS --- //
+        // hover
+        draw(gameMode_hover, lobbyInput.classicHover,35, 334); // classic
+        draw(gameMode_hover, lobbyInput.gravity4Hover,275, 334); // gravity4
+        draw(gameMode_hover, lobbyInput.horizontalHover,513, 334); // horizontal
+        draw(gameMode_hover, lobbyInput.speedyHover,753, 334); // speedy
+        // clicked
+        draw(gameMode_clicked, lobbyInput.classic,35, 334); // classic
+        draw(gameMode_clicked, lobbyInput.gravity4,275, 334); // gravity4
+        draw(gameMode_clicked, lobbyInput.horizontal,512, 334); // horizontal
+        draw(gameMode_clicked, lobbyInput.speedy,752, 334); // speedy
 
-        draw(gameMode_clicked, lobbyInput.classic,35, 334);
-        draw(gameMode_clicked, lobbyInput.gravity4,275, 334);
-        draw(gameMode_clicked, lobbyInput.horizontal,512, 334);
-        draw(gameMode_clicked, lobbyInput.speedy,752, 334);
+        // --- SECONDARY WINDOWS BUTTONS --- //
+        // hover
+        draw(btn_logout,         !lobbyInput.isBtnLogoutClicked,429,41); // logout
+        draw(btn_infos,          !lobbyInput.isBtnInfoClicked,481,41); // game infos
+        draw(btn_settings,       !lobbyInput.isBtnSettingsClicked,541,41); // settings
+        draw(center_hover,        lobbyInput.isBtnScoreboardHover,369,91); // scoreboard
+        draw(market_hover,        lobbyInput.isBtnMarketHover,834,588); // market
+        draw(profile_infos_hover, lobbyInput.isBtnProfileInfosHover,913,588); // profile infos
+        // clicked
+        draw(btn_logout_clicked,    lobbyInput.isBtnLogoutClicked,429,41); // logout
+        draw(btn_infos_clicked,     lobbyInput.isBtnInfoClicked,481,41); // game infos
+        draw(btn_settings_clicked,  lobbyInput.isBtnSettingsClicked,541,41); // settings
+        draw(center_clicked,        lobbyInput.isBtnScoreboardClicked,369,91); // scoreboard
+        draw(market_clicked,        lobbyInput.isBtnMarketClicked,834,588); // market
+        draw(profile_infos_clicked, lobbyInput.isBtnProfileInfosClicked,913,588); // profile infos
 
-        draw(market_hover,   lobbyInput.isBtnMarketHover,833,588);
-        draw(market_clicked, lobbyInput.isBtnMarketClicked,833,588);
-
-
-        // --- SECONDARY BUTTONS --- //
-        draw(center_hover, lobbyInput.isBtnScoreboardHover,369,91);
-        draw(center_clicked, lobbyInput.isBtnScoreboardClicked,369,91);
-
-        // --- COMMAND BAR ICONS --- //
-        draw(btn_logout,   !lobbyInput.isBtnLogoutClicked,429,41);
-        draw(btn_infos,    !lobbyInput.isBtnInfoClicked,481,41);
-        draw(btn_settings, !lobbyInput.isBtnSettingsClicked,541,41);
-
-        draw(btn_logout_clicked,   lobbyInput.isBtnLogoutClicked,429,41);
-        draw(btn_infos_clicked,    lobbyInput.isBtnInfoClicked,481,41);
-        draw(btn_settings_clicked, lobbyInput.isBtnSettingsClicked,541,41);
-
-        // --- SECONDARY WINDOWS --- //
-        draw(software_infos, lobbyInput.isInfoOpen,      244,194);
-        draw(logout,         lobbyInput.isLogoutOpen,      294,204);
-        draw(settings,       lobbyInput.isSettingsOpen,  244,223);
-        draw(scoreboard,     lobbyInput.isScoreboardOpen,93,142);
-        draw(market,         lobbyInput.isMarketOpen,    93,155);
+        // --- SECONDARY WINDOWS OPEN --- //
+        draw(logout,         lobbyInput.isLogoutOpen,      294,204); // logout
+        draw(software_infos, lobbyInput.isInfoOpen,      244,194); // game infos
+        draw(settings,       lobbyInput.isSettingsOpen,  244,223); // settings
+        draw(scoreboard,     lobbyInput.isScoreboardOpen,93,142); // scoreboard
+        draw(market,         lobbyInput.isMarketOpen,    93,155); // market
+        draw(profile_infos,  lobbyInput.isProfileInfosOpen,    0,0); // profile infos
 
         //--- INSIDE SECONDARY WINDOWS --- //
-        // marketPlace
+        // marketplace
         if (lobbyInput.isMarketOpen) {
             draw(btn_close,lobbyInput.isBtnCloseMarketHover,822,470);
             draw(btn_close_clicked, lobbyInput.btnCloseMarket, 822, 470);
@@ -606,6 +664,12 @@ public class LobbyUI implements ResourceLoader {
 
             // SCOREBOARD TOP 20 USERS //
             drawScoreboard(20);
+        }
+
+        // profile infos
+        if (lobbyInput.isProfileInfosOpen) {
+            draw(btn_close_big,         lobbyInput.isBtnCloseProfileInfosHover,911,588);
+            draw(btn_close_clicked_big, lobbyInput.btnCloseProfileInfos, 911, 588);
         }
 
         // chiusura batch -> prima chiudere poi passare alla nuova schermata in caso di transizione

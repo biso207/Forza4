@@ -47,11 +47,13 @@ public class LobbyInput implements InputProcessor {
     protected boolean isBtnLogoutClicked; // 2 usages in LobbyUI & 2 in LobbyInput
     protected boolean isBtnSettingsClicked; // 2 usages in LobbyUI & 2 in LobbyInput
     protected boolean isBtnInfoClicked; // 2 usages in LobbyUI & 2 in LobbyInput
+    protected boolean isBtnProfileInfosClicked;
     // X chiusura schermate in sovra impressione
     protected boolean btnCloseSettings;
     protected boolean btnCloseInfo;
     protected boolean btnCloseMarket;
     protected boolean btnCloseScoreboard;
+    protected boolean btnCloseProfileInfos;
     // game mods
     protected boolean classic, gravity4, horizontal, speedy;
     // claim "daily" prize
@@ -63,6 +65,7 @@ public class LobbyInput implements InputProcessor {
     // apertura schermate in sovra impressione
     protected boolean isBtnScoreboardHover;
     protected boolean isBtnMarketHover;
+    protected boolean isBtnProfileInfosHover;
     // yes/no logout
     protected boolean isBtnNoExitHover;
     protected boolean isBtnYesExitHover;
@@ -71,6 +74,7 @@ public class LobbyInput implements InputProcessor {
     protected boolean isBtnCloseSettingsHover;
     protected boolean isBtnCloseMarketHover;
     protected boolean isBtnCloseScoreboardHover;
+    protected boolean isBtnCloseProfileInfosHover;
     // game mods
     protected boolean classicHover, gravity4Hover, horizontalHover, speedyHover;
     // claim "daily" prize
@@ -79,7 +83,7 @@ public class LobbyInput implements InputProcessor {
     // FLAGS CONTROLLO SCHERMATE APERTE //
     // per aprire le finestre in sovra impressione
     protected boolean isInfoOpen, isLogoutOpen, isSettingsOpen, isScoreboardOpen,
-        isMarketOpen; // isMarketOpen è usata una volta in più in un controllo
+        isMarketOpen, isProfileInfosOpen; // isMarketOpen è usata una volta in più in un controllo
 
     private static Pixmap mouse;
     private final Cursor cursor;
@@ -98,56 +102,62 @@ public class LobbyInput implements InputProcessor {
     protected Rectangle musicBarArea;
     protected Rectangle effectsBarArea;
     protected Rectangle switchDL;
-
+    // stelle difficoltà di gioco
     private Rectangle classicStar1, gravityStar1, horizontalStar1, speedyStar1;
     private final Rectangle[] classicStars = new Rectangle[3];
     private final Rectangle[] gravityStars = new Rectangle[3];
     private final Rectangle[] horizontalStars = new Rectangle[3];
     private final Rectangle[] speedyStars = new Rectangle[3];
-
-    private Rectangle btnCloseInfoArea;
-    private Rectangle btnCloseSettingsArea;
-    private Rectangle btnCloseMarketArea;
-    private Rectangle btnCloseScoreboardArea;
-
+    // logout yes/no
     private Rectangle btn_no;
     private Rectangle btn_yes;
-
+    // modalità di gioco
     private Rectangle classicArea;
     private Rectangle gravity4Area;
     private Rectangle horizontalArea;
-
     private Rectangle speedyArea;
-    private Rectangle scoreboardArea;
-
-    private Rectangle settingsArea;
-    private Rectangle informationArea;
-
-    private Rectangle exitArea;
-    private Rectangle marketButton;
-
-    private Rectangle btnMusic, btnEffects; // pulsanti dei volumi nelle impostazioni
-
+    // schermate in sovra impressione
+    private Rectangle areaOpenSettings;
+    private Rectangle areaOpenInfos;
+    private Rectangle areaOpenLogout;
+    private Rectangle areaBtnOpenMarket;
+    private Rectangle areaBtnOpenScoreboard;
+    private Rectangle areaBtnOpenProfileInfos;
+    // X chiusura schermate in sovra impressione
+    private Rectangle areaBtnCloseInfos;
+    private Rectangle areaBtnCloseSettings;
+    private Rectangle areaBtnCloseMarket;
+    private Rectangle areaBtnCloseScoreboard;
+    private Rectangle areaBtnCloseProfileInfos;
+    // pulsanti dei volumi nelle impostazioni
+    private Rectangle btnMusic, btnEffects;
+    // pulsante raccolta premio 'daily'
     private Rectangle btnClaimPrize;
 
     // AZIONI CLICK //
-    public static final int ACT_CLOSE_INFO = 1;
-    public static final int ACT_CLOSE_SETTINGS = 2;
-    public static final int ACT_CLOSE_MARKET = 3;
-    public static final int ACT_OPEN_INFO = 4;
-    public static final int ACT_OPEN_SETTINGS = 5;
-    public static final int ACT_OPEN_EXIT = 6;
-    public static final int ACT_CLOSE_SCOREBOARD = 7;
-    public static final int ACT_CLAIM_REWARD_DAILY = 8;
-
-    public static final int ACT_START_CLASSIC = 10;
-    public static final int ACT_START_GRAVITY4 = 11;
-    public static final int ACT_START_HORIZONTAL = 12;
-    public static final int ACT_START_SPEEDY = 13;
-    public static final int ACT_OPEN_SCOREBOARD = 30;
-    public static final int ACT_OPEN_MARKET = 31;
-    public static final int ACT_CLOSE_EXIT = 32;
-    public static final int ACT_YES_EXIT = 33;
+    // logout yes/no
+    public static final int ACT_CLOSE_EXIT = 1;
+    public static final int ACT_YES_EXIT = 2;
+    // avvio modalità di gioco
+    public static final int ACT_START_CLASSIC = 3;
+    public static final int ACT_START_GRAVITY4 = 4;
+    public static final int ACT_START_HORIZONTAL = 5;
+    public static final int ACT_START_SPEEDY = 6;
+    // chiusura schermate in sovra impressione
+    public static final int ACT_CLOSE_INFOS = 7;
+    public static final int ACT_CLOSE_SETTINGS = 8;
+    public static final int ACT_CLOSE_SCOREBOARD = 9;
+    public static final int ACT_CLOSE_MARKET = 10;
+    public static final int ACT_CLOSE_PROFILE_INFOS = 11;
+    // apertura schermate in sovra impressione
+    public static final int ACT_OPEN_INFOS = 12;
+    public static final int ACT_OPEN_SETTINGS = 13;
+    public static final int ACT_OPEN_EXIT = 14;
+    public static final int ACT_OPEN_SCOREBOARD = 15;
+    public static final int ACT_OPEN_MARKET = 16;
+    public static final int ACT_OPEN_PROFILE_INFOS = 17;
+    // raccolta premio 'daily'
+    public static final int ACT_CLAIM_REWARD_DAILY = 18;
 
     // prezzi boosters (cambieranno in base al numero selezionato per l'acquisto)
     protected static int priceFreezer, priceTokenCracker, priceRowBreaker, pricePeek, pricePrecision, priceUndo;
@@ -245,26 +255,24 @@ public class LobbyInput implements InputProcessor {
         horizontalArea  = new Rectangle(504, 163, 210, 200);
         speedyArea      = new Rectangle(745, 163, 210, 200);
 
-        // Hitbox secondarie
-        scoreboardArea  = new Rectangle(360, 436, 260, 170);
-
-        // Bottoni
-        exitArea        = new Rectangle(422, 629, 30, 30);
-        informationArea = new Rectangle(475, 629, 30, 30);
-        settingsArea    = new Rectangle(534, 629, 30, 30);
-
-        btnCloseInfoArea = new Rectangle(686,217,40,40);
-        btnCloseSettingsArea = new Rectangle(686,245,40,40);
-        btnCloseMarketArea= new Rectangle(814,187,40,40);
-        btnCloseScoreboardArea= new Rectangle(814,174,40,40);
-
+        // schermate in sovra impressione
+        areaOpenLogout          = new Rectangle(422, 629, 30, 30);
+        areaOpenInfos           = new Rectangle(475, 629, 30, 30);
+        areaOpenSettings        = new Rectangle(534, 629, 30, 30);
+        areaBtnOpenScoreboard   = new Rectangle(360, 436, 260, 170);
+        areaBtnOpenMarket       = new Rectangle(827,64,50,50);
+        areaBtnOpenProfileInfos = new Rectangle(906,64,50,50);
+        // X chiusura schermate in sovra impressione
+        areaBtnCloseInfos        = new Rectangle(686,217,40,40);
+        areaBtnCloseSettings     = new Rectangle(686,245,40,40);
+        areaBtnCloseScoreboard   = new Rectangle(814,174,40,40);
+        areaBtnCloseMarket       = new Rectangle(814,187,40,40);
+        areaBtnCloseProfileInfos = new Rectangle(903,57,50,50);
+        // pulsante raccolta premio 'daily'
         btnClaimPrize = new Rectangle(837, 561, 100, 30);
 
         // MARKET //
         // aree click quantità (calcolate dalle coordinate di disegno) ---
-        // In LibGDX touchDown usa coordinate top-left, mentre il rendering usa bottom-left.
-        // Convertiamo: y_input = H - (y_draw + h_box)
-        final int H = Gdx.graphics.getHeight();
         final float boxW = 60f; // larghezza box
         final float boxH = 20f; // altezza box
         for (int i = 0; i < 6; i++) {
@@ -282,8 +290,6 @@ public class LobbyInput implements InputProcessor {
 
         btn_no= new Rectangle(499,408,150,50);
         btn_yes= new Rectangle(336,408,150,50);
-
-        marketButton= new Rectangle(831,64,50,50);
 
         btnMusic = new Rectangle(260, 363, 30, 30);
         btnEffects = new Rectangle(260, 415, 30, 30);
@@ -391,10 +397,10 @@ public class LobbyInput implements InputProcessor {
         classic = gravity4 = horizontal = speedy = false;
 
         // apertura schermate in sovra impressione
-        isBtnScoreboardClicked = isBtnMarketClicked = isBtnSettingsClicked = isBtnInfoClicked = false;
+        isBtnProfileInfosClicked = isBtnScoreboardClicked = isBtnMarketClicked = isBtnSettingsClicked = isBtnInfoClicked = false;
 
         // chiusura schermate in sovra impressione
-        btnCloseScoreboard = btnCloseMarket = btnCloseSettings = btnCloseInfo = false;
+        btnCloseProfileInfos = btnCloseScoreboard = btnCloseMarket = btnCloseSettings = btnCloseInfo = false;
 
         // yes/no logout
         isBtnLogoutClicked = btnNoExit = btnYesExit = false;
@@ -412,13 +418,14 @@ public class LobbyInput implements InputProcessor {
         classicHover = gravity4Hover = horizontalHover = speedyHover = false;
 
         // apertura schermate in sovra impressione
-        isBtnScoreboardHover = isBtnMarketHover = false;
+        isBtnProfileInfosHover = isBtnScoreboardHover = isBtnMarketHover = false;
 
         // chiusura schermate in sovra impressione
-        isBtnCloseInfoHover       = false;
-        isBtnCloseSettingsHover   = false;
-        isBtnCloseMarketHover     = false;
-        isBtnCloseScoreboardHover = false;
+        isBtnCloseInfoHover         = false;
+        isBtnCloseSettingsHover     = false;
+        isBtnCloseMarketHover       = false;
+        isBtnCloseScoreboardHover   = false;
+        isBtnCloseProfileInfosHover = false;
 
         // yes/no logout
         isBtnYesExitHover = isBtnNoExitHover = false;
@@ -434,158 +441,164 @@ public class LobbyInput implements InputProcessor {
 
     // metodo per il controllo dei click
     private boolean checkHitboxes(int x, int y) throws IOException {
-        // pagine in sovra impressione
-        if(isInfoOpen || isSettingsOpen || isLogoutOpen || isScoreboardOpen || isMarketOpen) {
-            // chiusura crediti di gioco
-            if (isInfoOpen && btnCloseInfoArea.contains(x, y)) {
-                btnCloseInfo = true;
+        // ACTIONS IN SECONDARY WINDOWS
+        // chiusura crediti di gioco
+        if (isInfoOpen && areaBtnCloseInfos.contains(x, y)) {
+            btnCloseInfo = true;
+            clickedTimer = 0.15f;
+            setInputEnabled(false);
+            scheduleScreenChange(ACT_CLOSE_INFOS, 0.20f);
+            return clicked();
+        }
+
+        // chiusura impostazioni
+        if (isSettingsOpen && areaBtnCloseSettings.contains(x, y)) {
+            // salvataggio modifiche volumi
+            UserProgressService.setProgress("effects_volume", effectsPercent); // salvataggio volume audio
+            UserProgressService.setProgress("music_volume", musicPercent); // salvataggio volume musica
+
+            btnCloseSettings = true;
+            clickedTimer = 0.15f;
+            setInputEnabled(false);
+            scheduleScreenChange(ACT_CLOSE_SETTINGS, 0.20f);
+            return clicked();
+        }
+
+        // logout
+        if (isLogoutOpen) {
+            // click sul NO
+            if (btn_no.contains(x, y)) {
+                btnNoExit = true;
                 clickedTimer = 0.15f;
                 setInputEnabled(false);
-                scheduleScreenChange(ACT_CLOSE_INFO, 0.20f);
+                scheduleScreenChange(ACT_CLOSE_EXIT, 0.20f);
+                return clicked();
+            }
+            // click sul YES
+            if (btn_yes.contains(x, y)) {
+                btnYesExit = true;
+                clickedTimer = 0.15f;
+                setInputEnabled(false);
+                scheduleScreenChange(ACT_YES_EXIT, 0.20f);
+                return clicked();
+            }
+        }
+
+        // impostazioni
+        if (isSettingsOpen) {
+
+            // CLICK SULLA BARRA MUSICA
+            if (musicBarArea.contains(x, y)) {
+                draggingMusic = true;
                 return clicked();
             }
 
-            // chiusura impostazioni
-            if (isSettingsOpen && btnCloseSettingsArea.contains(x, y)) {
-                // salvataggio modifiche volumi
-                UserProgressService.setProgress("effects_volume", effectsPercent); // salvataggio volume audio
-                UserProgressService.setProgress("music_volume", musicPercent); // salvataggio volume musica
-
-                btnCloseSettings = true;
-                clickedTimer = 0.15f;
-                setInputEnabled(false);
-                scheduleScreenChange(ACT_CLOSE_SETTINGS, 0.20f);
+            // CLICK SULLA BARRA EFFETTI
+            if (effectsBarArea.contains(x, y)) {
+                draggingEffects = true;
                 return clicked();
             }
 
-            // logout
-            if (isLogoutOpen) {
-                // click sul NO
-                if (btn_no.contains(x, y)) {
-                    btnNoExit = true;
-                    clickedTimer = 0.15f;
-                    setInputEnabled(false);
-                    scheduleScreenChange(ACT_CLOSE_EXIT, 0.20f);
-                    return clicked();
-                }
-                // click sul YES
-                if (btn_yes.contains(x, y)) {
-                    btnYesExit = true;
-                    clickedTimer = 0.15f;
-                    setInputEnabled(false);
-                    scheduleScreenChange(ACT_YES_EXIT, 0.20f);
+            // on/off dark mode switch
+            if (switchDL.contains(x,y)) {
+                SoundManager.playClickButton(effectsPercent); // riproduzione suono click
+                if ((boolean)UserProgressService.getProgress("dark_mode")) UserProgressService.setProgress("dark_mode", false);
+                else UserProgressService.setProgress("dark_mode", true);
+
+                System.out.println((boolean)UserProgressService.getProgress("dark_mode") ? "on" : "off");
+                return clicked();
+            }
+
+            // CLICK ICONE VOLUMI (il volume è in range tra 0 e 1 => 40% = 0.4f)
+            // musica
+            if (btnEffects.contains(x, y)) {
+                if (effectsPercent == 0f) effectsPercent = 0.5f;
+                else effectsPercent = 0f;
+                return clicked();
+            }
+
+            // effetti sonori
+            if (btnMusic.contains(x, y)) {
+                if (musicPercent == 0) musicPercent = 0.5f;
+                else musicPercent = 0;
+                return clicked();
+            }
+        }
+
+        // chiusura scoreboard
+        if(isScoreboardOpen && areaBtnCloseScoreboard.contains(x, y)) {
+            btnCloseScoreboard = true;
+            clickedTimer = 0.15f;
+            setInputEnabled(false);
+
+            scheduleScreenChange(ACT_CLOSE_SCOREBOARD, 0.20f);
+            return clicked();
+        }
+
+        // market (acquisto, digit numero items, chiusura)
+        if (isMarketOpen) {
+            // iterazione sulle aree cliccabili per la digitazione delle quantità
+            for (int i = 0; i < 6; i++) {
+                if (marketQtyAreas[i] != null && marketQtyAreas[i].contains(x, y)) {
+                    activeMarketQtyField = i + 1;
+                    marketQtySelected = false;
+                    marketQtyInput.setLength(0);
+                    marketQtyInput.append(getNumPurchaseForIndex(activeMarketQtyField));
                     return clicked();
                 }
             }
 
-            // impostazioni
-            if (isSettingsOpen) {
+            // chiusura mercato
+            if (areaBtnCloseMarket.contains(x,y)) {
+                btnCloseMarket=true;
+                //clickedTimer = 0.15f;
+                setInputEnabled(false);
 
-                // CLICK SULLA BARRA MUSICA
-                if (musicBarArea.contains(x, y)) {
-                    draggingMusic = true;
-                    return clicked();
-                }
-
-                // CLICK SULLA BARRA EFFETTI
-                if (effectsBarArea.contains(x, y)) {
-                    draggingEffects = true;
-                    return clicked();
-                }
-
-                // on/off dark mode switch
-                if (switchDL.contains(x,y)) {
-                    SoundManager.playClickButton(effectsPercent); // riproduzione suono click
-                    if ((boolean)UserProgressService.getProgress("dark_mode")) UserProgressService.setProgress("dark_mode", false);
-                    else UserProgressService.setProgress("dark_mode", true);
-
-                    System.out.println((boolean)UserProgressService.getProgress("dark_mode") ? "on" : "off");
-                    return clicked();
-                }
-
-                // CLICK ICONE VOLUMI (il volume è in range tra 0 e 1 => 40% = 0.4f)
-                // musica
-                if (btnEffects.contains(x, y)) {
-                    if (effectsPercent == 0f) effectsPercent = 0.5f;
-                    else effectsPercent = 0f;
-                    return clicked();
-                }
-
-                // effetti sonori
-                if (btnMusic.contains(x, y)) {
-                    if (musicPercent == 0) musicPercent = 0.5f;
-                    else musicPercent = 0;
-                    return clicked();
-                }
+                scheduleScreenChange(ACT_CLOSE_MARKET, 0.20f);
+                return clicked();
             }
 
-            // market
-            if (isMarketOpen) {
-                // iterazione sulle aree cliccabili per la digitazione delle quantità
-                for (int i = 0; i < 6; i++) {
-                    if (marketQtyAreas[i] != null && marketQtyAreas[i].contains(x, y)) {
-                        activeMarketQtyField = i + 1;
-                        marketQtySelected = false;
-                        marketQtyInput.setLength(0);
-                        marketQtyInput.append(getNumPurchaseForIndex(activeMarketQtyField));
+            // acquisto elementi
+            for (int i = 0; i < 6; i++) {
+                if (marketBuyAreas[i] != null && marketBuyAreas[i].contains(x, y)) {
+                    // elementi indicizzati da 1 a 6 per semplicità
+                    int idx = i + 1; // 1..6
+
+                    // crediti utente
+                    int credits = ((Number) UserProgressService.getProgress("credits")).intValue();
+                    // quantità selezionata
+                    int qty = getNumPurchaseForIndex(idx);
+
+                    // costo totale acquisto
+                    int cost = getItemCost(idx, qty);
+
+                    // regola richiesta: credits - cost >= 0
+                    if (credits - cost >= 0) {
+                        int oldQty = (int) UserProgressService.getProgress(items[i]);
+
+                        credits -= cost;
+
+                        // salva subito i crediti
+                        UserProgressService.setProgress("credits", credits);
+
+                        // incremento numero di boost
+                        UserProgressService.setProgress(items[i], oldQty + qty);
+
+                        marketBuyClicked[i] = true;
+                        clickedTimer = 0.12f; // giusto un flash veloce
                         return clicked();
                     }
                 }
-
-                // chiusura mercato
-                if (btnCloseMarketArea.contains(x,y)) {
-                    btnCloseMarket=true;
-                    //clickedTimer = 0.15f;
-                    setInputEnabled(false);
-
-                    scheduleScreenChange(ACT_CLOSE_MARKET, 0.20f);
-                    return clicked();
-                }
-
-                // acquisto elementi
-                for (int i = 0; i < 6; i++) {
-                    if (marketBuyAreas[i] != null && marketBuyAreas[i].contains(x, y)) {
-                        // elementi indicizzati da 1 a 6 per semplicità
-                        int idx = i + 1; // 1..6
-
-                        // crediti utente
-                        int credits = ((Number) UserProgressService.getProgress("credits")).intValue();
-                        // quantità selezionata
-                        int qty = getNumPurchaseForIndex(idx);
-
-                        // costo totale acquisto
-                        int cost = getItemCost(idx, qty);
-
-                        // regola richiesta: credits - cost >= 0
-                        if (credits - cost >= 0) {
-                            int oldQty = (int) UserProgressService.getProgress(items[i]);
-
-                            credits -= cost;
-
-                            // salva subito i crediti
-                            UserProgressService.setProgress("credits", credits);
-
-                            // incremento numero di boost
-                            UserProgressService.setProgress(items[i], oldQty + qty);
-
-                            marketBuyClicked[i] = true;
-                            clickedTimer = 0.12f; // giusto un flash veloce
-                            return clicked();
-                        }
-                    }
-                }
             }
+        }
 
-            // chiusura scoreboard
-            if(isScoreboardOpen && btnCloseScoreboardArea.contains(x, y)) {
-                btnCloseScoreboard = true;
-                clickedTimer = 0.15f;
-                setInputEnabled(false);
-
-                scheduleScreenChange(ACT_CLOSE_SCOREBOARD, 0.20f);
-                return clicked();
-            }
-            return false;
+        // chiusura profile infos
+        if (isProfileInfosOpen && areaBtnCloseProfileInfos.contains(x, y)) {
+            btnCloseProfileInfos = true;
+            clickedTimer = 0.15f;
+            setInputEnabled(false);
+            scheduleScreenChange(ACT_CLOSE_PROFILE_INFOS, 0.20f);
+            return clicked();
         }
 
         // controllo click stelle difficoltà 1 per disattivare le altre
@@ -702,7 +715,8 @@ public class LobbyInput implements InputProcessor {
             return clicked();
         }
 
-        // click pulsante modalità "classic"
+        // GAME MODES //
+        // "classic"
         if (classicArea.contains(x, y)) {
             classic = true;
             clickedTimer = 0.15f;
@@ -710,8 +724,7 @@ public class LobbyInput implements InputProcessor {
             scheduleScreenChange(ACT_START_CLASSIC, 0.20f);
             return clicked();
         }
-
-        // click pulsante modalità "gravity4"
+        // "gravity4"
         if (gravity4Area.contains(x, y)) {
             gravity4 = true;
             clickedTimer = 0.15f;
@@ -719,8 +732,7 @@ public class LobbyInput implements InputProcessor {
             scheduleScreenChange(ACT_START_GRAVITY4, 0.20f);
             return clicked();
         }
-
-        // click pulsante modalità "horizontal"
+        // "horizontal"
         if (horizontalArea.contains(x, y)) {
             horizontal = true;
             clickedTimer = 0.15f;
@@ -728,8 +740,7 @@ public class LobbyInput implements InputProcessor {
             scheduleScreenChange(ACT_START_HORIZONTAL, 0.20f);
             return clicked();
         }
-
-        // click pulsante modalità "speedy"
+        // "speedy"
         if (speedyArea.contains(x, y)) {
             speedy = true;
             clickedTimer = 0.15f;
@@ -738,21 +749,29 @@ public class LobbyInput implements InputProcessor {
             return clicked();
         }
 
-        if(marketButton.contains(x,y)) {
+        // SECONDARY WINDOWS //
+        // scoreboard
+        if (areaBtnOpenScoreboard.contains(x, y)) {
+            isBtnScoreboardClicked = true;
+            clickedTimer = 0.10f;
+            setInputEnabled(false);
+            scheduleScreenChange(ACT_OPEN_SCOREBOARD, 0.20f);
+            return clicked();
+        }
+        // market
+        if(areaBtnOpenMarket.contains(x,y)) {
             isBtnMarketClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_MARKET, 0.20f);
             return clicked();
         }
-
-        // click pulsante classifica
-        if (scoreboardArea.contains(x, y)) {
-            isBtnScoreboardClicked = true;
+        // profile infos, il controllo supplementare permette di chiudere la schermata "Profile Infos" quando aperta
+        if (areaBtnOpenProfileInfos.contains(x, y) && !isProfileInfosOpen) {
+            isBtnProfileInfosClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
-            scheduleScreenChange(ACT_OPEN_SCOREBOARD, 0.20f);
-            return clicked();
+            scheduleScreenChange(ACT_OPEN_PROFILE_INFOS, 0.20f);
         }
 
         // pulsante claim reward 'daily'
@@ -768,23 +787,24 @@ public class LobbyInput implements InputProcessor {
         }
 
         // -- COMMAND BAR --
-        if (exitArea.contains(x, y)) {
+        // logout
+        if (areaOpenLogout.contains(x, y)) {
             isBtnLogoutClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
             scheduleScreenChange(ACT_OPEN_EXIT, 0.20f);
             return clicked();
         }
-
-        if (informationArea.contains(x, y)) {
+        // game infos
+        if (areaOpenInfos.contains(x, y)) {
             isBtnInfoClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
-            scheduleScreenChange(ACT_OPEN_INFO, 0.20f);
+            scheduleScreenChange(ACT_OPEN_INFOS, 0.20f);
             return clicked();
         }
-
-        if (settingsArea.contains(x, y)) {
+        // settings
+        if (areaOpenSettings.contains(x, y)) {
             isBtnSettingsClicked = true;
             clickedTimer = 0.10f;
             setInputEnabled(false);
@@ -806,40 +826,38 @@ public class LobbyInput implements InputProcessor {
         resetHover();
 
         // sets hover states for open window buttons
-        if(isInfoOpen || isSettingsOpen || isLogoutOpen || isScoreboardOpen || isMarketOpen) {
+        if(isInfoOpen || isSettingsOpen || isLogoutOpen || isScoreboardOpen || isMarketOpen || isProfileInfosOpen) {
             // close game credits
-            if(btnCloseInfoArea.contains(screenX,screenY)) {
-                isBtnCloseInfoHover = true;
-                return true;
+            if(areaBtnCloseInfos.contains(screenX,screenY)) {
+                isBtnCloseInfoHover = true; return true;
             }
-
             // close settings
-            if(btnCloseSettingsArea.contains(screenX,screenY)) {
-                isBtnCloseSettingsHover = true;
-                return true;
+            if(areaBtnCloseSettings.contains(screenX,screenY)) {
+                isBtnCloseSettingsHover = true; return true;
             }
             // no logout
             if(btn_no.contains(screenX,screenY)) {
-                isBtnNoExitHover=true;
-                return  true;
+                isBtnNoExitHover=true; return  true;
             }
             // yes logout
             if(btn_yes.contains(screenX,screenY)) {
-                isBtnYesExitHover=true;
-                return  true;
-            }
-            // close market -> l'ulteriore controllo con market server per evitare l'overlay della scoreboard
-            if(btnCloseMarketArea.contains(screenX,screenY) && isMarketOpen) {
-                isBtnCloseMarketHover=true;
-                return true;
+                isBtnYesExitHover=true; return  true;
             }
             // close scoreboard
-            if (btnCloseScoreboardArea.contains(screenX,screenY)) {
-                isBtnCloseScoreboardHover=true;
-                return true;
+            if (areaBtnCloseScoreboard.contains(screenX,screenY)) {
+                isBtnCloseScoreboardHover=true; return true;
+            }
+            // close market -> l'ulteriore controllo con market server per evitare l'overlay con la X della scoreboard
+            if(areaBtnCloseMarket.contains(screenX,screenY) && isMarketOpen) {
+                isBtnCloseMarketHover=true; return true;
             }
 
-            // hover pulsanti acquisto
+            // close profile infos
+            if (areaBtnCloseProfileInfos.contains(screenX, screenY) && isProfileInfosOpen) {
+                isBtnCloseProfileInfosHover = true; return true;
+            }
+
+            // MARKET: hover pulsanti acquisto
             for (int i = 0; i < 6; i++) {
                 if (marketBuyAreas[i] != null && marketBuyAreas[i].contains(screenX, screenY)) {
 
@@ -903,36 +921,36 @@ public class LobbyInput implements InputProcessor {
             return true;
         }
 
-        // hover per i pulsanti delle schermate secondarie
-        if(marketButton.contains(screenX,screenY)) { // mercato
-            isBtnMarketHover=true;
-            return true;
+        // GAME MODS //
+        // classic
+        if (classicArea.contains(screenX, screenY)) {
+            classicHover = true; return true;
+        }
+        // gravity4
+        if (gravity4Area.contains(screenX, screenY)) {
+            gravity4Hover = true; return true;
+        }
+        // horizontal
+        if (horizontalArea.contains(screenX, screenY)) {
+            horizontalHover= true; return true;
+        }
+        // speedy
+        if (speedyArea.contains(screenX, screenY)) {
+            speedyHover= true; return true;
         }
 
-        if (classicArea.contains(screenX, screenY)) { // game "classic"
-            classicHover = true;
-
-            return true;
+        // SECONDARY WINDOWS
+        // scoreboard
+        if (areaBtnOpenScoreboard.contains(screenX, screenY)) {
+            isBtnScoreboardHover = true; return true;
         }
-
-        if (gravity4Area.contains(screenX, screenY)) { // game "gravity4"
-            gravity4Hover = true;
-            return true;
+        // market
+        if (areaBtnOpenMarket.contains(screenX,screenY)) {
+            isBtnMarketHover=true; return true;
         }
-
-        if (horizontalArea.contains(screenX, screenY)) { // game "horizontal"
-            horizontalHover= true;
-            return true;
-        }
-
-        if (speedyArea.contains(screenX, screenY)) { // game "speedy"
-            speedyHover= true;
-            return true;
-        }
-
-        if (scoreboardArea.contains(screenX, screenY)) { // schermata classifica
-            isBtnScoreboardHover = true;
-            return true;
+        // profile infos
+        if (areaBtnOpenProfileInfos.contains(screenX, screenY)) {
+            isBtnProfileInfosHover=true; return true;
         }
 
         // btn claim reward 'daily'
@@ -940,8 +958,7 @@ public class LobbyInput implements InputProcessor {
             !((boolean) UserProgressService.getProgress("is_daily_reward_claimed")) &&
             ((boolean) UserProgressService.getProgress("is_daily_completed"))
         ) {
-            isBtnClaimPrizeHover=true;
-            return true;
+            isBtnClaimPrizeHover=true; return true;
         }
 
         return false;
@@ -1095,7 +1112,11 @@ public class LobbyInput implements InputProcessor {
                 isScoreboardOpen = true;
                 break;
 
-            case ACT_OPEN_INFO:
+            case ACT_OPEN_PROFILE_INFOS:
+                isProfileInfosOpen = true;
+                break;
+
+            case ACT_OPEN_INFOS:
                 isInfoOpen = true;
                 break;
 
@@ -1107,7 +1128,7 @@ public class LobbyInput implements InputProcessor {
                 isLogoutOpen = true;
                 break;
 
-            case ACT_CLOSE_INFO:
+            case ACT_CLOSE_INFOS:
                 isInfoOpen = false;
                 break;
 
@@ -1127,6 +1148,10 @@ public class LobbyInput implements InputProcessor {
 
             case ACT_CLOSE_SCOREBOARD:
                 isScoreboardOpen=false;
+                break;
+
+            case ACT_CLOSE_PROFILE_INFOS:
+                isProfileInfosOpen=false;
                 break;
 
             case ACT_CLAIM_REWARD_DAILY: {
