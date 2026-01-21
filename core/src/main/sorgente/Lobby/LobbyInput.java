@@ -1168,7 +1168,7 @@ public class LobbyInput implements InputProcessor {
 
                 // assegnazione premio
                 int credits = (int) UserProgressService.getProgress("credits");
-                UserProgressService.setProgress("credits", credits + DailyChallenges.prize());
+                UserProgressService.setProgress("credits", credits + DailyChallenges.getPrize());
                 break;
             }
         }

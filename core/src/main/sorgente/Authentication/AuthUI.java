@@ -332,32 +332,8 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
 
         screen.end();
 
-        // TIMER PER ANIMAZIONE CLICK
-        if (alg.clickedTimer > 0) {
-            alg.clickedTimer -= delta;
-            if (alg.clickedTimer <= 0) {
-                alg.resetClickFlags(); // spegne tutti i pulsanti "clicked"
-            }
-        }
-
-        // esecuzione ritardata del processo di autenticazione (login/signup/reset)
-        if (alg.pendingAuthProcess) {
-            alg.authDelay -= delta;
-            if (alg.authDelay <= 0f) {
-                alg.pendingAuthProcess = false;
-                alg.executeAuthProcess();
-            }
-        }
-
-        // ritardo del cambio schermata (per transizioni login/signup/reset)
-        if (alg.pendingScreenChange) {
-            alg.screenChangeDelay -= delta;
-            if (alg.screenChangeDelay <= 0) {
-                alg.state = alg.pendingNextState;
-                alg.pendingScreenChange = false;
-            }
-        }
-
+        // update timer/azioni ritardate DOPO il render (così il click viene sempre disegnato almeno 1 frame)
+        alg.update(delta);
     }
 
     // spegnimento controllo input

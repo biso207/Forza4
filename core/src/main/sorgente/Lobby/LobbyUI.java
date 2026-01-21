@@ -437,7 +437,7 @@ public class LobbyUI implements ResourceLoader {
         else { // missione da compiere + barra progresso
             // stampa missione da fare e premio //
             Fonts.drawWrapped(screen, DailyChallenges.getMission(), 678, 207, 280, Fonts.bold25); // missione
-            Fonts.bold25.draw(screen, "+" + DailyChallenges.prize(), 720, 128); // premio
+            Fonts.bold25.draw(screen, "+" + DailyChallenges.getPrize(), 720, 128); // premio
             // immagine crediti
             screen.draw(creditImg, 672, 100);
 

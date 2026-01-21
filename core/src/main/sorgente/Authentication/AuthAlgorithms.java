@@ -61,6 +61,11 @@ public class AuthAlgorithms implements InputProcessor {
     protected boolean pendingAuthProcess = false;
     protected float authDelay = 0f;
 
+    // delay per il controllo "password reset" (evita di bloccare il render durante il click)
+    protected boolean pendingResetPsw = false;
+    protected float resetPswDelay = 0f;
+    protected String pendingResetNickname = null;
+
     // variabili per gli errori durante le autenticazioni
     protected boolean error = false; // "Password wrong"/"Nickname already in use"
     protected boolean error1 = false; // "Nickname not found"
@@ -190,6 +195,93 @@ public class AuthAlgorithms implements InputProcessor {
     public void scheduleAuthProcess(float delaySeconds) {
         pendingAuthProcess = true;
         authDelay = delaySeconds;
+    }
+
+    /**
+     * Pianifica il controllo dell'utente per la pagina "password reset".
+     * Serve a far vedere SEMPRE l'icona di click prima di fare IO (Firestore).
+     */
+    public void scheduleResetPassword(float delaySeconds) {
+        pendingResetPsw = true;
+        resetPswDelay = delaySeconds;
+        pendingResetNickname = sanitizeNickname(nicknameInput.toString());
+    }
+
+    /**
+     * Update per gestire timer e azioni ritardate. Va chiamato una volta per frame da AuthUI.render().
+     */
+    public void update(float delta) {
+        // timer animazione click
+        if (clickedTimer > 0f) {
+            clickedTimer -= delta;
+            if (clickedTimer <= 0f) {
+                resetClickFlags();
+            }
+        }
+
+        // esecuzione ritardata processi di autenticazione (login/signup/reset)
+        if (pendingAuthProcess) {
+            authDelay -= delta;
+            if (authDelay <= 0f) {
+                pendingAuthProcess = false;
+                executeAuthProcess();
+            }
+        }
+
+        // esecuzione ritardata: controllo reset password
+        if (pendingResetPsw) {
+            resetPswDelay -= delta;
+            if (resetPswDelay <= 0f) {
+                pendingResetPsw = false;
+                executeResetPasswordPrecheck();
+            }
+        }
+
+        // ritardo del cambio schermata (per transizioni login/signup/reset)
+        if (pendingScreenChange) {
+            screenChangeDelay -= delta;
+            if (screenChangeDelay <= 0f) {
+                state = pendingNextState;
+                pendingScreenChange = false;
+            }
+        }
+    }
+
+    // controllo sincrono (con IO) per entrare nella pagina reset password
+    private void executeResetPasswordPrecheck() {
+        // niente nickname => niente da fare
+        if (pendingResetNickname == null || pendingResetNickname.isEmpty()) return;
+
+        // se non c'è connessione, blocchiamo tutto
+        if (!checkInternetConnection()) {
+            resetErrors();
+            error2 = true;
+            return;
+        }
+
+        // pulizia errori precedenti (ma NON tocchiamo i flag click)
+        resetErrors();
+
+        try {
+            if (!FirestoreUserRepository.checkUsernameExists(pendingResetNickname)) {
+                error1 = true; // nickname not found
+                return;
+            }
+
+            // setting del nome utente per il reset
+            nickname = pendingResetNickname;
+
+            // prepara campi della pagina reset
+            resetFieldsNewPSW();
+            passwordInput.setLength(0);
+
+            // passaggio pagina (dopo che il click è già stato mostrato)
+            scheduleScreenChange(2, 0f);
+        } catch (IOException e) {
+            // errore IO => trattiamo come problema di connessione
+            resetErrors();
+            error2 = true;
+        }
     }
 
     /**
@@ -400,7 +492,7 @@ public class AuthAlgorithms implements InputProcessor {
             // aggiornamento password su Firestore
             String newPasswordPlain = resetPasswordInput.toString();
             FirestoreUserRepository.setPassword(nickname, newPasswordPlain);
-            UserProgressService.loadProgresses(); // caricamento progressi utente
+
             // PASSWORD OK, DATA OK -> passiamo a LOBBY (state 3)
             state = 3;
         } catch (Exception e) {
@@ -693,25 +785,10 @@ public class AuthAlgorithms implements InputProcessor {
             btnResetPSWClicked = true;
             clickedTimer = 0.15f;
 
-            // check esistenza utente
-            try {
-                if (!FirestoreUserRepository.checkUsernameExists(sanitizeNickname(nicknameInput.toString()))) {
-                    error1 = true; // in AuthUI è mostrato come "Nickname not found"
-                } else {
-                    // setting del nome utente
-                    nickname = sanitizeNickname(nicknameInput.toString());
-                    // passaggio alla schermata di reset password
-                    scheduleScreenChange(2, 0.20f);
-                }
-
-                // pulizia
-                resetTexts(); // reset campi editabili
-                resetFieldsNewPSW(); // campi nella pagina di reset password
-                resetErrors(); // reset di qualunque errore
-            }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            // pulizia errori vecchi e avvio controllo con delay (così il click si vede sempre)
+            resetErrors();
+            scheduleResetPassword(0.20f);
+            return true;
         }
 
         // click per procedere avanti (pulsante rosso)

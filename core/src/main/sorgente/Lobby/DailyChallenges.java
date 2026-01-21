@@ -66,10 +66,10 @@ public class DailyChallenges {
     }
 
     // metodo per ottenere il premio della daily (es: "+3")
-    public static int prize() {
-        int safe = Math.max(1, ((Number) UserProgressService.getProgress("num_mission")).intValue());
-        return targetN(safe);
+    public static int getPrize() {
+        return Math.max(1, ((Number) UserProgressService.getProgress("num_mission")).intValue()) * 3;
     }
+
 
     // metodo per calcolare n in base alla missione (lasciato come tua scelta)
     public static int targetN(int safeNumMission) {
@@ -172,12 +172,6 @@ public class DailyChallenges {
             case 12 -> { // earn {n} credits
                 if (creditsEarned > 0) progress += creditsEarned;
             }
-
-            // todo: aggiungere le missioni boost-based
-            default -> {
-                // le missioni boost-based non si aggiornano qui
-                return;
-            }
         }
 
         // clamp
@@ -186,7 +180,6 @@ public class DailyChallenges {
 
         // completamento
         if (progress >= n) {
-            progress = n;
             UserProgressService.setProgress("is_daily_completed", true);
             UserProgressService.setProgress("is_daily_reward_claimed", false);
             // qui non setto next_unlock: lo setti quando fai claim, come volevi
@@ -254,7 +247,7 @@ public class DailyChallenges {
             case 1 -> "Gravity4";
             case 2 -> "Horizontal";
             case 3 -> "Speedy";
-            default -> "Classic";
+            default -> "";
         };
     }
 
