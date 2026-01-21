@@ -110,10 +110,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // --- GRAVITY4: ordine direzioni per OGNI mossa ---
     public static int gravityStep = 0; // 0 TOP, 1 BOTTOM, 2 RIGHT, 3 LEFT
 
+    private int lastUserRow = -1;
+    private int lastUserCol = -1;
+
+
 
     //--PREDICT: timer pedina fantasma
     private float predictTimer = 0f;
-    private static final float PREDICT_DURATION = 2f; // 2 secondi
+    private static final float PREDICT_DURATION = 4f; // 2 secondi
 
 
     // --- BOT THINK DELAY ---
@@ -299,6 +303,36 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         return b;
     }
 
+    public void playNextGravitySound() {
+        int next = getNextGravity();
+
+        switch (next) {
+            case 0 ->
+            {
+                SoundManager.playGravityTop(LobbyInput.effectsPercent);
+                log.info("left");
+            }
+
+            case 1 ->
+            {
+                SoundManager.playGravityRight(LobbyInput.effectsPercent);
+                log.info("right");
+            }
+
+            case 2 -> {
+                SoundManager.playGravityLeft(LobbyInput.effectsPercent);
+                log.info("top");
+            }
+        }
+    }
+
+    private int getNextGravity()
+    {
+        int g=gravityStep+1;
+        return (g+ 1) % 3;
+    }
+
+
     private void resetGame() {
         isMatchOver = false;
         victory = false;
@@ -457,8 +491,17 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     }
 
     public void applicaPredict() {
-        int botCol = CPUBrain.chooseMove(boardState);
 
+        // 1) Simula la gravità futura (quella che userà il bot)
+        int futureGravity = (gravityStep + 1) % 3;
+
+        // 2) Simula la riga preferita (quella reale, non quella cliccata)
+        int preferredRow = lastUserRow;
+
+        // 3) Calcola la mossa del bot con gli stessi parametri della mossa reale
+        int botCol = CPUBrain.chooseMove(boardState, lastUserRow, lastUserCol);
+
+        // 4) Evita colonna congelata
         if (freezeColumn == botCol)
             botCol = findAlternativeColumnForBot();
 
@@ -468,13 +511,19 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             return;
         }
 
-        int[] landing = getGravityLandingCellStatic(boardState, botCol, -1);
+        // 5) Calcola la landing cell con la gravità FUTURA
+        int[] landing = getGravityLandingCellStatic(boardState, botCol, preferredRow);
 
         predictRow = landing[0];
         predictCol = landing[1];
 
-        predictTimer = PREDICT_DURATION; // attiva timer
+        // 6) Animazione caduta fantasma
+        startDrop(2, predictRow, predictCol);
+
+        predictTimer = PREDICT_DURATION;
     }
+
+
 
     public void applicaUndo() {
 
@@ -637,9 +686,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             }
         }
 
+        /*
         if (predictTimer > 0 && predictRow != -1 && predictCol != -1) {
             screen.draw(yellow, cellX(predictCol), cellY(predictRow));
         }
+
+         */
     }
 
     private float cellX(int col) {
@@ -751,6 +803,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 return;
             }
 
+
+
+
             // move verso target
             dropX += (dx / dist) * step;
             dropY += (dy / dist) * step;
@@ -781,7 +836,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         dropX = dropTargetX + axisX * sign * disp;
         dropY = dropTargetY + axisY * sign * disp;
 
-        // Fine rimbalzo: “atterra” definitivamente e ora fai commit + logica
+        // Fine rimbalzo
         if (t >= 1f) {
             dropX = dropTargetX;
             dropY = dropTargetY;
@@ -789,22 +844,36 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             dropActive = false;
             dropPhase = DropPhase.FALLING;
 
+            // 🔥 Caso PREDICT: NON committare sulla board
+            if (dropPlayer == 2 && predictTimer > 0) {
+                return;
+            }
+
+            // 🔥 Caso TARGET o mossa normale: commit
             boardState[dropRow][dropCol] = dropPlayer;
 
-            // Gravity4: avanza direzione SOLO dopo una mossa completata (a fine rimbalzo)
-            if (mod == 1) gravityStep = (gravityStep + 1) % 3;
+            // Gravity4: avanza direzione
+            if (mod == 1)
+            {
+                gravityStep = (gravityStep + 1) % 3;
+                playNextGravitySound();
+            }
 
             if (dropPlayer == 1) numTokensUser++;
             else numTokensBot++;
 
             onTokenLanded(dropPlayer, dropRow, dropCol);
         }
+
+
     }
 
     // metodo che disegna la pedina 'in volo'
-    private void drawDrop() {
+    private void drawDrop()
+    {
         if (!dropActive) return;
         Texture tex = (dropPlayer == 1) ? red : yellow;
+
         screen.draw(tex, dropX, dropY);
     }
 
@@ -837,8 +906,15 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         }
 
         // --- se ha appena giocato il player, programma la mossa del bot con delay ---
-        if (player == 1) {
-            int botCol = CPUBrain.chooseMove(boardState, row, col);
+        if (player == 1)
+        {
+
+            lastUserRow = row;
+            lastUserCol = col;
+
+
+            int botCol = CPUBrain.chooseMove(boardState, lastUserRow, lastUserCol);
+
 
             // se la colonna è congelata, il bot NON può usarla
             if (freezeTurns > 0 && botCol == freezeColumn) botCol = findAlternativeColumnForBot();
@@ -1147,7 +1223,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
                     // se la cella è vuota → piazza la pedina
                     if (boardState[row][col] == 0) {
-                        boardState[row][col] = 1;
+                        startDrop(1, row, col);
                         log.info("Target piazzato su (" + row + "," + col + ")");
                     } else
                     {

@@ -37,6 +37,21 @@ public class SoundManager {
         defeatSound.play(volume);
     }
 
+    public static void playGravityTop(float effectsPercent)
+    {
+        landSound.play(volume);
+    }
+
+    public static void playGravityRight(float effectsPercent)
+    {
+        landSound.play(volume);
+    }
+
+    public static void playGravityLeft(float effectsPercent)
+    {
+        landSound.play(volume);
+    }
+
     /** Cambia il volume degli EFFETTI in tempo reale */
     public void setEffectsVolume(float value) { volume = value; }
 
