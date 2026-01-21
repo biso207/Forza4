@@ -885,6 +885,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // --- POWER-UP FREEZE ---
         // Applica il freeze SOLO dopo che la pedina è atterrata
         if (player == 1 && gameInput.powerFreeze) {
+            usedAnyBoostThisMatch = true;
+            DailyChallenges.updateDailyOnBoostUse("num_freezer");
             applicaFreeze(col);
             gameInput.powerFreeze = false;
         }
@@ -1027,6 +1029,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // --- PREDICT: esegui subito quando il bottone è cliccato ---
         if (gameInput.powerPeek) {
             usedAnyBoostThisMatch = true;
+            DailyChallenges.updateDailyOnBoostUse("num_peek");
             applicaPredict();
             gameInput.powerPeek = false;
         }
@@ -1034,6 +1037,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // --- UNDO: esegui subito quando il bottone è cliccato ---
         if (gameInput.powerUndo) {
             usedAnyBoostThisMatch = true;
+            DailyChallenges.updateDailyOnBoostUse("num_undo");
             applicaUndo();
             gameInput.powerUndo = false;
         }
@@ -1183,6 +1187,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             if (gameInput.powerTokenCracker) {
                 usedAnyBoostThisMatch = true;
 
+                DailyChallenges.updateDailyOnBoostUse("num_token_cracker");
+
                 applicaExplosive(row, col);
                 gameInput.powerTokenCracker = false;
                 gameInput.isHole = false;
@@ -1191,6 +1197,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             if (gameInput.powerRowBreaker) {
                 usedAnyBoostThisMatch = true;
+
+                DailyChallenges.updateDailyOnBoostUse("num_row_breaker");
 
                 applicaBigExplosive(row);
                 gameInput.powerRowBreaker = false;
@@ -1208,6 +1216,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 }
                 else
                 {
+                    DailyChallenges.updateDailyOnBoostUse("num_precision");
+
                     gameInput.powerPrecision = false;
 
                     /*
