@@ -1013,6 +1013,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     @Override
     public void render(float delta) {
+        // update input timers (click delays / scheduled actions)
+        gameInput.update(delta);
+
         Gdx.input.setInputProcessor(gameInput); // si può togliere? todo: controllare se si può gestire nel GameManager
 
         // init schermo
@@ -1120,14 +1123,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             if (victory) Fonts.draw(screen, "VICTORY", 415, 459, Fonts.bold40); // vittoria
             else Fonts.draw(screen, "DEFEAT", 425, 459, Fonts.bold40); // sconfitta
 
-            draw(btn_yes, gameInput.isBtnYesExitHover, 342, 244);
             draw(btn_yes_clicked, gameInput.btnYesExit, 342, 244);
+            draw(btn_yes, gameInput.isBtnYesExitHover, 342, 244);
 
             draw(btn_no, gameInput.isBtnNoExitHover, 506, 244);
             draw(btn_no_clicked, gameInput.btnNoExit, 506, 244);
 
-            // reset gioco per la prossima partita
-            if (gameInput.btnYesExit) resetGame();
+            // reset gioco per la prossima partita (con delay)
+            if (gameInput.consumeRestartRequested()) resetGame();
         }
 
         // reset in caso di pareggio
@@ -1145,10 +1148,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             int col, row;
 
-            col = gameInput.getColumnFromClick(
-                Gdx.input.getX(),
-                Gdx.input.getY()
-            );
+            col = gameInput.getColumnFromClick(Gdx.input.getX(), Gdx.input.getY());
 
             log.info(col);
 
@@ -1285,14 +1285,15 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // chiusura screen
         screen.end();
 
-        if (gameInput.isBtnExitClicked || gameInput.btnNoExit) {
+        if (gameInput.consumeExitToLobbyRequested() && !modeTransition) {
             modeTransition = true;
             pendingMode = 0;
+            modeTransitionTimer = 0f;
         }
 
         if (modeTransition) {
             modeTransitionTimer += delta;
-            if (modeTransitionTimer >= 0.14f) {
+            if (modeTransitionTimer >= 0.10f) {
                 if (pendingMode == 0) {
                     GameManager.soundGame.stop(); // stop musica di gioco
                     GameManager.game.setScreen(new LobbyManager(GameManager.game)); // back to lobby

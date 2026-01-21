@@ -18,11 +18,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import sorgente.*;
 import sorgente.Lobby.LobbyInput;
-import sorgente.Lobby.LobbyUI;
 import sorgente.UserData.UserProgressService;
 
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class GameInput implements InputProcessor {
 
@@ -43,6 +40,26 @@ public class GameInput implements InputProcessor {
     protected boolean isBtnNoExitHover;
     protected boolean isBtnYesExitHover;
 
+    // --- delay & transition (no threads) ---
+    // visual click feedback timer (resets clicked flags after a short delay)
+    private float clickedTimer = 0f;
+
+    // delayed actions (used for restart)
+    private boolean pendingAction = false;
+    private float pendingDelay = 0f;
+    private int pendingAct = -1;
+
+    // block inputs during short transitions
+    private boolean inputEnabled = true;
+
+    // actions
+    private static final int ACT_RESTART_GAME = 1;
+
+    // requests consumed by gameui
+    private boolean requestExitToLobby = false;
+    private boolean requestRestartGame = false;
+
+
     // Power-up flags
     public boolean powerTokenCracker = false;
     public boolean powerRowBreaker = false;
@@ -53,7 +70,6 @@ public class GameInput implements InputProcessor {
 
     // Swap: prima colonna selezionata
     public int selectedSwapColumn = -1;
-    private int mod;
 
     // Rettangoli UI
     private final Rectangle exit, btn_no, btn_yes;
@@ -73,14 +89,12 @@ public class GameInput implements InputProcessor {
     private boolean gridEnabled = true;
 
 
-    public GameInput(int mod) {
-
-        // Cursor
+    public GameInput() {
+        // cursor
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
         cursor = Gdx.graphics.newCursor(mouse, 0, 0);
         Gdx.graphics.setCursor(cursor);
 
-        this.mod=mod;
 
         // Exit
         exit = new Rectangle(825, 58, 50, 50);
@@ -128,9 +142,73 @@ public class GameInput implements InputProcessor {
         powerUndo = false;
     }
 
+    // schedule a delayed action (used to add a short delay after a click, like in LobbyInput)
+    private void scheduleAction() {
+        pendingAction = true;
+        pendingAct = GameInput.ACT_RESTART_GAME;
+        pendingDelay = (float) 0.2;
+    }
 
-    // genera il suono al click
-    private boolean clicked() {
+    // update timers (call once per frame from gameui.render)
+    public void update(float delta) {
+        // timer for turning off "clicked" visuals
+        if (clickedTimer > 0f) {
+            clickedTimer -= delta;
+            if (clickedTimer <= 0f) resetClickedFlags();
+        }
+
+        // timer for delayed actions
+        if (pendingAction) {
+            pendingDelay -= delta;
+            if (pendingDelay <= 0f) {
+                pendingAction = false;
+                executePendingAction(pendingAct);
+                pendingAct = -1;
+            }
+        }
+    }
+
+    private void executePendingAction(int act) {
+        // re-enable inputs (we're still on the same screen)
+        setInputEnabled(true);
+
+        if (act == ACT_RESTART_GAME) {
+            requestRestartGame = true;
+        }
+    }
+
+    private void resetClickedFlags() {
+        isBtnExitClicked = false;
+        btnNoExit = false;
+        btnYesExit = false;
+    }
+
+    public void setInputEnabled(boolean enabled) {
+        inputEnabled = enabled;
+    }
+
+    public boolean isInputEnabled() {
+        return inputEnabled;
+    }
+
+    // one-shot consumable requests (GameUI should call these)
+    public boolean consumeExitToLobbyRequested() {
+        if (requestExitToLobby) {
+            requestExitToLobby = false;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean consumeRestartRequested() {
+        if (requestRestartGame) {
+            requestRestartGame = false;
+            return true;
+        }
+        return false;
+    }
+
+boolean clicked() {
         SoundManager.playClickButton(LobbyInput.effectsPercent);
         return true;
     }
@@ -139,9 +217,13 @@ public class GameInput implements InputProcessor {
     @Override
     public boolean touchDown(int x, int y, int pointer, int button) {
 
+        // block any input during short transitions (click delay / screen transition)
+        if (!inputEnabled) return false;
+
         System.out.println(x + " " + y);
 
-        checkHitBox(x, y);
+        // ui buttons (exit / match over yes-no)
+        if (handleUiClick(x, y)) return true;
 
         // POWER-UP BUTTONS //
         if (btnFreeze.contains(x, y)) {
@@ -231,29 +313,49 @@ public class GameInput implements InputProcessor {
         }
     }
 
-    private void checkHitBox(int x, int y) {
+    private boolean handleUiClick(int x, int y) {
 
-        // todo: al click della X chiedere se chiudere o meno, non interrompere immediatamente
+        // exit button (top-right)
         if (exit.contains(x, y)) {
-            clicked(); // genera suono
+            clicked();
             isBtnExitClicked = true;
+            clickedTimer = 0.15f;
 
-            // todo: rimuovere il thread e ricreare il sistema della lobby
-            new Timer().schedule(new TimerTask() {
-                @Override public void run() {
-                    isBtnExitClicked = false;
-                }
-            }, 100);
+            // request screen transition to lobby (handled in gameui with its own transition delay)
+            setInputEnabled(false);
+            requestExitToLobby = true;
+            return true;
         }
 
+        // match over dialog (yes/no)
         if (GameUI.isMatchOver) {
-            if (btn_no.contains(x, y)) btnNoExit = true;
-            if (btn_yes.contains(x, y)) btnYesExit = true;
-            SoundManager.playClickButton(LobbyInput.effectsPercent);
+            if (btn_no.contains(x, y)) {
+                clicked();
+                btnNoExit = true;
+                clickedTimer = 0.15f;
+
+                // go back to lobby
+                setInputEnabled(false);
+                requestExitToLobby = true;
+                return true;
+            }
+
+            if (btn_yes.contains(x, y)) {
+                clicked();
+                btnYesExit = true;
+                clickedTimer = 0.15f;
+
+                // restart match with a short delay (like lobbyinput scheduleScreenChange)
+                setInputEnabled(false);
+                scheduleAction();
+                return true;
+            }
         }
+
+        return false;
     }
 
-    // setter e getter stato click sulla griglia
+// setter e getter stato click sulla griglia
     public void setGridEnabled(boolean enabled) {
         gridEnabled = enabled;
         if (!enabled) isHole = false; // pulizia: cancella click pendenti
