@@ -265,10 +265,30 @@ boolean clicked() {
 
     private void activatePowerUp(String type)
     {
+        // --- TOGGLE: se il potere era già attivo, disattivalo e basta ---
+        switch (type) {
+            case "freeze":
+                if (powerFreeze) { powerFreeze = false;  log.info("disattivato"); return; }
+                break;
+            case "tokenCracker":
+                if (powerTokenCracker) { powerTokenCracker = false; return; }
+                break;
+            case "rowBreaker":
+                if (powerRowBreaker) { powerRowBreaker = false; return; }
+                break;
+            case "peek":
+                if (powerPeek) { powerPeek = false; return; }
+                break;
+            case "precision":
+                if (powerPrecision) { powerPrecision = false; return; }
+                break;
+            case "undo":
+                if (powerUndo) { powerUndo = false; return; }
+                break;
+        }
 
-        // disattivazione di tutti al click
+        // --- Se non era attivo → disattiva tutti gli altri ---
         resetAllPowers();
-
         selectedSwapColumn = -1;
 
         // recupero numero power up in possesso
@@ -281,69 +301,57 @@ boolean clicked() {
 
         // attivazione
         switch (type) {
-            case "freeze": // blocca una colonna per un turno che corrisponde a una mossa utente e una bot
-                if (numFreezer>=1)
-                {
+
+            case "freeze":
+                if (numFreezer >= 1) {
                     powerFreeze = true;
                     log.info("Power-up Freeze attivato");
                     SoundManager.playPowerUp(LobbyInput.effectsPercent);
                 }
-
                 break;
 
-            case "tokenCracker": // distrugge una pedina (utente o bot)
-                if (numTokenCracker>=1 && GameUI.numTokensBot>=1)
-                {
+            case "tokenCracker":
+                if (numTokenCracker >= 1 && GameUI.numTokensBot >= 1) {
                     powerTokenCracker = true;
                     log.info("Power-up Explosive attivato");
                     SoundManager.playPowerUp(LobbyInput.effectsPercent);
                 }
                 break;
 
-            case "rowBreaker": // distrugge un'intera riga (deve contenere almeno due pedine)
-                if (numRowBraker>=1)
-                {
+            case "rowBreaker":
+                if (numRowBraker >= 1) {
                     powerRowBreaker = true;
-                    log.info("Power-up Swap attivato");
+                    log.info("Power-up RowBreaker attivato");
                     SoundManager.playPowerUp(LobbyInput.effectsPercent);
                 }
-
                 break;
 
-            case "peek": // osserva la prossima mossa dell'avversario
-                if (numPeek>=1)
-                {
+            case "peek":
+                if (numPeek >= 1) {
                     powerPeek = true;
                     log.info("Power-up Peek attivato");
                     SoundManager.playPowerUp(LobbyInput.effectsPercent);
                 }
-
                 break;
-            case "precision": // posizione con precisione un pedina fregandosene della gravità
-                if(numPrecision>=1)
-                {
+
+            case "precision":
+                if (numPrecision >= 1) {
                     powerPrecision = true;
                     log.info("Power-up Precision attivato");
                     SoundManager.playPowerUp(LobbyInput.effectsPercent);
                 }
-
                 break;
 
-            case "undo": // annulla l'ultima mossa (solo utente)
-                if (numUndo>=1)
-                {
+            case "undo":
+                if (numUndo >= 1) {
                     powerUndo = true;
                     log.info("Power-up Undo attivato");
                     SoundManager.playPowerUp(LobbyInput.effectsPercent);
                 }
-
                 break;
-
-
 
             default:
                 SoundManager.playError(LobbyInput.effectsPercent);
-
         }
     }
 
