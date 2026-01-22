@@ -15,20 +15,17 @@ public class SoundManager {
     private static float volume;
     private final Sound creditSound;
     private final Sound completedSound;
-    private static final Sound winSound=Gdx.audio.newSound(Gdx.files.internal("sounds/victory.wav"));
+    private static final Sound winSound=Gdx.audio.newSound(Gdx.files.internal("sounds/victory.ogg"));
     private static final Sound defeatSound=Gdx.audio.newSound(Gdx.files.internal("sounds/game_over.wav"));
     private static final Sound clickButtonSound = Gdx.audio.newSound(Gdx.files.internal("sounds/click_button.wav"));
     private static final Sound digitSound = Gdx.audio.newSound(Gdx.files.internal("sounds/digit.wav"));
     private static final Sound landSound = Gdx.audio.newSound(Gdx.files.internal("sounds/token_land.ogg"));
-    private static final Sound top = Gdx.audio.newSound(Gdx.files.internal("sounds/top.mp3"));
-    private static final Sound right = Gdx.audio.newSound(Gdx.files.internal("sounds/right.mp3"));
-    private static final Sound left = Gdx.audio.newSound(Gdx.files.internal("sounds/left.mp3"));
     private static final Sound power = Gdx.audio.newSound(Gdx.files.internal("sounds/power.mp3"));
-    private static final Sound buy = Gdx.audio.newSound(Gdx.files.internal("sounds/buy.mp3"));
+    private static final Sound buy = Gdx.audio.newSound(Gdx.files.internal("sounds/purchase_item.ogg"));
 
     // costruttore
     public SoundManager(float volume) {
-        this.volume = volume;
+        SoundManager.volume = volume;
 
         // caricamento suoni
         creditSound = Gdx.audio.newSound(Gdx.files.internal("sounds/credit_sound.wav"));
@@ -40,40 +37,14 @@ public class SoundManager {
         defeatSound.play(volume);
     }
 
-    public static void playGravityTop(float volume)
-    {
-        top.play(volume);
-    }
-
-    public static void playGravityRight(float volume)
-    {
-        right.play(volume);
-    }
-
-    public static void playGravityLeft(float volume)
-    {
-        left.play(volume);
-    }
-
     public static void playPowerUp(float volume)
     {
         power.play(volume);
     }
 
-    public static void playPurchase(float volume)
-    {
+    public static void playPurchase(float volume) {
         buy.play(volume);
     }
-
-    /** Cambia il volume degli EFFETTI in tempo reale */
-    public void setEffectsVolume(float value) { volume = value; }
-
-    /** Suoni rari, li riproduciamo sempre **/
-    // metodo per il suono dei crediti
-    public void playCreditEarned() { creditSound.play(volume); }
-
-    // metodo per il suono di completamento della missione Missions
-    public void playCompletedMissions() { completedSound.play(volume); }
 
     // metodo per il suono di vittoria di una partita
     public static void playWin(float volume) { winSound.play(volume); }

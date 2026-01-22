@@ -54,7 +54,7 @@ public class LoadingScreen implements Screen, ProgressListener {
 
         if (playMusic) {
             // musica di apertura
-            openSound = Gdx.audio.newMusic(Gdx.files.internal("sounds/startup_sound_drop_logic.mp3"));
+            openSound = Gdx.audio.newMusic(Gdx.files.internal("sounds/startup_sound_drop_logic.ogg"));
             openSound.setLooping(false);
             openSound.play();
 

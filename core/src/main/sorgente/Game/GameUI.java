@@ -27,15 +27,9 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class GameUI extends ScreenAdapter implements ResourceLoader
-{
+public class GameUI extends ScreenAdapter implements ResourceLoader {
     private static final Log log = LogFactory.getLog(GameUI.class);
     private final SpriteBatch screen;
-
-    private final GlyphLayout layout = new GlyphLayout();
-    private float cursorTimer = 0f;
-    private boolean cursorVisible = true;
-    private boolean goToAuth = false;
 
     private final GameInput gameInput;
     private final CPUBrain CPUBrain;
@@ -113,6 +107,99 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     // velocità animazione (px/sec) -> regola se troppo lenta/veloce
     private static final float DROP_SPEED = 600f;
+    private static final float PEEK_DROP_SPEED = 320f; // più lenta (tuning: 250–450)
+
+
+    // --- TOKEN CRACKER: micro-animazione compattamento (per far capire cosa cade) ---
+    private boolean crackerAnimActive = false;
+    private float crackerAnimTimer = 0f;
+    private static final float CRACKER_ANIM_DURATION = 0.22f;
+
+    // 0=TOP, 1=RIGHT, 2=LEFT
+    private int crackerAnimGravity = 0;
+    private int crackerAnimRow = -1;
+    private int crackerAnimCol = -1;
+
+    private void startCrackerAnim(int gravity, int row, int col) {
+        crackerAnimActive = true;
+        crackerAnimTimer = CRACKER_ANIM_DURATION;
+        crackerAnimGravity = gravity;
+        crackerAnimRow = row;
+        crackerAnimCol = col;
+    }
+
+    private float smoothStep(float t) {
+        // easing morbido 0..1
+        return t * t * (3f - 2f * t);
+    }
+
+    private void drawCrackerAnimOverlay() {
+        if (!crackerAnimActive) return;
+
+        float t = 1f - (crackerAnimTimer / CRACKER_ANIM_DURATION);
+        t = Math.max(0f, Math.min(1f, t));
+        t = smoothStep(t);
+
+        // TOP: le pedine nella colonna (sopra al buco) scendono di 1 cella
+        if (crackerAnimGravity == 0) {
+            int c = crackerAnimCol;
+            int maxRow = crackerAnimRow;
+
+            for (int r = 1; r <= maxRow; r++) {
+                int v = boardState[r][c]; // stato già "compattato"
+                if (v == 0) continue;
+
+                Texture tex = (v == 1) ? red : yellow;
+
+                float x = cellX(c);
+                float yStart = cellY(r - 1);
+                float yEnd   = cellY(r);
+                float y = yStart + (yEnd - yStart) * t;
+
+                screen.draw(tex, x, y);
+            }
+        }
+
+        // RIGHT: nella riga, le pedine a sinistra scorrono di 1 cella verso destra
+        if (crackerAnimGravity == 1) {
+            int r = crackerAnimRow;
+            int maxCol = crackerAnimCol;
+
+            for (int c = 1; c <= maxCol; c++) {
+                int v = boardState[r][c];
+                if (v == 0) continue;
+
+                Texture tex = (v == 1) ? red : yellow;
+
+                float y = cellY(r);
+                float xStart = cellX(c - 1);
+                float xEnd   = cellX(c);
+                float x = xStart + (xEnd - xStart) * t;
+
+                screen.draw(tex, x, y);
+            }
+        }
+
+        // LEFT: nella riga, le pedine a destra scorrono di 1 cella verso sinistra
+        if (crackerAnimGravity == 2) {
+            int r = crackerAnimRow;
+            int startCol = crackerAnimCol;
+
+            for (int c = startCol; c <= 5; c++) {
+                int v = boardState[r][c];
+                if (v == 0) continue;
+
+                Texture tex = (v == 1) ? red : yellow;
+
+                float y = cellY(r);
+                float xStart = cellX(c + 1);
+                float xEnd   = cellX(c);
+                float x = xStart + (xEnd - xStart) * t;
+
+                screen.draw(tex, x, y);
+            }
+        }
+    }
 
     // --- GRAVITY3: ordine direzioni per OGNI mossa ---
     public static int gravityStep = 0; // 0 TOP, 1 BOTTOM, 2 RIGHT, 3 LEFT
@@ -272,14 +359,41 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             nuovoPunteggio = punti + delta;
             nuoviCrediti = credits;
         }
-        else nuovoPunteggio = Math.max(0, punti - delta/2); // sconfitta (punteggio minimo utente 0)
+        else {
+            nuovoPunteggio = Math.max(0, punti - delta/2); // sconfitta (punteggio minimo utente 0)
+            delta=0;
+        }
 
         // salvataggio progressi utente
         UserProgressService.setProgress("credits", crediti+nuoviCrediti); // salvataggio crediti
         UserProgressService.setProgress("points", nuovoPunteggio); // salvataggio nei progressi utente
         FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, nuovoPunteggio); // salvataggio nel campo "points"
 
-        // aggiornamento progresso daily
+        // salvataggio progressi utente storici //
+        // crediti
+        int totalCredits = (int) UserProgressService.getProgress("total_credits");
+        UserProgressService.setProgress("total_credits", totalCredits+nuoviCrediti);
+
+        // punti
+        int totalPoints = (int) UserProgressService.getProgress("total_points");
+        UserProgressService.setProgress("total_points", totalPoints+delta);
+
+        // partita giocata
+        String matchType = "matches_" + modName.toLowerCase();
+        int totalGamesPlayed = (int) UserProgressService.getProgress(matchType);
+        UserProgressService.setProgress(matchType, totalGamesPlayed+1);
+
+        // vittoria/sconfitta
+        if (player == 1) {
+            String winType = "wins_" + modName.toLowerCase();
+            int totalWins = (int) UserProgressService.getProgress(winType);
+            UserProgressService.setProgress(winType, totalWins+1);
+        }
+        else {
+            String lossType = "losses_" + modName.toLowerCase();
+            int totalLosses = (int) UserProgressService.getProgress(lossType);
+            UserProgressService.setProgress(lossType, totalLosses+1);
+        }
     }
 
     private void isDark(boolean dark) {
@@ -309,20 +423,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             for (int c = 0; c < 7; c++) b[r][c] = boardState[r][c] != 0;
         }
         return b;
-    }
-
-    public void playNextGravitySound() {
-        int next = getNextGravity();
-
-        switch (next) {
-            case 0 -> SoundManager.playGravityTop(LobbyInput.effectsPercent);
-            case 1 -> SoundManager.playGravityRight(LobbyInput.effectsPercent);
-            case 2 -> SoundManager.playGravityLeft(LobbyInput.effectsPercent);
-        }
-    }
-
-    private int getNextGravity() {
-        return (gravityStep + 1) % 3;
     }
 
     private void resetGame() {
@@ -382,13 +482,17 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         for (int i = 0; i < active.length; i++) {
             if (active[i]) {
                 float x = BOOSTER_BASE_X + i * BOOSTER_STEP_X;
-                float y = BOOSTER_BASE_Y;
-                screen.draw(activeBooster, x, y);
+                screen.draw(activeBooster, x, BOOSTER_BASE_Y);
             }
         }
     }
 
+
     private void startBotMoveAfterPowerUp() {
+    startBotMoveAfterPowerUp(0f);
+}
+
+    private void startBotMoveAfterPowerUp(float delaySeconds) {
         // scegli colonna bot
         int botCol = CPUBrain.chooseMove(boardState);
 
@@ -420,11 +524,11 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         lastFreezeTurns = freezeTurns;
         lastNumTokensBot = numTokensBot;
 
-        // avvia animazione bot
+        // avvia animazione bot (con eventuale delay extra)
         botPlannedRow = r;
         botPlannedCol = c;
         botPending = true;
-        botDelayTimer = 0f; // esegue subito
+        botDelayTimer = Math.max(0f, delaySeconds);
         gameInput.setGridEnabled(false);
     }
 
@@ -450,12 +554,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             // la cella più in alto diventa vuota
             boardState[0][col] = 0;
+
+            // micro-animazione: le pedine sopra scendono
+            startCrackerAnim(0, row, col);
             return;
         }
 
         // --- GRAVITY RIGHT ---
-        if (gravity == 1)
-        {
+        if (gravity == 1) {
             boardState[row][col] = 0;
 
             // fai scorrere SOLO le pedine a sinistra verso destra
@@ -466,6 +572,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             // la cella più a sinistra diventa vuota
             boardState[row][0] = 0;
+
+            // micro-animazione: scorrimento verso destra
+            startCrackerAnim(1, row, col);
             return;
         }
 
@@ -481,22 +590,22 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             // la cella più a destra diventa vuota
             boardState[row][6] = 0;
-        }
 
-        startBotMoveAfterPowerUp();
+            // micro-animazione: scorrimento verso sinistra
+            startCrackerAnim(2, row, col);
+            return;
+        }
     }
 
-    // Freeze → blocca una colonna per 2 turni
+    // Freeze → blocca una colonna per 2 turni utente + 2 turni bot (=4 mosse totali)
     private void applicaFreeze(int col) {
         if (col < 0 || col > 6) return;
 
         freezeColumn = col;
-        freezeTurns = 2;
+        freezeTurns = 4; // 4 mosse (U,B,U,B)
         log.info("Power-up Freeze attivato sulla colonna " + col);
-
-        startBotMoveAfterPowerUp();
-
     }
+
 
     // Predice -> mostra la prossima mossa del bot
     public void applicaPredict() {
@@ -701,6 +810,20 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             for (int col = 0; col < 7; col++)
             {
+                // se sto animando il compattamento del TokenCracker, non disegnare le pedine "mobili" qui (le disegna l'overlay)
+                if (crackerAnimActive && crackerAnimGravity == 0 && col == crackerAnimCol && row >= 1 && row <= crackerAnimRow) {
+                    drawX += 70;
+                    continue;
+                }
+                if (crackerAnimActive && crackerAnimGravity == 1 && row == crackerAnimRow && col >= 1 && col <= crackerAnimCol) {
+                    drawX += 70;
+                    continue;
+                }
+                if (crackerAnimActive && crackerAnimGravity == 2 && row == crackerAnimRow && col >= crackerAnimCol && col <= 5) {
+                    drawX += 70;
+                    continue;
+                }
+
                 if (boardState[row][col] == 1) draw(red, true, drawX, drawY); // pedina rossa
                 if (boardState[row][col] == 2) draw(yellow, true, drawX, drawY); // pedina gialla
 
@@ -762,16 +885,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             case BOTTOM -> {
                 dropX = dropTargetX;
                 dropY = -120f; }
-            case RIGHT ->
-            {
-                if(player == 2)
-                {
-                    dropX = -120f;
-                }
-                else
-                {
-                    dropX = Gdx.graphics.getWidth() + 120f;
-                }
+            case RIGHT -> {
+                if(player == 2) dropX = -120f;
+                else dropX = Gdx.graphics.getWidth() + 120f;
 
                 dropY = dropTargetY;
             }
@@ -807,10 +923,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             float dy = dropTargetY - dropY;
             float dist = (float) Math.sqrt(dx * dx + dy * dy);
 
-            float step = DROP_SPEED * delta;
+            // cambia la velocità di caduta in base alla situazione, se si usa Peek è più lenta per mostrare la successiva mossa del bot
+            float speed = isPredictDrop ? PEEK_DROP_SPEED : DROP_SPEED;
+            float step = speed * delta;
 
             if (dist <= step) {
-                // Arrivata al target: passa al rimbalzo (NON committare ancora)
+                // arrivata al target: passa al rimbalzo
                 dropX = dropTargetX;
                 dropY = dropTargetY;
 
@@ -818,9 +936,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 bounceTimer = 0f;
                 return;
             }
-
-
-
 
             // move verso target
             dropX += (dx / dist) * step;
@@ -869,10 +984,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             // caso reale: la pedina cade sulla board
             boardState[dropRow][dropCol] = dropPlayer;
 
-            if (mod == 1) {
-                gravityStep = (gravityStep + 1) % 3;
-                if (dropPlayer == 1) playNextGravitySound(); // suono SOLO per il player
-            }
+            if (mod == 1) gravityStep = (gravityStep + 1) % 3;
 
             if (dropPlayer == 1) numTokensUser++;
             else numTokensBot++;
@@ -892,27 +1004,87 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
     // metodo per i controlli chiamato appena la pedina 'atterra' sulla tabella
     // viene chiamato quando la pedina "atterra" sulla tabella (dopo l'animazione)
+
+    // --- WIN CHECK su board intera (serve dopo power-up che spostano/cancellano pedine) ---
+    private boolean hasConnect4(int player) {
+        // board 6x7
+        for (int r = 0; r < 6; r++) {
+            for (int c = 0; c < 7; c++) {
+                if (boardState[r][c] != player) continue;
+
+                // orizzontale →
+                if (c <= 3 &&
+                        boardState[r][c + 1] == player &&
+                        boardState[r][c + 2] == player &&
+                        boardState[r][c + 3] == player) return true;
+
+                // verticale ↓
+                if (r <= 2 &&
+                        boardState[r + 1][c] == player &&
+                        boardState[r + 2][c] == player &&
+                        boardState[r + 3][c] == player) return true;
+
+                // diagonale ↘
+                if (r <= 2 && c <= 3 &&
+                        boardState[r + 1][c + 1] == player &&
+                        boardState[r + 2][c + 2] == player &&
+                        boardState[r + 3][c + 3] == player) return true;
+
+                // diagonale ↗
+                if (r >= 3 && c <= 3 &&
+                        boardState[r - 1][c + 1] == player &&
+                        boardState[r - 2][c + 2] == player &&
+                        boardState[r - 3][c + 3] == player) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkAndHandleWinAfterBoardMutation() throws IOException {
+        // priorità: vittoria utente
+        if (hasConnect4(1)) {
+            finishMatchAfterPowerUp(true);
+            return true;
+        }
+        // poi sconfitta (se per qualche motivo la mutazione favorisce il bot)
+        if (hasConnect4(2)) {
+            finishMatchAfterPowerUp(false);
+            return true;
+        }
+        return false;
+    }
+
+    private void finishMatchAfterPowerUp(boolean userWon) throws IOException {
+        isMatchOver = true;
+        victory = userWon;
+
+        // ferma eventuale bot in coda
+        botPending = false;
+
+        if (userWon) SoundManager.playWin(LobbyInput.effectsPercent);
+        else SoundManager.playDefeat(LobbyInput.effectsPercent);
+
+        // aggiornamento punteggio utente
+        saveUserProgresses(points, userWon ? 1 : 2);
+
+        // aggiornamento progresso daily in corso
+        DailyChallenges.updateDaily(victory, usedAnyBoostThisMatch, mod, points, credits, gameDifficulty);
+
+        // blocca input
+        gameInput.setGridEnabled(false);
+        gameInput.isHole = false;
+    }
+
     private void onTokenLanded(int player, int row, int col) throws IOException {
         // suono atterraggio
         SoundManager.playLand(LobbyInput.effectsPercent);
-        // --- POWER-UP FREEZE ---
-        // Applica il freeze SOLO dopo che la pedina è atterrata
-        if (player == 1 && gameInput.powerFreeze)
-        {
-            decrementPowerUp("num_freezer");
-            usedAnyBoostThisMatch = true;
-            DailyChallenges.updateDailyOnBoostUse("num_freezer");
-            applicaFreeze(col);
-            gameInput.powerFreeze = false;
-        }
-
         // --- check vittoria del giocatore che ha appena piazzato ---
         if (CPUBrain.checkWin(boardState, row, col, player)) {
             isMatchOver = true;
             victory = (player == 1);
 
-            if (player == 1) SoundManager.playWin(LobbyInput.musicPercent);
-            else SoundManager.playDefeat(LobbyInput.musicPercent);
+            if (player == 1) SoundManager.playWin(LobbyInput.effectsPercent);
+            else SoundManager.playDefeat(LobbyInput.effectsPercent);
 
             // aggiornamento punteggio utente
             saveUserProgresses(points, player);
@@ -1024,6 +1196,17 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             Fonts.bold13.draw(screen, UserProgressService.getProgress(items[i]).toString(), x, 497);
             x+=78;
         }
+
+        // stato freeze (feedback per l'utente)
+        if (freezeTurns > 0 && freezeColumn >= 0) {
+            int turnsLeft = (freezeTurns + 1) / 2; // 4->2, 3->2, 2->1, 1->1
+            String msg = "freeze: colonna " + (freezeColumn + 1) + " (" + turnsLeft + " turni)";
+            Fonts.draw(screen, msg, 55, 95, Fonts.bold20);
+
+            // label sopra la colonna congelata
+            Fonts.draw(screen, "ICE", cellX(freezeColumn) + 18, 650, Fonts.bold20);
+        }
+
     }
 
     @Override
@@ -1031,7 +1214,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // update input timers (click delays / scheduled actions)
         gameInput.update(delta);
 
-        Gdx.input.setInputProcessor(gameInput); // si può togliere? todo: controllare se si può gestire nel GameManager
+        Gdx.input.setInputProcessor(gameInput);
 
         // init schermo
         screen.begin();
@@ -1060,6 +1243,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             gameInput.powerUndo = false;
         }
 
+                // aggiorna micro-animazione TokenCracker (compattamento)
+        if (crackerAnimActive) {
+            crackerAnimTimer -= delta;
+            if (crackerAnimTimer <= 0f) crackerAnimActive = false;
+        }
+
         // aggiorna animazione caduta
         try {
             updateDrop(delta);
@@ -1075,6 +1264,12 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             if (timer <= 0f) {
                 // 5 secondi senza input → il bot gioca
                 int botCol = CPUBrain.chooseMove(boardState);
+
+                // evita colonna congelata
+                if (freezeTurns > 0 && botCol == freezeColumn) {
+                    botCol = findAlternativeColumnForBot();
+                }
+
                 int botRow = gameInput.getLowestFreeRow(botCol, boardStateAsBoolean());
 
                 if (botRow != -1) {
@@ -1093,7 +1288,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         else timer = 5;
 
         // evita che l'utente annulli la mossa del bot
-        gameInput.setGridEnabled(!dropActive && !botPending && !isMatchOver);
+        gameInput.setGridEnabled(!dropActive && !botPending && !isMatchOver && !crackerAnimActive);
 
         // delay bot (solo se non sta già cadendo una pedina)
         if (botPending && !dropActive) {
@@ -1134,7 +1329,9 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         screen.draw(cells, 270, 92);
         // 2) disegno griglia con pedine giocate
         drawGame();
-        // 3) disegno animazione caduta pedina
+        // 3) micro-animazione TokenCracker (se attiva)
+        drawCrackerAnimOverlay();
+        // 4) disegno animazione caduta pedina
         drawDrop();
         // 4) disegno tabella
         screen.draw(table, 248, 71);
@@ -1178,7 +1375,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // LOGICA DI GIOCO (solo se non è aperta la finestra isMatchOver)
         if (!isMatchOver && gameInput.isHole) {
             // durante animazione o “pensiero bot” ignora input del player
-            if (dropActive || botPending) gameInput.isHole = false;
+            if (dropActive || botPending || crackerAnimActive) gameInput.isHole = false;
 
             int col, row;
 
@@ -1191,96 +1388,148 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             // calcolo la riga cliccata
             row = gameInput.getRowFromClick(Gdx.input.getX(), Gdx.input.getY());
 
-            // MOSSA NORMALE (quando NON stai usando i power-up che richiedono click su cella)
-            if (!gameInput.powerTokenCracker && !gameInput.powerRowBreaker && !gameInput.powerPrecision) {
+                        // --- FREEZE: il click serve solo a scegliere la colonna da congelare (non piazza pedina) ---
+            if (gameInput.powerFreeze) {
+                if (col != -1) {
+                    usedAnyBoostThisMatch = true;
+                    decrementPowerUp("num_freezer");
+                    DailyChallenges.updateDailyOnBoostUse("num_freezer");
 
-                int[] landing = getGravityLandingCell(row, col);
-                int lr = landing[0];
-                int lc = landing[1];
+                    applicaFreeze(col);
 
-                // se non c'è spazio, annulla
-                if (lr == -1 || lc == -1) {
-                    gameInput.isHole = false;
-                } else {
-                    // suono click
+                    // feedback suono
                     SoundManager.playClickButton(LobbyInput.effectsPercent);
 
-                    // avvia caduta pedina player
-                    startDrop(1, lr, lc);
+                    gameInput.powerFreeze = false;
+                    gameInput.isHole = false;
 
-                    // blocca input finché non finisce animazione
-                    gameInput.setGridEnabled(false);
+                    // il freeze consuma il turno: il bot gioca subito
+                    startBotMoveAfterPowerUp();
+                } else {
+                    gameInput.powerFreeze = false;
                     gameInput.isHole = false;
                 }
             }
+            else {
 
-            if (gameInput.powerTokenCracker) {
-                usedAnyBoostThisMatch = true;
-                decrementPowerUp("num_token_cracker");
-                DailyChallenges.updateDailyOnBoostUse("num_token_cracker");
+                // MOSSA NORMALE (quando NON stai usando i power-up che richiedono click su cella)
+                if (!gameInput.powerTokenCracker && !gameInput.powerRowBreaker && !gameInput.powerPrecision) {
 
-                applicaExplosive(row, col);
-                gameInput.powerTokenCracker = false;
-                gameInput.isHole = false;
+                    int[] landing = getGravityLandingCell(row, col);
+                    int lr = landing[0];
+                    int lc = landing[1];
 
-            }
+                    // se non c'è spazio, annulla
+                    if (lr == -1 || lc == -1) {
+                        gameInput.isHole = false;
+                    } else {
 
-            if (gameInput.powerRowBreaker) {
-                usedAnyBoostThisMatch = true;
-                decrementPowerUp("num_row_breaker");
-                DailyChallenges.updateDailyOnBoostUse("num_row_breaker");
+                        // se la colonna di landing è congelata, annulla la mossa (feedback immediato)
+                        if (freezeTurns > 0 && lc == freezeColumn) {
+                            SoundManager.playClickButton(LobbyInput.effectsPercent);
+                            gameInput.isHole = false;
+                        } else {
+                            // suono click
+                            SoundManager.playClickButton(LobbyInput.effectsPercent);
 
-                applicaBigExplosive(row);
-                gameInput.powerRowBreaker = false;
-                gameInput.isHole = false;
-            }
+                            // avvia caduta pedina player
+                            startDrop(1, lr, lc);
 
-            if (gameInput.powerPrecision) {
-                usedAnyBoostThisMatch = true;
-                decrementPowerUp("num_precision");
-
-                // sicurezza: click fuori griglia
-                if (row < 0 || row > 5 || col < 0 || col > 6) log.info("non è una cella");
-                else {
-                    DailyChallenges.updateDailyOnBoostUse("num_precision");
-
-                    gameInput.powerPrecision = false;
-
-
-                    log.info(col);
-
-                    // se la cella è vuota → piazza la pedina
-                    if (boardState[row][col] == 0) {
-                        startDrop(1, row, col);
-                        log.info("Target piazzato su (" + row + "," + col + ")");
-                    } else
-                    {
-                        log.info("Target: cella occupata, nessuna azione");
-
-                    }
-
-                    // NON passa il turno al bot
-
-                    gameInput.isHole = false;
-                    gameInput.setGridEnabled(true);
-
-
-                    // check vittoria immediata
-                    if (CPUBrain.checkWin(boardState, row, col, 1)) {
-                        isMatchOver = true;
-                        victory = true;
-                        SoundManager.playWin(LobbyInput.musicPercent);
-                        try {
-                            saveUserProgresses(points, 1);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            // blocca input finché non finisce animazione
+                            gameInput.setGridEnabled(false);
+                            gameInput.isHole = false;
                         }
                     }
+                }
 
-                    startBotMoveAfterPowerUp();
+                if (gameInput.powerTokenCracker) {
+                    usedAnyBoostThisMatch = true;
+                    decrementPowerUp("num_token_cracker");
+                    DailyChallenges.updateDailyOnBoostUse("num_token_cracker");
+
+                    applicaExplosive(row, col);
+
+                    gameInput.powerTokenCracker = false;
+                    gameInput.isHole = false;
+                    gameInput.setGridEnabled(false);
+
+                    // dopo la mutazione della board, controlla se si è creata una vittoria
+                    try {
+                        if (!checkAndHandleWinAfterBoardMutation()) {
+                            // lascia vedere la micro-animazione prima che giochi il bot
+                            startBotMoveAfterPowerUp(CRACKER_ANIM_DURATION);
+                        }
+                    } catch (IOException e) {
+                        log.error("Errore nel salvataggio/controllo vittoria dopo TokenCracker", e);
+                    }
                 }
 
 
+                if (gameInput.powerRowBreaker) {
+                    usedAnyBoostThisMatch = true;
+                    decrementPowerUp("num_row_breaker");
+                    DailyChallenges.updateDailyOnBoostUse("num_row_breaker");
+
+                    applicaBigExplosive(row);
+
+                    gameInput.powerRowBreaker = false;
+                    gameInput.isHole = false;
+                    gameInput.setGridEnabled(false);
+
+                    // dopo la mutazione della board, controlla se si è creata una vittoria
+                    try {
+                        if (!checkAndHandleWinAfterBoardMutation()) {
+                            // piccolo delay per far percepire l'effetto
+                            startBotMoveAfterPowerUp(0.10f);
+                        }
+                    } catch (IOException e) {
+                        log.error("Errore nel salvataggio/controllo vittoria dopo RowBreaker", e);
+                    }
+                }
+
+                if (gameInput.powerPrecision) {
+                    usedAnyBoostThisMatch = true;
+                    decrementPowerUp("num_precision");
+
+                    // sicurezza: click fuori griglia
+                    if (row < 0 || row > 5 || col < 0 || col > 6) log.info("non è una cella");
+                    else {
+                        DailyChallenges.updateDailyOnBoostUse("num_precision");
+
+                        gameInput.powerPrecision = false;
+
+
+                        log.info(col);
+
+                        // se la cella è vuota → piazza la pedina
+                        if (boardState[row][col] == 0) {
+                            startDrop(1, row, col);
+                            log.info("Target piazzato su (" + row + "," + col + ")");
+                        } else {
+                            log.info("Target: cella occupata, nessuna azione");
+
+                        }
+
+                        // NON passa il turno al bot
+
+                        gameInput.isHole = false;
+                        gameInput.setGridEnabled(true);
+
+
+                        // check vittoria immediata
+                        if (CPUBrain.checkWin(boardState, row, col, 1)) {
+                            isMatchOver = true;
+                            victory = true;
+                            SoundManager.playWin(LobbyInput.musicPercent);
+                            try {
+                                saveUserProgresses(points, 1);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        startBotMoveAfterPowerUp();
+                    }
+                }
             }
         }
 

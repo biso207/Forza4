@@ -11,6 +11,7 @@ package sorgente.Lobby;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Rectangle;
@@ -310,8 +311,12 @@ public class LobbyInput implements InputProcessor {
     }
     // genera il suono di digitazione
     private boolean typed() {
-        // suono digitazione
-        SoundManager.playDigitSound(50);
+        SoundManager.playDigitSound(effectsPercent);
+        return true;
+    }
+    // genera il suono d'acquisto
+    private boolean purchased() {
+        SoundManager.playPurchase(effectsPercent);
         return true;
     }
 
@@ -588,7 +593,7 @@ public class LobbyInput implements InputProcessor {
 
                             marketBuyClicked[i] = true;
                             clickedTimer = 0.12f; // giusto un flash veloce
-                            return clicked();
+                            return purchased();
                         }
                     }
                 }

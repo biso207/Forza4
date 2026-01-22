@@ -30,7 +30,7 @@ public class AuthAlgorithms implements InputProcessor {
     protected boolean enteringNickname, enteringPassword, enteringDay, enteringMonth, enteringYear;
 
     // variabili per recuperare nick e psw utente
-    public static String nickname, password;
+    public static String nickname, password, inGamePSW;
 
     // variabili per comporre le stringhe digitate di nick e psw
     protected final StringBuilder nicknameInput, passwordInput, dayInput, monthInput, yearInput, resetDayInput,
@@ -461,6 +461,9 @@ public class AuthAlgorithms implements InputProcessor {
                 return;
             }
 
+            // password per i dati utente del 'Profile Infos'
+            inGamePSW=passwordInput.toString();
+
             // 2.2) password corretta => procede con la lobby
             password = passwordInput.toString();
 
@@ -493,6 +496,8 @@ public class AuthAlgorithms implements InputProcessor {
                 return;
             }
 
+            // password per i dati utente del 'Profile Infos'
+            inGamePSW=passwordInput.toString();
             // aggiornamento password su Firestore
             String newPasswordPlain = resetPasswordInput.toString();
             FirestoreUserRepository.setPassword(nickname, newPasswordPlain);
@@ -511,12 +516,15 @@ public class AuthAlgorithms implements InputProcessor {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy"); // formato
         String date = LocalDate.now().format(formatter); // recupero giorno creazione profilo
 
+        // password per i dati utente del 'Profile Infos'
+        inGamePSW = password;
         // hash della password
         password = BCrypt.hashpw(password, BCrypt.gensalt(12));
 
         // setting dati utente
         UserProgressService.setProgress("nickname", nickname); // nickname
         UserProgressService.setProgress("password", password); // password
+        UserProgressService.setProgress("signup_date", date);
 
         // INIT PROGRESSI NUOVO UTENTE //
         //UserProgressService.setProgress("avatar", 0);
@@ -532,6 +540,16 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("matches_gravity3", 0);
         UserProgressService.setProgress("matches_horizontal", 0);
         UserProgressService.setProgress("matches_speedy", 0);
+        // vittorie per modalità di gioco
+        UserProgressService.setProgress("wins_classic", 0);
+        UserProgressService.setProgress("wins_gravity3", 0);
+        UserProgressService.setProgress("wins_horizontal", 0);
+        UserProgressService.setProgress("wins_speedy", 0);
+        // sconfitte per modalità di gioco
+        UserProgressService.setProgress("losses_classic", 0);
+        UserProgressService.setProgress("losses_gravity3", 0);
+        UserProgressService.setProgress("losses_horizontal", 0);
+        UserProgressService.setProgress("losses_speedy", 0);
         // numero boosts
         UserProgressService.setProgress("num_freezer", 1);
         UserProgressService.setProgress("num_token_cracker", 1);
@@ -542,6 +560,8 @@ public class AuthAlgorithms implements InputProcessor {
         // punti e crediti
         UserProgressService.setProgress("credits", 50);
         UserProgressService.setProgress("points", 0);
+        UserProgressService.setProgress("total_points", 0);
+        UserProgressService.setProgress("total_credits", 0);
         // volumi di gioco
         UserProgressService.setProgress("effects_volume", 0.5);
         UserProgressService.setProgress("music_volume", 0.5);

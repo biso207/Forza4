@@ -196,10 +196,6 @@ public class GameInput implements InputProcessor {
         inputEnabled = enabled;
     }
 
-    public boolean isInputEnabled() {
-        return inputEnabled;
-    }
-
     // one-shot consumable requests (GameUI should call these)
     public boolean consumeExitToLobbyRequested() {
         if (requestExitToLobby) {
@@ -233,11 +229,6 @@ public class GameInput implements InputProcessor {
 
         // ui buttons (exit / match over yes-no)
         if (handleUiClick(x, y)) return true;
-
-
-
-
-
 
         // POWER-UP BUTTONS //
         if (btnFreeze.contains(x, y)) {
@@ -282,7 +273,7 @@ public class GameInput implements InputProcessor {
     private void activatePowerUp(String type)
     {
 
-        if (powerUpsEnabled == false) { log.info("Power-up disabilitati in Gravity3"); return; }
+        if (!powerUpsEnabled) { log.info("Power-up disabilitati in Gravity3"); return; }
 
         // --- TOGGLE: se il potere era già attivo, disattivalo e basta ---
         switch (type) {
@@ -314,7 +305,7 @@ public class GameInput implements InputProcessor {
         int numFreezer      = (int) UserProgressService.getProgress("num_freezer");
         int numTokenCracker = (int) UserProgressService.getProgress("num_token_cracker");
         int numRowBraker    = (int) UserProgressService.getProgress("num_row_breaker");
-        int numPeek         = 100; //(int) UserProgressService.getProgress("num_peek");
+        int numPeek         = (int) UserProgressService.getProgress("num_peek");
         int numPrecision    = (int) UserProgressService.getProgress("num_precision");
         int numUndo         = (int) UserProgressService.getProgress("num_undo");
 

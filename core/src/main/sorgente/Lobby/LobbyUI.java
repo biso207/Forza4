@@ -389,15 +389,6 @@ public class LobbyUI implements ResourceLoader {
 
         screen.draw(lobby, 0, 0);
 
-        // NOME AZIENDA //
-        Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
-        // VERSIONE DI GIOCO //
-        String text = "Beta " + VersionInfo.getVersion();
-        // calcolo larghezza del testo
-        GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
-        // stampa testo
-        Fonts.medium20.draw(screen, layout, (955 - layout.width), 63);
-
         // CREDITI UTENTE //
         int credits = (int) UserProgressService.getProgress("credits");
         // versione di gioco
@@ -669,8 +660,73 @@ public class LobbyUI implements ResourceLoader {
         // profile infos
         if (lobbyInput.isProfileInfosOpen) {
             draw(btn_close_big,         lobbyInput.isBtnCloseProfileInfosHover,911,588);
-            draw(btn_close_clicked_big, lobbyInput.btnCloseProfileInfos, 911, 588);
+            draw(btn_close_clicked_big, lobbyInput.btnCloseProfileInfos, 911,588);
+
+            // partite totali per modalità
+            int matchesClassic=(int)UserProgressService.getProgress("matches_classic");
+            int matchesGravity3=(int)UserProgressService.getProgress("matches_gravity3");
+            int matchesHorizontal=(int)UserProgressService.getProgress("matches_horizontal");
+            int matchesSpeedy=(int)UserProgressService.getProgress("matches_speedy");
+
+            // vittorie per modalità
+            int winsClassic=(int)UserProgressService.getProgress("wins_classic");
+            int winsGravity3=(int)UserProgressService.getProgress("wins_gravity3");
+            int winsHorizontal=(int)UserProgressService.getProgress("wins_horizontal");
+            int winsSpeedy=(int)UserProgressService.getProgress("wins_speedy");
+
+            // sconfitte per modalità
+            int lossesClassic=(int)UserProgressService.getProgress("losses_classic");
+            int lossesGravity3=(int)UserProgressService.getProgress("losses_gravity3");
+            int lossesHorizontal=(int)UserProgressService.getProgress("losses_horizontal");
+            int lossesSpeedy=(int)UserProgressService.getProgress("losses_speedy");
+
+            // somma partite, vittorie e sconfitte
+            int contWins=winsClassic+winsGravity3+winsHorizontal+winsSpeedy,
+                contLosses=lossesClassic+lossesGravity3+lossesHorizontal+lossesSpeedy,
+                contMatches=matchesClassic+matchesGravity3+matchesHorizontal+matchesSpeedy;
+
+            // stampa dati utente e progressi generali
+            // lato sx
+            Fonts.bold25.draw(screen, "Nickname: " + AuthAlgorithms.nickname, 156, 508);
+            Fonts.bold25.draw(screen, "Password: " + AuthAlgorithms.inGamePSW, 156, 458);
+            Fonts.bold25.draw(screen, "Creation ID: " + UserProgressService.getProgress("signup_date"), 156, 408);
+            Fonts.bold25.draw(screen, "Total Points: " + formatter.format(UserProgressService.getProgress("total_points")), 156, 358);
+            // lato dx
+            Fonts.bold25.draw(screen, "Total Credits: " + formatter.format(UserProgressService.getProgress("total_credits")), 525, 508);
+            Fonts.bold25.draw(screen, "Total Games: " + formatter.format(contMatches), 522, 458);
+            Fonts.bold25.draw(screen, "Wins: " + formatter.format(contWins), 522, 408);
+            Fonts.bold25.draw(screen, "Losses: " + formatter.format(contLosses), 522, 358);
+
+            // stampa progressi utente per modalità di gioco
+            // classic
+            Fonts.bold25.draw(screen, "Games: " + formatter.format(matchesClassic), 62, 224);
+            Fonts.bold25.draw(screen, "Wins: " + formatter.format(winsClassic), 62, 174);
+            Fonts.bold25.draw(screen, "Losses: " + formatter.format(lossesClassic), 62, 124);
+
+            // gravity3
+            Fonts.bold25.draw(screen, "Games: " + formatter.format(matchesGravity3), 303, 224);
+            Fonts.bold25.draw(screen, "Wins: " + formatter.format(winsGravity3), 303, 174);
+            Fonts.bold25.draw(screen, "Losses: " + formatter.format(lossesGravity3), 303, 124);
+
+            // horizontal
+            Fonts.bold25.draw(screen, "Games: " + formatter.format(matchesHorizontal), 546, 224);
+            Fonts.bold25.draw(screen, "Wins: " + formatter.format(winsHorizontal), 546, 174);
+            Fonts.bold25.draw(screen, "Losses: " + formatter.format(lossesHorizontal), 546, 124);
+
+            // speedy
+            Fonts.bold25.draw(screen, "Games: " + formatter.format(matchesSpeedy), 792, 224);
+            Fonts.bold25.draw(screen, "Wins: " + formatter.format(winsSpeedy), 792, 174);
+            Fonts.bold25.draw(screen, "Losses: " + formatter.format(lossesSpeedy), 792, 124);
         }
+
+        // NOME AZIENDA //
+        Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
+        // VERSIONE DI GIOCO //
+        String text = "Beta " + VersionInfo.getVersion();
+        // calcolo larghezza del testo
+        GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
+        // stampa testo
+        Fonts.medium20.draw(screen, layout, (955 - layout.width), 63);
 
         // chiusura batch -> prima chiudere poi passare alla nuova schermata in caso di transizione
         screen.end();
