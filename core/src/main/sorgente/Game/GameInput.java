@@ -33,12 +33,15 @@ public class GameInput implements InputProcessor {
     protected boolean isBtnExitClicked;
     protected boolean isBtnExitHover;
     protected boolean isHole;
-
+    // yes/no quit e riavvio partita
     protected boolean btnNoExit;
     protected boolean btnYesExit;
-
+    // hover pulsante X quit
     protected boolean isBtnNoExitHover;
     protected boolean isBtnYesExitHover;
+
+    // flag per la schermata di quit
+    protected static boolean isQuitOpen;
 
     // --- delay & transition (no threads) ---
     // visual click feedback timer (resets clicked flags after a short delay)
@@ -54,8 +57,10 @@ public class GameInput implements InputProcessor {
 
     // actions
     private static final int ACT_RESTART_GAME = 1;
+    private static final int ACT_EXIT_TO_LOBBY = 2;
+    private static final int ACT_CLOSE_QUIT_CONTINUE = 3;
 
-    // requests consumed by gameui
+    // requests consumed by GameUI
     private boolean requestExitToLobby = false;
     private boolean requestRestartGame = false;
 
@@ -131,6 +136,8 @@ public class GameInput implements InputProcessor {
         btnPredict      = new Rectangle(506,150,50,50);
         btnTarget       = new Rectangle(581,150,50,50);
         btnUndo         = new Rectangle(656,150,50,50);
+
+        isQuitOpen=false;
     }
 
     // reset boosters
@@ -145,9 +152,13 @@ public class GameInput implements InputProcessor {
 
     // schedule a delayed action (used to add a short delay after a click, like in LobbyInput)
     private void scheduleAction() {
+        scheduleAction(ACT_RESTART_GAME);
+    }
+
+    void scheduleAction(int act) {
         pendingAction = true;
-        pendingAct = GameInput.ACT_RESTART_GAME;
-        pendingDelay = (float) 0.2;
+        pendingAct = act;
+        pendingDelay = 0.2f;
     }
 
     // update timers (call once per frame from gameui.render)
@@ -170,11 +181,23 @@ public class GameInput implements InputProcessor {
     }
 
     private void executePendingAction(int act) {
-        // re-enable inputs (we're still on the same screen)
+        // re-enable inputs (we're still on the same screen unless GameUI switches)
         setInputEnabled(true);
 
         if (act == ACT_RESTART_GAME) {
             requestRestartGame = true;
+            return;
+        }
+
+        if (act == ACT_EXIT_TO_LOBBY) {
+            requestExitToLobby = true;
+            return;
+        }
+
+        if (act == ACT_CLOSE_QUIT_CONTINUE) {
+            isQuitOpen = false;
+            requestExitToLobby = false;
+            setGridEnabled(true);
         }
     }
 
@@ -262,8 +285,7 @@ public class GameInput implements InputProcessor {
 
 
 
-    private void activatePowerUp(String type)
-    {
+    private void activatePowerUp(String type) {
 
         if (!powerUpsEnabled) { log.info("Power-up disabilitati in Gravity3"); return; }
 
@@ -358,41 +380,61 @@ public class GameInput implements InputProcessor {
 
     private boolean handleUiClick(int x, int y) {
 
-        // exit button (top-right)
-        if (exit.contains(x, y)) {
-            clicked();
+        // exit button (top-right) -> opens QUIT modal
+        if (exit.contains(x, y) && !isQuitOpen && !GameUI.isMatchOver) {
             isBtnExitClicked = true;
             clickedTimer = 0.15f;
 
-            // request screen transition to lobby (handled in gameui with its own transition delay)
-            setInputEnabled(false);
-            requestExitToLobby = true;
-            return true;
+            isQuitOpen = true;
+
+            // modal: block grid + any other click targets (handled by swallowing below)
+            setGridEnabled(false);
+            return clicked();
         }
 
-        // match over dialog (yes/no)
-        if (GameUI.isMatchOver) {
+        // modal dialogs (match over OR quit): only YES/NO are clickable, everything else is ignored
+        if (GameUI.isMatchOver || isQuitOpen) {
+
+            // CLICK NO
             if (btn_no.contains(x, y)) {
-                clicked();
                 btnNoExit = true;
                 clickedTimer = 0.15f;
 
-                // go back to lobby
+                // block inputs during delay
                 setInputEnabled(false);
-                requestExitToLobby = true;
-                return true;
+
+                if (isQuitOpen) {
+                    // QUIT: NO = continue (close modal after delay)
+                    scheduleAction(ACT_CLOSE_QUIT_CONTINUE);
+                } else {
+                    // MATCH OVER: NO = back to lobby
+                    scheduleAction(ACT_EXIT_TO_LOBBY);
+                }
+
+                return clicked();
             }
 
+            // CLICK YES
             if (btn_yes.contains(x, y)) {
-                clicked();
                 btnYesExit = true;
                 clickedTimer = 0.15f;
 
-                // restart match with a short delay (like lobbyinput scheduleScreenChange)
+                // block inputs during delay
                 setInputEnabled(false);
-                scheduleAction();
-                return true;
+
+                if (isQuitOpen) {
+                    // QUIT: YES = back to lobby
+                    scheduleAction(ACT_EXIT_TO_LOBBY);
+                } else {
+                    // MATCH OVER: YES = restart
+                    scheduleAction(ACT_RESTART_GAME);
+                }
+
+                return clicked();
             }
+
+            // swallow any other click while modal is open
+            return true;
         }
 
         return false;
@@ -403,16 +445,14 @@ public class GameInput implements InputProcessor {
         gridEnabled = enabled;
         if (!enabled) isHole = false; // pulizia: cancella click pendenti
     }
-    public boolean isGridEnabled() {
-        return gridEnabled;
-    }
 
     @Override
     public boolean mouseMoved(int x, int y) {
+        isBtnNoExitHover=isBtnYesExitHover=false;
 
-        isBtnExitHover = exit.contains(x, y);
+        isBtnExitHover = exit.contains(x, y) && !isQuitOpen && !GameUI.isMatchOver;
 
-        if (GameUI.isMatchOver) {
+        if (GameUI.isMatchOver || isQuitOpen) {
             isBtnNoExitHover = btn_no.contains(x, y);
             isBtnYesExitHover = btn_yes.contains(x, y);
         }

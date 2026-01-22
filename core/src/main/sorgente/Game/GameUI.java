@@ -50,6 +50,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
     private Texture lightExit;
     private Texture lightExitHover;
     private Texture lightReplay;
+    private Texture lightQuit;
     private Texture lightUserTimeLeftArea;
 
     // Dark Texture
@@ -59,6 +60,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
     private Texture darkExit;
     private Texture darkExitHover;
     private Texture darkReplay;
+    private Texture darkQuit;
     private Texture darkUserTimeLeftArea;
 
     // Editable Texture
@@ -68,7 +70,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
     // X quit partita
     private Texture exit;
     private Texture exitHover;
-    private Texture replay;
+    private Texture replay, quit;
     // pedine
     private Texture red;
     private Texture yellow;
@@ -339,6 +341,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
         lightExit = new Texture("ui/buttons/game/light/quit_light_clicked.png");
         lightExitHover = new Texture("ui/buttons/game/light/quit_light.png");
         lightReplay = new Texture("game_mods_screens/light/play_again_light.png");
+        lightQuit = new Texture("game_mods_screens/light/quit_light.png");
         lightUserTimeLeftArea=new Texture("game_mods_screens/light/remaining_time_area.png");
     }
 
@@ -349,6 +352,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
         darkExit = new Texture("ui/buttons/game/dark/quit_dark_clicked.png");
         darkExitHover = new Texture("ui/buttons/game/dark/quit_dark.png");
         darkReplay = new Texture("game_mods_screens/dark/play_again_dark.png");
+        darkQuit = new Texture("game_mods_screens/dark/quit_dark.png");
         darkUserTimeLeftArea = new Texture("game_mods_screens/dark/remaining_time_area.png");
     }
 
@@ -405,6 +409,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
             exit = darkExit;
             exitHover = darkExitHover;
             replay = darkReplay;
+            quit = darkQuit;
             userTimeLeftArea=darkUserTimeLeftArea;
         }
         else {
@@ -414,6 +419,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
             exit = lightExit;
             exitHover = lightExitHover;
             replay = lightReplay;
+            quit = lightQuit;
             userTimeLeftArea=lightUserTimeLeftArea;
         }
     }
@@ -1352,11 +1358,16 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
         // finestra riavvio/chiusura gioco => mostrata solo alla fine di una partita
         draw(replay, isMatchOver, 294, 204);
 
-        // partita conclusa
-        if (isMatchOver) {
-            // testo vittoria/sconfitta
-            if (victory) Fonts.draw(screen, "VICTORY", 415, 459, Fonts.bold40); // vittoria
-            else Fonts.draw(screen, "DEFEAT", 425, 459, Fonts.bold40); // sconfitta
+        // finestra quit match
+        draw(quit, GameInput.isQuitOpen, 294, 204);
+
+        // bottoni yes/no sia per match-over che per quit
+        if (isMatchOver || GameInput.isQuitOpen) {
+
+            if (isMatchOver) {
+                if (victory) Fonts.draw(screen, "VICTORY", 415, 459, Fonts.bold40);
+                else Fonts.draw(screen, "DEFEAT", 425, 459, Fonts.bold40);
+            }
 
             draw(btn_yes, gameInput.isBtnYesExitHover, 342, 244);
             draw(btn_yes_clicked, gameInput.btnYesExit, 342, 244);
@@ -1365,7 +1376,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
             draw(btn_no_clicked, gameInput.btnNoExit, 506, 244);
 
             // reset gioco per la prossima partita (con delay)
-            if (gameInput.consumeRestartRequested()) resetGame();
+            if (isMatchOver && gameInput.consumeRestartRequested()) resetGame();
         }
 
         // reset in caso di pareggio
