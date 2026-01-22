@@ -97,7 +97,7 @@ public class GameInput implements InputProcessor {
 
 
         // Exit
-        exit = new Rectangle(825, 58, 50, 50);
+        exit = new Rectangle(892, 58, 50, 50);
 
         // griglia (bottom-left = 261,605; dx=71; dy=61; hole=40)
         final float baseX = 261f; // x1

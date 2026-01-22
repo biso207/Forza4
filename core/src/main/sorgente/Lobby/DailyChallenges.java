@@ -87,7 +87,7 @@ public class DailyChallenges {
 
             modeStr = switch (gameModeIndex) {
                 case 0 -> "Classic";
-                case 1 -> "Gravity4";
+                case 1 -> "Gravity3";
                 case 2 -> "Horizontal";
                 case 3 -> "Speedy";
                 default -> "{error}";
@@ -230,7 +230,7 @@ public class DailyChallenges {
     private static String modeName(int mod) {
         return switch (mod) {
             case 0 -> "Classic";
-            case 1 -> "Gravity4";
+            case 1 -> "Gravity3";
             case 2 -> "Horizontal";
             case 3 -> "Speedy";
             default -> "";
@@ -244,7 +244,7 @@ public class DailyChallenges {
 
         return switch (gameModeIndex) {
             case 0 -> "Classic";
-            case 1 -> "Gravity4";
+            case 1 -> "Gravity3";
             case 2 -> "Horizontal";
             case 3 -> "Speedy";
             default -> "";

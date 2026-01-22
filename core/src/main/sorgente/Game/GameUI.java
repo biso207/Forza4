@@ -108,7 +108,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     // velocità animazione (px/sec) -> regola se troppo lenta/veloce
     private static final float DROP_SPEED = 600f;
 
-    // --- GRAVITY4: ordine direzioni per OGNI mossa ---
+    // --- GRAVITY3: ordine direzioni per OGNI mossa ---
     public static int gravityStep = 0; // 0 TOP, 1 BOTTOM, 2 RIGHT, 3 LEFT
 
     private int lastUserRow = -1;
@@ -149,7 +149,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
     private final String[] items = {"num_freezer", "num_token_cracker", "num_row_breaker", "num_peek", "num_precision", "num_undo"};
 
     // pedine utente e bot giocate
-    protected static int numTokensUser=0, numTokensBot=0;
+    protected static int numTokensUser, numTokensBot;
     // difficoltà di gioco, punti e crediti per partita
     private int gameDifficulty, points, credits;
     // nome modalità di gioco
@@ -172,6 +172,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         gameInput = in;
         loadImages();
 
+        numTokensUser=numTokensBot=0;
+
 
         // inizializza boardState
         for (int r = 0; r < 6; r++)
@@ -179,38 +181,26 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             for (int c = 0; c < 7; c++) boardState[r][c] = 0;
         }
 
-        // variabili basate sulla modalità di gioco
+        // nome e difficoltà basate sulla modalità di gioco
         switch(mod)
         {
-            case 0 ->
-            {
-                // nome modalità
-                modName = "CLASSIC";
-                // difficoltà
+            case 0 -> {
+                modName = "Classic";
                 gameDifficulty = (int) UserProgressService.getProgress("diff_classic");
             }
 
-            case 1 ->
-            {
-                // nome modalità
-                modName = "GRAVITY4";
-                // difficoltà
-                gameDifficulty = (int) UserProgressService.getProgress("diff_gravity4");
+            case 1 -> {
+                modName = "Gravity3";
+                gameDifficulty = (int) UserProgressService.getProgress("diff_gravity3");
             }
 
-            case 2 ->
-            {
-                // nome modalità
-                modName = "HORIZONTAL";
-                // difficoltà
+            case 2 -> {
+                modName = "Horizontal";
                 gameDifficulty = (int) UserProgressService.getProgress("diff_horizontal");
             }
 
-            case 3 ->
-            {
-                // nome modalità
-                modName = "SPEEDY";
-                // difficoltà
+            case 3 -> {
+                modName = "Speedy";
                 gameDifficulty = (int) UserProgressService.getProgress("diff_speedy");
             }
 
@@ -570,13 +560,13 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
 
     /**
-     * Gravity4 a 3 direzioni:
+     * Gravity3 a 3 direzioni:
      * 0 = TOP   → cerca il primo spazio libero dal basso
      * 1 = RIGHT → cerca il primo spazio libero da sinistra
      * 2 = LEFT  → cerca il primo spazio libero da destra
      */
     /**
-     * Gravity4 semplificata:
+     * Gravity3 semplificata:
      * - cerca SOLO il primo blocco libero nella direzione della gravità
      * - ignora il punto cliccato SOLO in TOP
      * - usa clickedRow per LEFT/RIGHT
@@ -594,7 +584,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             return new int[]{-1, -1};
         }
 
-        // --- GRAVITY4 ---
+        // --- GRAVITY3 ---
         int gravity = GameUI.gravityStep;
 
         switch (gravity) {
@@ -654,7 +644,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
             return new int[]{row, clickedCol};
         }
 
-        // --- GRAVITY4 ---
+        // --- GRAVITY3 ---
         switch (gravityStep) {
 
             // 0 = TOP → classico
@@ -1054,11 +1044,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // init schermo
         screen.begin();
 
-        if (isBoardFull() && !isMatchOver) {
-            resetGame();
-        }
-
-
+        // reset partita in caso di pareggio
+        if (isBoardFull() && !isMatchOver) resetGame();
 
         // cambio light/dark mode
         isDark(darkMode);
@@ -1201,8 +1188,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         if (numTokensBot == 21 && !isMatchOver) resetGame();
 
         // pulsante in alto a dx per chiudere la partita
-        draw(exitHover, gameInput.isBtnExitHover, 833, 588);
-        draw(exit, gameInput.isBtnExitClicked, 833, 588);
+        draw(exitHover, gameInput.isBtnExitHover, 900, 588);
+        draw(exit, gameInput.isBtnExitClicked, 900, 588);
 
         // LOGICA DI GIOCO (solo se non è aperta la finestra isMatchOver)
         if (!isMatchOver && gameInput.isHole)
@@ -1265,18 +1252,13 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
                 gameInput.isHole = false;
             }
 
-            if (gameInput.powerPrecision)
-            {
+            if (gameInput.powerPrecision) {
                 usedAnyBoostThisMatch = true;
                 decrementPowerUp("num_precision");
 
                 // sicurezza: click fuori griglia
-                if (row < 0 || row > 5 || col < 0 || col > 6)
-                {
-                    log.info("non è una cella");
-                }
-                else
-                {
+                if (row < 0 || row > 5 || col < 0 || col > 6) log.info("non è una cella");
+                else {
                     DailyChallenges.updateDailyOnBoostUse("num_precision");
 
                     gameInput.powerPrecision = false;

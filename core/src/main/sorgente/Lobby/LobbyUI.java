@@ -90,7 +90,7 @@ public class LobbyUI implements ResourceLoader {
 
     private boolean modeTransition = false;
     private float modeTransitionTimer = 0f;
-    private int pendingMode = -1; // 0..3 (classic, gravity4, horizontal, speedy)
+    private int pendingMode = -1; // 0..3 (classic, gravity3, horizontal, speedy)
 
     // formatter per la virgola delle migliaia !in automatico converte l'intero in stringa
     private final NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
@@ -501,8 +501,8 @@ public class LobbyUI implements ResourceLoader {
             switch (i) {
                 case 0 -> draw(star, true, 131, 301);   // Classic stella 1
                 case 1 -> draw(star, true, 161, 301);   // Classic stella 2
-                case 2 -> draw(star, true, 371, 301);   // Gravity4 stella 1
-                case 3 -> draw(star, true, 401, 301);   // Gravity4 stella 2
+                case 2 -> draw(star, true, 371, 301);   // Gravity3 stella 1
+                case 3 -> draw(star, true, 401, 301);   // Gravity3 stella 2
                 case 4 -> draw(star, true, 609, 301);   // Horizontal stella 1
                 case 5 -> draw(star, true, 639, 301);   // Horizontal stella 2
                 case 6 -> draw(star, true, 849, 301);   // Speedy stella 1
@@ -513,12 +513,12 @@ public class LobbyUI implements ResourceLoader {
         // --- GAME MODES AREAS --- //
         // hover
         draw(gameMode_hover, lobbyInput.classicHover,35, 334); // classic
-        draw(gameMode_hover, lobbyInput.gravity4Hover,275, 334); // gravity4
+        draw(gameMode_hover, lobbyInput.gravity3Hover,275, 334); // gravity3
         draw(gameMode_hover, lobbyInput.horizontalHover,513, 334); // horizontal
         draw(gameMode_hover, lobbyInput.speedyHover,753, 334); // speedy
         // clicked
         draw(gameMode_clicked, lobbyInput.classic,35, 334); // classic
-        draw(gameMode_clicked, lobbyInput.gravity4,275, 334); // gravity4
+        draw(gameMode_clicked, lobbyInput.gravity3,275, 334); // gravity3
         draw(gameMode_clicked, lobbyInput.horizontal,512, 334); // horizontal
         draw(gameMode_clicked, lobbyInput.speedy,752, 334); // speedy
 
@@ -684,7 +684,7 @@ public class LobbyUI implements ResourceLoader {
                 modeTransitionTimer = 0f;
                 lobbyInput.setInputEnabled(false);
 
-            } else if (lobbyInput.gravity4) {
+            } else if (lobbyInput.gravity3) {
                 pendingMode = 1;
                 modeTransition = true;
                 modeTransitionTimer = 0f;

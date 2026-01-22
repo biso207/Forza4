@@ -518,14 +518,14 @@ public class AuthAlgorithms implements InputProcessor {
         //UserProgressService.setProgress("avatar", 0);
         // difficoltà modalità di gioco
         UserProgressService.setProgress("diff_classic", 0);
-        UserProgressService.setProgress("diff_gravity4", 0);
+        UserProgressService.setProgress("diff_gravity3", 0);
         UserProgressService.setProgress("diff_horizontal", 0);
         UserProgressService.setProgress("diff_speedy", 0);
         // numero missione raggiunta
         UserProgressService.setProgress("num_mission", 1);
         // numero partite per ogni modalità di gioco
         UserProgressService.setProgress("matches_classic", 0);
-        UserProgressService.setProgress("matches_gravity4", 0);
+        UserProgressService.setProgress("matches_gravity3", 0);
         UserProgressService.setProgress("matches_horizontal", 0);
         UserProgressService.setProgress("matches_speedy", 0);
         // numero boosts

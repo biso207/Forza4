@@ -476,7 +476,7 @@ public class CPUBrain {
             return checkDirection(board, row, col, token, 0, 1);
         }
 
-        // classic / gravity4 / speedy
+        // classic / gravity3 / speedy
         return checkDirection(board, row, col, token, 1, 0)   // verticale
             || checkDirection(board, row, col, token, 0, 1)   // orizzontale
             || checkDirection(board, row, col, token, 1, 1)   // diagonale ↘

@@ -34,7 +34,7 @@ public class GameManager extends ScreenAdapter {
         // musica di gioco
         switch (mod) {
             case 0 -> soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game_classic_sound.ogg"));
-            case 1 -> soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game_gravity4_sound.ogg"));
+            case 1 -> soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game_gravity3_sound.ogg"));
             case 2 -> soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game_horizontal_sound.mp3")); // todo: change in .ogg
             case 3 -> soundGame= Gdx.audio.newMusic(Gdx.files.internal("sounds/game_speedy_sound.ogg"));
         }
