@@ -59,7 +59,6 @@ public class GameInput implements InputProcessor {
     private boolean requestExitToLobby = false;
     private boolean requestRestartGame = false;
 
-
     // Power-up flags
     public boolean powerTokenCracker = false;
     public boolean powerRowBreaker = false;
@@ -87,24 +86,16 @@ public class GameInput implements InputProcessor {
     public Array<Rectangle> allHoles = new Array<>();
     // abilita/disabilita click sulla griglia (serve per bloccare le mosse durante drop/bot)
     private boolean gridEnabled = true;
-    private boolean powerUpsEnabled;
+    private final boolean powerUpsEnabled;
 
-
+    // costruttore
     public GameInput(int mod) {
         // cursor
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
         cursor = Gdx.graphics.newCursor(mouse, 0, 0);
         Gdx.graphics.setCursor(cursor);
 
-        if(mod==1)
-        {
-            powerUpsEnabled = false;
-        }
-        else
-        {
-            powerUpsEnabled=true;
-        }
-
+        powerUpsEnabled = mod != 1;
 
         // Exit
         exit = new Rectangle(892, 58, 50, 50);
@@ -142,6 +133,7 @@ public class GameInput implements InputProcessor {
         btnUndo         = new Rectangle(656,150,50,50);
     }
 
+    // reset boosters
     public void resetAllPowers() {
         powerTokenCracker = false;
         powerRowBreaker = false;
@@ -225,7 +217,7 @@ public class GameInput implements InputProcessor {
         // block any input during short transitions (click delay / screen transition)
         if (!inputEnabled) return false;
 
-        System.out.println(x + " " + y);
+        //System.out.println(x + " " + y);
 
         // ui buttons (exit / match over yes-no)
         if (handleUiClick(x, y)) return true;

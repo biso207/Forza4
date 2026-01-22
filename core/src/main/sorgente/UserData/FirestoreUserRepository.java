@@ -191,7 +191,7 @@ public class FirestoreUserRepository {
 
         } while (nextPageToken != null);
 
-        System.out.println("Caricati " + map.size() + " utenti da Firestore.");
+        //System.out.println("Caricati " + map.size() + " utenti da Firestore.");
         return map;
     }
 

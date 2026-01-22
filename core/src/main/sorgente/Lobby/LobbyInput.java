@@ -388,7 +388,7 @@ public class LobbyInput implements InputProcessor {
     // controllo click
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        System.out.println(screenX + " " + screenY);
+        //System.out.println(screenX + " " + screenY);
         try {
             return checkHitboxes(screenX, screenY);
         } catch (IOException e) {
@@ -511,8 +511,6 @@ public class LobbyInput implements InputProcessor {
                     if ((boolean) UserProgressService.getProgress("dark_mode"))
                         UserProgressService.setProgress("dark_mode", false);
                     else UserProgressService.setProgress("dark_mode", true);
-
-                    System.out.println((boolean) UserProgressService.getProgress("dark_mode") ? "on" : "off");
                     return clicked();
                 }
 

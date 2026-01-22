@@ -303,7 +303,6 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         if (alg.gotoSignupHover) screen.draw(btnSignup, 902, 598); // pulsante go-to-signup
         if (alg.gobackHover) screen.draw(btnBack, 46, 598); // pulsante go-back
 
-        // todo: risolvere il problema della grafica del click del pulsante reset psw (non va)
         // -- CLICKED -- //
         if (alg.btnRedClicked) screen.draw(btnRedClicked, 424, 209); // pulsante rosso avanti
         if (alg.btnResetPSWClicked) screen.draw(btnResetPSWClicked, 386, 113);  // pulsante passaggio a psw reset

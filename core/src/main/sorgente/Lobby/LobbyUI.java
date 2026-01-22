@@ -48,7 +48,7 @@ public class LobbyUI implements ResourceLoader {
     // texture che non cambiano
     private Texture btn_claim, btn_claim_clicked;
     private Texture bgProgressBar, progressBar;
-    private Texture creditImg;
+    private Texture creditImg, noInternet;
 
     // DARK MODE
     private Texture darkLobby, darkLogout, darkSettings, darkCredits, darkScoreboard, darkMarket, darkProfileInfos;
@@ -88,9 +88,12 @@ public class LobbyUI implements ResourceLoader {
     // --- GAME MODE TRANSITION (delay per mostrare "clicked") ---
     private static final float MODE_CLICK_DELAY = 0.14f; // puoi cambiare (0.10f–0.18f)
 
-    private boolean modeTransition = false;
-    private float modeTransitionTimer = 0f;
+    private boolean modeTransition;
+    private float modeTransitionTimer;
     private int pendingMode = -1; // 0..3 (classic, gravity3, horizontal, speedy)
+
+    // flag per mostrare l'icona di internet assente
+    public static boolean isConnected;
 
     // formatter per la virgola delle migliaia !in automatico converte l'intero in stringa
     private final NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
@@ -303,7 +306,8 @@ public class LobbyUI implements ResourceLoader {
         bgProgressBar = new Texture("ui/icons/bg_progress_bar.png");
         progressBar = new Texture("ui/icons/progress_bar_daily.png");
 
-        creditImg = new Texture("ui/icons/credit.png");
+        creditImg = new Texture("ui/icons/credit.png"); // crediti
+        noInternet = new Texture("ui/icons/no_internet.png"); // internet assente
     }
 
     // metodo per stampare la top 5 nella lobby
@@ -400,6 +404,9 @@ public class LobbyUI implements ResourceLoader {
 
         // SCOREBOARD TOP 5 USERS //
         drawScoreboard(5);
+
+        // icona internet assente
+        draw(noInternet, !isConnected, 580, 600);
 
         // NUMERO DI BOOSTS
         // linea 1

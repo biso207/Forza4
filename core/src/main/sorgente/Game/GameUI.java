@@ -84,6 +84,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
     private Texture userTimeLeftArea;
     // texture per il booster attivo
     private Texture activeBooster;
+    // texture per la colonna ghiacciata
+    private Texture iceColumn;
 
     // --- DROP ANIMATION ---
     private enum DropDir { TOP, BOTTOM, RIGHT, LEFT }
@@ -303,7 +305,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
 
         CPUBrain = new CPUBrain(gameDifficulty, 2, mod);
 
-        System.out.println(gameDifficulty);
         switch(gameDifficulty) {
             case 0 -> {
                 points = 20;
@@ -502,7 +503,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
         }
 
         if (botCol == -1) {
-            log.info("Bot non può giocare dopo power-up");
+            //log.info("Bot non può giocare dopo power-up");
             return;
         }
 
@@ -511,7 +512,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
         int c = landing[1];
 
         if (r == -1 || c == -1) {
-            log.info("Bot landing cell invalida dopo power-up");
+            //log.info("Bot landing cell invalida dopo power-up");
             return;
         }
 
@@ -603,7 +604,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
 
         freezeColumn = col;
         freezeTurns = 4; // 4 mosse (U,B,U,B)
-        log.info("Power-up Freeze attivato sulla colonna " + col);
+        //("Power-up Freeze attivato sulla colonna " + col);
+
+        // stampa immagine colonna ghiacciata
+        screen.draw(iceColumn, 270, 92);
     }
 
 
@@ -644,7 +648,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
 
         // se il bot non ha ancora giocato → niente da annullare
         if (lastNumTokensBot == numTokensBot) {
-            log.info("Undo impossibile: nessuna mossa bot da annullare");
+            //log.info("Undo impossibile: nessuna mossa bot da annullare");
             return;
         }
 
@@ -658,7 +662,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
         freezeTurns = lastFreezeTurns;
         numTokensBot = lastNumTokensBot;
 
-        log.info("Undo eseguito: mossa bot annullata");
+        //log.info("Undo eseguito: mossa bot annullata");
     }
 
     private void decrementPowerUp(String key) {
@@ -830,7 +834,16 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
                 drawX += 70;
             }
         }
+    }
 
+    // metodo per disegnare la colonna ghiacciata
+    private void drawFreezeColumn() {
+        if (freezeTurns <= 0 || freezeColumn < 0) return;
+
+        float x = cellX(freezeColumn);
+        float y = cellY(5);
+
+        screen.draw(iceColumn, x - 4, y);
     }
 
     private float cellX(int col) {
@@ -843,7 +856,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
     private DropDir currentDropDir() {
         if (mod != 1) return DropDir.TOP;
 
-        log.info("Gravity"+gravityStep);
+        //log.info("Gravity"+gravityStep);
 
         return switch (gravityStep) {
             case 0 -> DropDir.TOP;   // cade dall’alto
@@ -871,7 +884,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
 
         dropDir = currentDropDir();
 
-        log.info("Dropdir: "+dropDir);
+        //log.info("Dropdir: "+dropDir);
 
         dropTargetX = cellX(col);
         dropTargetY = cellY(row);
@@ -994,8 +1007,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
     }
 
     // metodo che disegna la pedina 'in volo'
-    private void drawDrop()
-    {
+    private void drawDrop() {
         if (!dropActive) return;
         Texture tex = (dropPlayer == 1) ? red : yellow;
 
@@ -1014,27 +1026,27 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
 
                 // orizzontale →
                 if (c <= 3 &&
-                        boardState[r][c + 1] == player &&
-                        boardState[r][c + 2] == player &&
-                        boardState[r][c + 3] == player) return true;
+                    boardState[r][c + 1] == player &&
+                    boardState[r][c + 2] == player &&
+                    boardState[r][c + 3] == player) return true;
 
                 // verticale ↓
                 if (r <= 2 &&
-                        boardState[r + 1][c] == player &&
-                        boardState[r + 2][c] == player &&
-                        boardState[r + 3][c] == player) return true;
+                    boardState[r + 1][c] == player &&
+                    boardState[r + 2][c] == player &&
+                    boardState[r + 3][c] == player) return true;
 
                 // diagonale ↘
                 if (r <= 2 && c <= 3 &&
-                        boardState[r + 1][c + 1] == player &&
-                        boardState[r + 2][c + 2] == player &&
-                        boardState[r + 3][c + 3] == player) return true;
+                    boardState[r + 1][c + 1] == player &&
+                    boardState[r + 2][c + 2] == player &&
+                    boardState[r + 3][c + 3] == player) return true;
 
                 // diagonale ↗
                 if (r >= 3 && c <= 3 &&
-                        boardState[r - 1][c + 1] == player &&
-                        boardState[r - 2][c + 2] == player &&
-                        boardState[r - 3][c + 3] == player) return true;
+                    boardState[r - 1][c + 1] == player &&
+                    boardState[r - 2][c + 2] == player &&
+                    boardState[r - 3][c + 3] == player) return true;
             }
         }
         return false;
@@ -1196,17 +1208,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
             Fonts.bold13.draw(screen, UserProgressService.getProgress(items[i]).toString(), x, 497);
             x+=78;
         }
-
-        // stato freeze (feedback per l'utente)
-        if (freezeTurns > 0 && freezeColumn >= 0) {
-            int turnsLeft = (freezeTurns + 1) / 2; // 4->2, 3->2, 2->1, 1->1
-            String msg = "freeze: colonna " + (freezeColumn + 1) + " (" + turnsLeft + " turni)";
-            Fonts.draw(screen, msg, 55, 95, Fonts.bold20);
-
-            // label sopra la colonna congelata
-            Fonts.draw(screen, "ICE", cellX(freezeColumn) + 18, 650, Fonts.bold20);
-        }
-
     }
 
     @Override
@@ -1333,8 +1334,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
         drawCrackerAnimOverlay();
         // 4) disegno animazione caduta pedina
         drawDrop();
-        // 4) disegno tabella
+        // 5) disegno tabella
         screen.draw(table, 248, 71);
+        // eventuale disegno della colonna ghiacciata
+        drawFreezeColumn();
 
         // overlay booster attivo (sopra icone booster)
         drawActiveBoostersOverlay();
@@ -1381,14 +1384,14 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
 
             col = gameInput.getColumnFromClick(Gdx.input.getX(), Gdx.input.getY());
 
-            log.info(col);
+            //log.info(col);
 
             if (col == -1) gameInput.isHole = false;
 
             // calcolo la riga cliccata
             row = gameInput.getRowFromClick(Gdx.input.getX(), Gdx.input.getY());
 
-                        // --- FREEZE: il click serve solo a scegliere la colonna da congelare (non piazza pedina) ---
+            // --- FREEZE: il click serve solo a scegliere la colonna da congelare (non piazza pedina) ---
             if (gameInput.powerFreeze) {
                 if (col != -1) {
                     usedAnyBoostThisMatch = true;
@@ -1423,7 +1426,6 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
                     if (lr == -1 || lc == -1) {
                         gameInput.isHole = false;
                     } else {
-
                         // se la colonna di landing è congelata, annulla la mossa (feedback immediato)
                         if (freezeTurns > 0 && lc == freezeColumn) {
                             SoundManager.playClickButton(LobbyInput.effectsPercent);
@@ -1492,43 +1494,34 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
                     decrementPowerUp("num_precision");
 
                     // sicurezza: click fuori griglia
-                    if (row < 0 || row > 5 || col < 0 || col > 6) log.info("non è una cella");
-                    else {
-                        DailyChallenges.updateDailyOnBoostUse("num_precision");
-
-                        gameInput.powerPrecision = false;
-
-
-                        log.info(col);
-
-                        // se la cella è vuota → piazza la pedina
-                        if (boardState[row][col] == 0) {
-                            startDrop(1, row, col);
-                            log.info("Target piazzato su (" + row + "," + col + ")");
-                        } else {
-                            log.info("Target: cella occupata, nessuna azione");
-
-                        }
-
-                        // NON passa il turno al bot
-
+                    if (row < 0 || row > 5 || col < 0 || col > 6) {
                         gameInput.isHole = false;
                         gameInput.setGridEnabled(true);
-
-
-                        // check vittoria immediata
-                        if (CPUBrain.checkWin(boardState, row, col, 1)) {
-                            isMatchOver = true;
-                            victory = true;
-                            SoundManager.playWin(LobbyInput.musicPercent);
-                            try {
-                                saveUserProgresses(points, 1);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                        startBotMoveAfterPowerUp();
+                        return;
                     }
+
+                    DailyChallenges.updateDailyOnBoostUse("num_precision");
+                    gameInput.powerPrecision = false;
+
+                    // se la cella è vuota → piazza la pedina
+                    if (boardState[row][col] == 0) startDrop(1, row, col);
+
+                    // NON passa il turno al bot
+                    gameInput.isHole = false;
+                    gameInput.setGridEnabled(true);
+
+                    // check vittoria immediata
+                    if (CPUBrain.checkWin(boardState, row, col, 1)) {
+                        isMatchOver = true;
+                        victory = true;
+                        SoundManager.playWin(LobbyInput.musicPercent);
+                        try {
+                            saveUserProgresses(points, 1);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    startBotMoveAfterPowerUp();
                 }
             }
         }
@@ -1656,9 +1649,10 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
 
         // stella difficoltà
         starDifficulty=new Texture("ui/icons/star_selected.png");
-
         // booster attivo
         activeBooster = new Texture("ui/icons/booster_activated.png");
+        // colonna ghiacciata
+        iceColumn = new Texture("ui/icons/ice_column.png");
     }
 
     @Override

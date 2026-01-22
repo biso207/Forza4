@@ -428,6 +428,7 @@ public class AuthAlgorithms implements InputProcessor {
             }
         }
         catch (Exception e) {
+            resetErrors();
             isGeneralError=true;
             generalError = e.getMessage();
         }
@@ -471,6 +472,7 @@ public class AuthAlgorithms implements InputProcessor {
             UserProgressService.loadProgresses(); // caricamento progressi utente
             state = 3; // passaggio alla lobby
         } catch (Exception e) {
+            resetErrors();
             isGeneralError=true;
             generalError = e.getMessage();
         }
@@ -577,6 +579,7 @@ public class AuthAlgorithms implements InputProcessor {
         // salvataggio punti di base in remoto nel loro apposito campo
         try { FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, 0); }
         catch (Exception e) {
+            resetErrors();
             isGeneralError=true;
             generalError = e.getMessage();
         }
@@ -777,7 +780,7 @@ public class AuthAlgorithms implements InputProcessor {
 
     // metodo per controllare i click del mouse
     @Override public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        System.out.println(screenX + " " + screenY);
+        //System.out.println(screenX + " " + screenY);
         // reset degli hover per mostrare bene il resto
         btnRedHover = btnResetPSWHover = gotoLoginHover = gotoSignupHover = gobackHover = false;
 
