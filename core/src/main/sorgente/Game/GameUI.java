@@ -237,6 +237,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
         // progressi utente
         crediti = (int) UserProgressService.getProgress("credits");
         punti = (int) UserProgressService.getProgress("points");
+        resetGame();
+
     }
 
     // metodo per disegnare un elemento su schermo
