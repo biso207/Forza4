@@ -199,7 +199,7 @@ public class GameUI extends ScreenAdapter implements ResourceLoader
 
             case 1 -> {
                 modName = "Gravity3";
-                gameDifficulty = (int) UserProgressService.getProgress("diff_gravity3");
+                gameDifficulty = (int) UserProgressService.getProgress("diff_gravity4");
             }
 
             case 2 -> {

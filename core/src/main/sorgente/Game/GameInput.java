@@ -87,13 +87,23 @@ public class GameInput implements InputProcessor {
     public Array<Rectangle> allHoles = new Array<>();
     // abilita/disabilita click sulla griglia (serve per bloccare le mosse durante drop/bot)
     private boolean gridEnabled = true;
+    private boolean powerUpsEnabled;
 
 
-    public GameInput() {
+    public GameInput(int mod) {
         // cursor
         mouse = new Pixmap(Gdx.files.internal("ui/icons/cursor.png"));
         cursor = Gdx.graphics.newCursor(mouse, 0, 0);
         Gdx.graphics.setCursor(cursor);
+
+        if(mod==1)
+        {
+            powerUpsEnabled = false;
+        }
+        else
+        {
+            powerUpsEnabled=true;
+        }
 
 
         // Exit
@@ -207,7 +217,7 @@ public class GameInput implements InputProcessor {
         return false;
     }
 
-boolean clicked() {
+    boolean clicked() {
         SoundManager.playClickButton(LobbyInput.effectsPercent);
         return true;
     }
@@ -223,6 +233,11 @@ boolean clicked() {
 
         // ui buttons (exit / match over yes-no)
         if (handleUiClick(x, y)) return true;
+
+
+
+
+
 
         // POWER-UP BUTTONS //
         if (btnFreeze.contains(x, y)) {
@@ -255,15 +270,20 @@ boolean clicked() {
             return clicked();
         }
 
-         // click sulla griglia
+        // click sulla griglia
         int col = getColumnFromClick(x, y);
         if (gridEnabled && col != -1) isHole = true;
 
         return true;
     }
 
+
+
     private void activatePowerUp(String type)
     {
+
+        if (powerUpsEnabled == false) { log.info("Power-up disabilitati in Gravity3"); return; }
+
         // --- TOGGLE: se il potere era già attivo, disattivalo e basta ---
         switch (type) {
             case "freeze":
@@ -294,7 +314,7 @@ boolean clicked() {
         int numFreezer      = (int) UserProgressService.getProgress("num_freezer");
         int numTokenCracker = (int) UserProgressService.getProgress("num_token_cracker");
         int numRowBraker    = (int) UserProgressService.getProgress("num_row_breaker");
-        int numPeek         = (int) UserProgressService.getProgress("num_peek");
+        int numPeek         = 100; //(int) UserProgressService.getProgress("num_peek");
         int numPrecision    = (int) UserProgressService.getProgress("num_precision");
         int numUndo         = (int) UserProgressService.getProgress("num_undo");
 
@@ -395,7 +415,7 @@ boolean clicked() {
         return false;
     }
 
-// setter e getter stato click sulla griglia
+    // setter e getter stato click sulla griglia
     public void setGridEnabled(boolean enabled) {
         gridEnabled = enabled;
         if (!enabled) isHole = false; // pulizia: cancella click pendenti
