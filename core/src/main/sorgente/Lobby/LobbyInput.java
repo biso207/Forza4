@@ -216,7 +216,7 @@ public class LobbyInput implements InputProcessor {
         musicPercent = ((Number) UserProgressService.getProgress("music_volume")).floatValue();
         // difficoltà
         difficolta[0] = (int) UserProgressService.getProgress("diff_classic");
-        difficolta[1] = (int) UserProgressService.getProgress("diff_gravity4");
+        difficolta[1] = (int) UserProgressService.getProgress("diff_gravity3");
         difficolta[2] = (int) UserProgressService.getProgress("diff_horizontal");
         difficolta[3] = (int) UserProgressService.getProgress("diff_speedy");
 
