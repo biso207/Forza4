@@ -28,7 +28,7 @@ public class GameManager extends ScreenAdapter {
     // costruttore
     public GameManager(Main game, boolean dark, int mod) {
         GameManager.game = game;
-        input = new GameInput();
+        input = new GameInput(mod);
         ui = new GameUI(input, dark, mod);
 
         // musica di gioco
