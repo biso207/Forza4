@@ -124,13 +124,12 @@ public class GameInput implements InputProcessor {
         btn_yes = new Rectangle(341, 408, 150, 50);
 
         // Power-up buttons (posizioni esempio)
-
-        btnFreeze       = new Rectangle(293,162,50,50);
-        btnExplosive    = new Rectangle(368,162,50,50);
-        btnExplosiveBig = new Rectangle(457,162,50,50);
-        btnPredict      = new Rectangle(530,162,50,50);
-        btnTarget       = new Rectangle(605,162,50,50);
-        btnUndo         = new Rectangle(689,162,50,50);
+        btnFreeze       = new Rectangle(281,150,50,50);
+        btnExplosive    = new Rectangle(356,150,50,50);
+        btnExplosiveBig = new Rectangle(431,150,50,50);
+        btnPredict      = new Rectangle(506,150,50,50);
+        btnTarget       = new Rectangle(581,150,50,50);
+        btnUndo         = new Rectangle(656,150,50,50);
     }
 
     public void resetAllPowers() {
@@ -301,7 +300,6 @@ boolean clicked() {
 
         // attivazione
         switch (type) {
-
             case "freeze":
                 if (numFreezer >= 1) {
                     powerFreeze = true;

@@ -72,6 +72,8 @@ public class AuthAlgorithms implements InputProcessor {
     protected boolean error2 = false; // "No Internet Connection"
     protected boolean error3 = false; // "Your session is already open on another device"
     protected boolean error4 = false; // "Nickname not valid"
+    protected boolean isGeneralError = false;
+    protected String generalError = "";
 
     /* pagina di riferimento
             0 = LogIn
@@ -426,7 +428,8 @@ public class AuthAlgorithms implements InputProcessor {
             }
         }
         catch (Exception e) {
-            System.err.println(e.getMessage());
+            isGeneralError=true;
+            generalError = e.getMessage();
         }
     }
 
@@ -464,8 +467,9 @@ public class AuthAlgorithms implements InputProcessor {
             SessionLockService.startHeartbeat(nickname); // inizio del refresh del timestamp
             UserProgressService.loadProgresses(); // caricamento progressi utente
             state = 3; // passaggio alla lobby
-        } catch(Exception e){
-            System.err.println(e.getMessage());
+        } catch (Exception e) {
+            isGeneralError=true;
+            generalError = e.getMessage();
         }
     }
 
@@ -550,10 +554,12 @@ public class AuthAlgorithms implements InputProcessor {
         UserProgressService.setProgress("daily_progress", 0);
         UserProgressService.setProgress("daily_streak", 0);
 
-
         // salvataggio punti di base in remoto nel loro apposito campo
         try { FirestoreUserRepository.setUserPoints(AuthAlgorithms.nickname, 0); }
-        catch (Exception e) { System.out.println(e.getMessage()); }
+        catch (Exception e) {
+            isGeneralError=true;
+            generalError = e.getMessage();
+        }
 
         // salvataggio su file dei progressi e dati utente iniziali
         UserProgressService.saveProgresses();

@@ -282,6 +282,16 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
             Fonts.draw(screen, "No Internet Connection",416,63, Fonts.bold20);
         }
 
+        // messaggio errore generico
+        if (alg.isGeneralError) {
+            var font = Fonts.bold20;
+
+            layout.setText(font, alg.generalError + " - Try Again");
+            float x = (1000 - layout.width) / 2f;
+
+            Fonts.draw(screen, alg.generalError, x, 63, font);
+        }
+
         // icona mostra/nascondi password
         if (alg.showPS) screen.draw(showPS, 695,323);
         else screen.draw(coverPS, 695,323);
