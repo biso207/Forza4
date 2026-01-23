@@ -325,7 +325,8 @@ public class AuthUI extends ScreenAdapter implements ResourceLoader {
         Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
 
         // versione di gioco
-        String text = "Beta " + VersionInfo.getVersion();
+        //String text = "Beta " + VersionInfo.getVersion();
+        String text = "January 2026";
 
         float rightX = 955;   // X finale dove deve arrivare il testo
         float y = 63;

@@ -1194,7 +1194,8 @@ public class GameUI extends ScreenAdapter implements ResourceLoader {
         // NOME AZIENDA //
         Fonts.draw(screen, "Drop Logic", 49, 63, Fonts.medium20); // firma al gioco
         // VERSIONE DI GIOCO //
-        String text = "Beta " + VersionInfo.getVersion();
+        //String text = "Beta " + VersionInfo.getVersion();
+        String text = "January 2026";
         // calcolo larghezza del testo
         GlyphLayout layout = new GlyphLayout(Fonts.medium20, text);
         // stampa testo
